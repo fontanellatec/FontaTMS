@@ -1,0 +1,306 @@
+<div class="acerto-viagem-page">
+  <div class="header">
+    <h3>Acerto de Viagem</h3>
+    <span class="muted">Fechamento por viagem</span>
+    <div class="segmented">
+      <button class="btn sm" (click)="exportCSV()">Exportar</button>
+      <button class="btn sm" (click)="printList()">Imprimir</button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters">
+    <label class="filter">
+      <span>Período (De):</span>
+      <input type="text" [(ngModel)]="periodoDe" placeholder="dd/mm/aaaa" />
+    </label>
+    <label class="filter">
+      <span>Período (Até):</span>
+      <input type="text" [(ngModel)]="periodoAte" placeholder="dd/mm/aaaa" />
+    </label>
+    <label class="filter">
+      <span>Início Acerto (De):</span>
+      <input type="text" [(ngModel)]="inicioDe" placeholder="dd/mm/aaaa" />
+    </label>
+    <label class="filter">
+      <span>Início Acerto (Até):</span>
+      <input type="text" [(ngModel)]="inicioAte" placeholder="dd/mm/aaaa" />
+    </label>
+    <label class="filter">
+      <span>Fim Acerto (De):</span>
+      <input type="text" [(ngModel)]="fimDe" placeholder="dd/mm/aaaa" />
+    </label>
+    <label class="filter">
+      <span>Fim Acerto (Até):</span>
+      <input type="text" [(ngModel)]="fimAte" placeholder="dd/mm/aaaa" />
+    </label>
+
+    <label class="filter">
+      <span>Acerto:</span>
+      <input type="text" [(ngModel)]="filtroNumero" placeholder="Nº do Acerto" />
+    </label>
+    <label class="filter">
+      <span>Placa:</span>
+      <input type="text" [(ngModel)]="filtroPlaca" placeholder="Placa do Veículo" />
+    </label>
+    <label class="filter">
+      <span>Motorista:</span>
+      <input type="text" [(ngModel)]="filtroMotorista" placeholder="Nome do Motorista" />
+    </label>
+    <label class="filter">
+      <span>Gestor:</span>
+      <input type="text" [(ngModel)]="filtroGestor" placeholder="Gestor do Motorista" />
+    </label>
+
+    <div class="actions">
+      <button class="btn btn-primary" (click)="pesquisar()">Pesquisar</button>
+    </div>
+  </div>
+
+  <!-- Tabela -->
+  <div class="table card list-card">
+    <div class="row header">
+      <div>Acerto</div>
+      <div>Início Acerto</div>
+      <div>Fim Acerto</div>
+      <div>Veículo</div>
+      <div>Motorista</div>
+      <div>Receita</div>
+      <div>Abastecimento</div>
+      <div>Despesas</div>
+      <div>Adiantamentos</div>
+      <div>Pedágios</div>
+      <div>Dano Patrimonial</div>
+      <div>Bônus</div>
+      <div>Concluir</div>
+      <div>Finalizar</div>
+      <div>Gerar Doc</div>
+    </div>
+    <div class="table-body">
+      <div class="row" *ngFor="let r of paged; let idx = index">
+        <div>{{ r.numero }}</div>
+        <div>{{ r.inicioAcerto }}</div>
+        <div>{{ r.fimAcerto }}</div>
+        <div>{{ r.veiculo }}</div>
+        <div>{{ r.motorista }}</div>
+        <div class="clickable"><a href="#" (click)="$event.preventDefault(); $event.stopPropagation(); abrirModal('receita', r)">{{ formatMoney(r.receita) }}</a></div>
+        <div class="clickable"><a href="#" (click)="$event.preventDefault(); $event.stopPropagation(); abrirModal('abastecimento', r)">{{ formatMoney(r.abastecimento) }}</a></div>
+        <div class="clickable"><a href="#" (click)="$event.preventDefault(); $event.stopPropagation(); abrirModal('despesa', r)">{{ formatMoney(r.despesas) }}</a></div>
+        <div class="clickable"><a href="#" (click)="$event.preventDefault(); $event.stopPropagation(); abrirModal('adiantamento', r)">{{ formatMoney(r.adiantamentos) }}</a></div>
+        <div class="clickable"><a href="#" (click)="$event.preventDefault(); $event.stopPropagation(); abrirModal('pedagio', r)">{{ formatMoney(r.pedagios) }}</a></div>
+        <div class="clickable"><a href="#" (click)="$event.preventDefault(); $event.stopPropagation(); abrirModal('danoPatrimonial', r)">{{ formatMoney(r.danoPatrimonial) }}</a></div>
+        <div class="clickable"><a href="#" (click)="$event.preventDefault(); $event.stopPropagation(); abrirModal('bonus', r)">{{ formatMoney(r.bonus) }}</a></div>
+        <div class="col-actions status-cell">
+          <span class="status concluido" *ngIf="r.concluido">Concluído</span>
+          <button class="icon-btn sm" *ngIf="!r.concluido" (click)="abrirModalConcluir(r)" aria-label="Concluir" data-tooltip="Concluir">✓</button>
+        </div>
+        <div class="col-actions status-cell">
+          <span class="status finalizado" *ngIf="r.finalizado">Finalizado</span>
+          <button class="icon-btn sm" *ngIf="!r.finalizado" (click)="abrirModalFinalizar(r)" aria-label="Finalizar" data-tooltip="Finalizar">✓</button>
+        </div>
+        <div class="col-actions">
+          <button class="icon-btn sm" (click)="gerarDocumento(r)" aria-label="Gerar Documento" data-tooltip="Gerar Documento">+</button>
+        </div>
+      </div>
+      <div class="row empty" *ngIf="filtered.length === 0">
+        <div class="muted">Nenhum registro encontrado com os filtros atuais.</div>
+      </div>
+    </div>
+    <div class="table-footer">
+      <div class="footer-left">
+        <span class="muted">Página {{ page }} de {{ pageCount }}</span>
+        <span class="muted">• Mostrando {{ (page-1)*pageSize + 1 }}–{{ Math.min(page*pageSize, filtered.length) }} de {{ filtered.length }}</span>
+      </div>
+      <div class="footer-right">
+        <label class="page-size">
+          <span>Tamanho</span>
+          <select [(ngModel)]="pageSize" (ngModelChange)="setPageSize($event)">
+            <option *ngFor="let s of pageSizeOptions" [value]="s">{{ s }}</option>
+          </select>
+        </label>
+        <button class="btn sm" (click)="prevPage()" [disabled]="page<=1">Anterior</button>
+        <button class="btn sm" (click)="nextPage()" [disabled]="page>=pageCount">Próxima</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notificação -->
+  <div class="notification" [class]="'notification-' + notificacao.tipo" *ngIf="notificacao.visivel">
+    <div class="notification-content">
+      <svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path *ngIf="notificacao.tipo === 'success'" d="M9 12l2 2 4-4"/>
+        <circle *ngIf="notificacao.tipo === 'success'" cx="12" cy="12" r="9"/>
+        <circle *ngIf="notificacao.tipo === 'error'" cx="12" cy="12" r="9"/>
+        <line *ngIf="notificacao.tipo === 'error'" x1="15" y1="9" x2="9" y2="15"/>
+        <line *ngIf="notificacao.tipo === 'error'" x1="9" y1="9" x2="15" y2="15"/>
+        <circle *ngIf="notificacao.tipo === 'info'" cx="12" cy="12" r="9"/>
+        <line *ngIf="notificacao.tipo === 'info'" x1="12" y1="8" x2="12" y2="12"/>
+        <line *ngIf="notificacao.tipo === 'info'" x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span>{{ notificacao.mensagem }}</span>
+    </div>
+    <button class="notification-close" (click)="notificacao.visivel = false">✕</button>
+  </div>
+
+  <!-- Modal de confirmação para concluir -->
+  <div class="modal-overlay" *ngIf="modalConcluirOpen" (click)="fecharModalConcluir()"></div>
+  <div class="modal modal-confirm" *ngIf="modalConcluirOpen" [class.open]="modalConcluirOpen" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 12l2 2 4-4"/>
+          <circle cx="12" cy="12" r="9"/>
+        </svg>
+      </div>
+      <div class="modal-title-content">
+        <h4 class="modal-title">Concluir Acerto</h4>
+        <span class="modal-subtitle">Acerto #{{ registroParaConcluir?.numero }}</span>
+      </div>
+      <button class="icon" (click)="fecharModalConcluir()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>Tem certeza que deseja <strong>concluir</strong> este acerto de viagem?</p>
+      <div class="modal-info">
+        <div class="info-item">
+          <span class="label">Motorista:</span>
+          <span class="value">{{ registroParaConcluir?.motorista }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Veículo:</span>
+          <span class="value">{{ registroParaConcluir?.veiculo }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Período:</span>
+          <span class="value">{{ registroParaConcluir?.inicioAcerto }} - {{ registroParaConcluir?.fimAcerto }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" (click)="fecharModalConcluir()">Cancelar</button>
+      <button class="btn btn-success" (click)="confirmarConcluir()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+        Concluir
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal de Finalização -->
+  <div class="modal-overlay" *ngIf="modalFinalizarOpen" (click)="fecharModalFinalizar()"></div>
+  <div class="modal modal-finalizar" *ngIf="modalFinalizarOpen" [class.open]="modalFinalizarOpen">
+    <div class="modal-header">
+      <h4>Finalizar Acerto #{{ registroParaFinalizar?.numero }}</h4>
+      <button class="icon" (click)="fecharModalFinalizar()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-info" style="margin-bottom:12px;">
+        <div class="info-item">
+          <span class="label">Motorista:</span>
+          <span class="value">{{ registroParaFinalizar?.motorista }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Veículo:</span>
+          <span class="value">{{ registroParaFinalizar?.veiculo }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Período:</span>
+          <span class="value">{{ registroParaFinalizar?.inicioAcerto }} - {{ registroParaFinalizar?.fimAcerto }}</span>
+        </div>
+      </div>
+
+      <h5 class="section-title">Adiantamento</h5>
+      <div class="modal-table adiantamento-table">
+        <div class="thead">
+          <div class="th">Seq</div>
+          <div class="th">Data</div>
+          <div class="th">Observação</div>
+          <div class="th right">Valor</div>
+          <div class="th">Justificativa</div>
+        </div>
+        <div class="tbody">
+          <div class="tr" *ngFor="let it of (registroParaFinalizar?.itensAdiantamento || []); let i = index">
+            <div class="td">{{ i + 1 }}</div>
+            <div class="td">{{ it.data }}</div>
+            <div class="td">{{ it.descricao || it.tipo || it.local }}</div>
+            <div class="td right">{{ formatMoney(it.valor) }}</div>
+            <div class="td"><input type="text" [(ngModel)]="justificativas[it.id]" placeholder="Opcional" /></div>
+          </div>
+        </div>
+      </div>
+      <div class="total-line">Valor Total {{ formatMoney(soma(registroParaFinalizar?.itensAdiantamento || [])) }}</div>
+
+      <h5 class="section-title">Bônus</h5>
+      <div class="bonus-form">
+        <select [(ngModel)]="novoBonusTipo">
+          <option value="Bônus">Bônus</option>
+          <option value="No Show">No Show</option>
+        </select>
+        <input type="text" [(ngModel)]="novoBonusDescricao" placeholder="Descrição" />
+        <input type="number" [(ngModel)]="novoBonusValor" placeholder="Valor" />
+        <button class="btn" (click)="adicionarBonus()">Adicionar</button>
+      </div>
+      <div class="modal-table bonus-table" style="margin-top:8px;">
+        <div class="thead">
+          <div class="th">Tipo</div>
+          <div class="th">Descrição</div>
+          <div class="th right">Valor</div>
+        </div>
+        <div class="tbody">
+          <div class="tr" *ngFor="let it of (registroParaFinalizar?.itensBonus || [])">
+            <div class="td">{{ it.tipo || 'Bônus' }}</div>
+            <div class="td">{{ it.descricao }}</div>
+            <div class="td right">{{ formatMoney(it.valor) }}</div>
+          </div>
+        </div>
+      </div>
+        <div class="total-line">Total Bônus {{ formatMoney(soma(registroParaFinalizar?.itensBonus || [])) }}</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="fecharModalFinalizar()">Fechar</button>
+        <button class="btn btn-success" (click)="confirmarFinalizar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+          Finalizar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de itens -->
+  <div class="modal-backdrop" *ngIf="modalOpen" (click)="fecharModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h4>{{ modalTitle }}</h4>
+        <button class="icon-btn sm" (click)="fecharModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-table">
+          <div class="thead" [style.gridTemplateColumns]="modalColumnsTemplate">
+            <div class="th checkbox-col"></div>
+            <div class="th">Data</div>
+            <div class="th">{{ modalMidLabel }}</div>
+            <div class="th" *ngIf="modalShowLitros">Litros</div>
+            <div class="th right">Valor</div>
+          </div>
+          <div class="tbody">
+            <div class="tr" *ngFor="let item of modalItems; trackBy: trackById" [style.gridTemplateColumns]="modalColumnsTemplate">
+              <div class="td checkbox-col">
+                <input type="checkbox" [(ngModel)]="item.checked" />
+              </div>
+              <div class="td">{{ item.data }}</div>
+              <div class="td">{{ getMidValue(item) }}</div>
+              <div class="td" *ngIf="modalShowLitros">{{ item.litros }}</div>
+              <div class="td right">{{ formatMoney(item.valor) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" (click)="fecharModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="confirmarModal()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>

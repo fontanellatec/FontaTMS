@@ -1,0 +1,74 @@
+.vehicles-page { padding: 16px; min-height: 100vh; display:flex; flex-direction:column; }
+
+.header { display:flex; align-items:center; gap:12px; margin-bottom: 12px; }
+.muted { color:#6b7280; font-size: 12px; }
+
+.filters { display:flex; gap:12px; margin-bottom:12px; }
+.field { display:flex; flex-direction:column; gap:4px; }
+.field.grow { flex:1; }
+select, input { height:32px; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px; }
+
+.card { background:#fff; border:1px solid #e5e7eb; border-radius:8px; overflow: hidden; }
+.list-card { display:flex; flex-direction:column; }
+.table-body { flex: 0 0 auto; min-height:auto; overflow:visible; }
+.table-footer { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-top:1px solid #f3f4f6; background: var(--surface-secondary, #f9fafb); }
+.table-footer .footer-left { display:flex; gap:8px; align-items:center; }
+.table-footer .footer-right { display:flex; gap:8px; align-items:center; }
+.table-footer .page-size { display:flex; align-items:center; gap:6px; }
+
+/* Evitar scroll geral; rolar apenas dentro da lista */
+.filters { flex: 0 0 auto; }
+.agendamentos-card { flex: 0 0 auto; }
+.table { display:block; }
+.row { display:grid; grid-template-columns: 1fr 2fr 1fr 1fr 120px; gap:8px; padding:10px 12px; align-items:center; border-top:1px solid #f3f4f6; }
+.row.header { background: var(--surface-secondary, #f9fafb); font-weight:600; border-top:none; }
+.row.empty { grid-template-columns: 1fr; }
+
+.status { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:600; }
+.status.ativo { background:#dcfce7; color:#14532d; }
+.status.manutencao { background:#fde68a; color:#7c2d12; }
+.status.parado { background:#fee2e2; color:#7f1d1d; }
+
+.btn { height:32px; padding:0 10px; border-radius:6px; border:1px solid #d1d5db; background:#fff; cursor:pointer; }
+.btn:hover { background:#f9fafb; }
+.btn.sm { height:28px; font-size:12px; }
+.btn.secondary { background:#f9fafb; }
+.icon { border:none; background:transparent; font-size:18px; cursor:pointer; }
+
+.modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.3); }
+.modal { position:fixed; inset:auto 0 0 0; margin:auto; top:10%; width:560px; background:#fff; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.15); }
+.modal-header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #f3f4f6; }
+.modal-body { padding:16px; }
+.grid { display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:16px; }
+.label { font-size:12px; color:#6b7280; }
+.value { font-weight:600; }
+.actions { display:flex; gap:8px; justify-content:flex-end; }
+
+/* Form styles para modal de agendamento */
+.form-grid { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+.form-grid label span { display:block; font-size:12px; color:#6b7280; margin-bottom:6px; }
+.form-grid input, .form-grid select, .form-grid textarea { width:100%; background:#f9fafb; border:1px solid #e5e7eb; color:#111827; border-radius:8px; padding:8px; }
+.col-span-2 { grid-column: span 2; }
+
+/* Agendamentos recentes */
+.agendamentos-card { margin-top:16px; background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:12px; }
+.ag-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.count-badge { background:#f3f4f6; border:1px solid #e5e7eb; border-radius:999px; padding:2px 8px; font-size:12px; color:#374151; }
+.ag-empty { padding:12px; }
+.ag-table-container { border:1px solid #e5e7eb; border-radius:8px; overflow:auto; }
+
+.ag-table { width:100%; border-collapse:collapse; }
+.ag-table th, .ag-table td { text-align:left; padding:10px 12px; border-bottom:1px solid #f3f4f6; }
+.ag-table thead th { background: var(--surface-secondary, #f9fafb); font-size:12px; color:#6b7280; }
+
+/* Chips de status do histórico */
+.chip { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:600; border:1px solid transparent; }
+.chip.concluido { background:#dcfce7; color:#14532d; border-color:#bbf7d0; }
+.chip.cancelado { background:#fee2e2; color:#7f1d1d; border-color:#fecaca; }
+
+/* Botões de ícone nas ações */
+.actions-cell { display:flex; gap:6px; }
+.icon-btn { height:28px; width:28px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; border:1px solid #d1d5db; background:#fff; cursor:pointer; font-size:16px; line-height:1; }
+.icon-btn:hover { background:#f3f4f6; }
+.icon-btn.success { color:#14532d; }
+.icon-btn.danger { color:#7f1d1d; }

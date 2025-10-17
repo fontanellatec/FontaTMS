@@ -1,0 +1,243 @@
+<ng-container *ngIf="!isLoginRoute(); else loginOnly">
+<div class="shell">
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <div class="brand-name">FontaTec</div>
+          <div class="brand-subtitle">ERP</div>
+        </div>
+      </div>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <!-- Dashboard -->
+      <a class="nav-item" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <span>Dashboard</span>
+      </a>
+
+      <!-- Motoristas -->
+      <a class="nav-item" routerLink="/drivers" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+        </svg>
+        <span>Motoristas</span>
+      </a>
+
+      <!-- Gestão de Motoristas -->
+      <a class="nav-item" routerLink="/gestao-motoristas" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 4h6a2 2 0 0 1 2 2v2h-2V6H9v12h6v-2h2v2a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+          <path d="M19 12h-8"/>
+          <path d="M19 8h-8"/>
+          <path d="M19 16h-8"/>
+        </svg>
+        <span>Gestão de Motoristas</span>
+      </a>
+
+      <!-- Jornada -->
+      <a class="nav-item" routerLink="/jornada" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="m22 21-3-3m0 0a5.5 5.5 0 1 0-7.78-7.78 5.5 5.5 0 0 0 7.78 7.78Z"/>
+        </svg>
+        <span>Jornada</span>
+      </a>
+
+      <!-- Veículos -->
+      <a class="nav-item" routerLink="/vehicles" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="7" rx="2" ry="2"/>
+          <circle cx="7" cy="19" r="2"/>
+          <circle cx="17" cy="19" r="2"/>
+        </svg>
+        <span>Veículos</span>
+      </a>
+
+      <!-- Controle de Frota -->
+      <a class="nav-item" routerLink="/controle-frota" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="12" rx="2"/>
+          <path d="M3 10h18"/>
+          <path d="M7 16h3M11 16h3M15 16h3"/>
+        </svg>
+        <span>Controle de Frota</span>
+      </a>
+
+      <!-- Acerto de Viagem -->
+      <a class="nav-item" routerLink="/acerto-viagem" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="16" rx="2"/>
+          <path d="M3 8h18"/>
+          <path d="M7 12h5M13 12h4M7 16h10"/>
+        </svg>
+        <span>Acerto de Viagem</span>
+      </a>
+
+      <!-- Rastreamento -->
+      <a class="nav-item" routerLink="/rastreamento" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/>
+          <circle cx="12" cy="9" r="2"/>
+        </svg>
+        <span>Rastreamento</span>
+      </a>
+
+      <!-- Programação -->
+      <a class="nav-item" routerLink="/programacao" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="16" rx="2"/>
+          <path d="M3 8h18"/>
+          <path d="M7 12h3M11 12h3M15 12h3"/>
+        </svg>
+        <span>Programação</span>
+      </a>
+
+      <!-- Manutenção -->
+      <a class="nav-item" routerLink="/manutencao" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+        <span>Manutenção</span>
+      </a>
+
+
+      <!-- Intenção de Embarques -->
+      <a class="nav-item" routerLink="/embarque" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h13l5 5v7a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>
+          <path d="M8 6v14"/>
+          <path d="M3 12h20"/>
+        </svg>
+        <span>Intenção de Embarques</span>
+      </a>
+
+      <!-- Controle de Embarques -->
+      <a class="nav-item" routerLink="/controle-embarques" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <path d="M15 15h6M15 18h6M15 21h6"/>
+        </svg>
+        <span>Controle de Embarques</span>
+      </a>
+
+      <!-- Embarques -->
+      <a class="nav-item" routerLink="/shipments" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="1" y="7" width="14" height="8" rx="2"/>
+          <path d="M15 11h4l3 3v3a2 2 0 0 1-2 2h-3"/>
+          <circle cx="6" cy="20" r="2"/>
+          <circle cx="17" cy="20" r="2"/>
+        </svg>
+        <span>Embarques</span>
+      </a>
+
+      <!-- Controle de Colaboradores -->
+      <a class="nav-item" routerLink="/controle-colaboradores" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="10" cy="7" r="4"/>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M17 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span>Controle de Colaboradores</span>
+      </a>
+
+      <!-- Contratos -->
+      <a class="nav-item" routerLink="/contratos" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+          <path d="M8 7h8M8 11h8M8 15h5"/>
+          <path d="M19 8l3-3"/>
+        </svg>
+        <span>Contratos</span>
+      </a>
+
+      <!-- Financeiro -->
+      <a class="nav-item" routerLink="/financeiro" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+        <span>Financeiro</span>
+      </a>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="brand-footer">
+        <div class="footer-logo"></div>
+        <div>
+          <div class="footer-brand">FontaTec</div>
+          <div class="footer-subtitle">ERP</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="main-content">
+    <!-- Top Header -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">{{ getPageTitle() }}</h1>
+      </div>
+      
+      <div class="topbar-right">
+        <button class="btn btn-ghost icon-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+        </button>
+        
+        <button class="btn btn-ghost icon-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+          </svg>
+        </button>
+
+        <button class="btn btn-ghost" (click)="logout()" title="Sair" aria-label="Sair">Sair</button>
+        
+        <label class="btn btn-ghost theme-toggle">
+          <input type="checkbox" [checked]="isDark()" (change)="toggleTheme()" />
+          <svg *ngIf="!isDark()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+          <svg *ngIf="isDark()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </label>
+        
+        <div class="user-menu">
+          <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face" 
+               alt="User" class="user-avatar">
+          <span class="user-name">André</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
+</ng-container>
+
+<ng-template #loginOnly>
+  <router-outlet></router-outlet>
+</ng-template>

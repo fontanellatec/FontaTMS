@@ -1,0 +1,263 @@
+<div class="header">
+  <h3>Controle de Embarques</h3>
+  <span class="muted">Monitoramento e vínculos</span>
+</div>
+
+<!-- Filtros fora do card, com ações alinhadas à direita -->
+<div class="filters">
+    <label class="filter">
+      <span>Origem:</span>
+      <input type="text" [(ngModel)]="filtroOrigem" placeholder="UF/Cidade" />
+    </label>
+    <label class="filter">
+      <span>Destino:</span>
+      <input type="text" [(ngModel)]="filtroDestino" placeholder="UF/Cidade" />
+    </label>
+    <label class="filter">
+      <span>Status:</span>
+      <select [(ngModel)]="filtroStatus">
+        <option>Todos</option>
+        <option value="pendente">Pendente</option>
+        <option value="vinculado">Vinculado</option>
+        <option value="em_rota">Em rota</option>
+        <option value="concluido">Concluído</option>
+      </select>
+    </label>
+    <label class="filter">
+      <span>Tipo Veículo:</span>
+      <select [(ngModel)]="filtroTipoVeiculo">
+        <option>Todos</option>
+        <option>Leve</option>
+        <option>VUC</option>
+        <option>Toco</option>
+        <option>Carreta</option>
+      </select>
+    </label>
+    <div class="actions">
+      <button class="btn">Exportar</button>
+      <button class="btn">Imprimir</button>
+      <button class="btn btn-primary">Pesquisar</button>
+    </div>
+  </div>
+
+  <!-- Indicadores rápidos -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Intenções</div>
+      <div class="stat-value">{{ countIntencoes }}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Vinculados</div>
+      <div class="stat-value">{{ countVinculados }}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Em rota</div>
+      <div class="stat-value">{{ countEmRota }}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Concluídos</div>
+      <div class="stat-value">{{ countConcluidos }}</div>
+    </div>
+  </div>
+
+  <div class="layout-grid">
+    <!-- Intenções -->
+    <div class="panel">
+      <div class="panel-title">Intenções Disponíveis</div>
+      <div class="panel-actions">
+        <label class="filter"><span>Ordenar:</span>
+          <select [(ngModel)]="sortIntencoesBy">
+            <option value="recent">Recentes</option>
+            <option value="peso_desc">Peso ↓</option>
+            <option value="peso_asc">Peso ↑</option>
+          </select>
+        </label>
+        <button class="btn btn-ghost" (click)="addSampleIntencao()">Adicionar intenção (exemplo)</button>
+      </div>
+      <div class="list">
+        <button class="list-item" *ngFor="let i of sortedIntencoes"
+                [class.selected]="selecionadaIntencaoIndex === intencoes.indexOf(i)"
+                (click)="selecionadaIntencaoIndex = intencoes.indexOf(i)"
+                draggable="true"
+                (dragstart)="onIntencaoDragStart(intencoes.indexOf(i), $event)"
+                (dragend)="onIntencaoDragEnd()"
+                [class.dragging]="dragIntencaoIndex === intencoes.indexOf(i)">
+          <div class="title">Origem: {{ i.origem.uf }} / {{ i.origem.cidade }}</div>
+          <div class="subtitle">Destino: {{ i.destino.uf }} / {{ i.destino.cidade }} · Peso: {{ i.pesoKg | number:'1.0-0' }} kg</div>
+        </button>
+        <div class="empty muted" *ngIf="intencoes.length === 0">Nenhuma intenção cadastrada.</div>
+      </div>
+    </div>
+
+    <!-- Veículos -->
+    <div class="panel">
+      <div class="panel-title">Veículos Disponíveis</div>
+      <div class="panel-actions">
+        <label class="filter"><span>Ordenar por:</span>
+          <select [(ngModel)]="sortVeiculosBy">
+            <option value="placa">Placa</option>
+            <option value="tipo">Tipo</option>
+          </select>
+        </label>
+      </div>
+      <div class="list">
+        <button class="list-item" *ngFor="let v of sortedVeiculos"
+                [class.selected]="selecionadoVeiculoIndex === veiculos.indexOf(v)"
+                (click)="selecionadoVeiculoIndex = veiculos.indexOf(v)"
+                (dragover)="onVeiculoDragOver($event)"
+                (dragenter)="onVeiculoDragEnter(veiculos.indexOf(v))"
+                (dragleave)="onVeiculoDragLeave(veiculos.indexOf(v))"
+                (drop)="onVeiculoDrop(veiculos.indexOf(v))"
+                [class.drag-over]="dragOverVeiculoIndex === veiculos.indexOf(v)">
+          <div class="title-row">
+            <div class="title">Placa: {{ v.placa }}</div>
+            <button class="link-chip" (click)="abrirModalVinculosVeiculo(veiculos.indexOf(v)); $event.stopPropagation()">
+              <span class="count">{{ vinculosCountDoVeiculo(veiculos.indexOf(v)) }}</span>
+              Vínculos
+            </button>
+          </div>
+          <div class="subtitle">Localização: {{ v.localizacao }} · Tipo: {{ v.tipo || '—' }}</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mapa -->
+    <div class="panel map-card">
+      <div class="panel-title">Mapa</div>
+      <div class="map-legend">
+        <span class="item"><span class="swatch em-rota"></span>Em rota</span>
+        <span class="item"><span class="swatch vinculado"></span>Vinculado</span>
+        <span class="item"><span class="swatch concluido"></span>Concluído</span>
+        <span class="item"><span class="swatch pendente"></span>Pendente</span>
+      </div>
+      <div class="map-toolbar">
+        <button class="icon-btn" (click)="zoomOut()" aria-label="Diminuir zoom" data-tooltip="Diminuir zoom">−</button>
+        <button class="icon-btn" (click)="zoomIn()" aria-label="Aumentar zoom" data-tooltip="Aumentar zoom">+</button>
+        <button class="icon-btn" (click)="resetView()" aria-label="Recentrar mapa" data-tooltip="Recentrar mapa">⤿</button>
+      </div>
+      <div class="map-canvas">
+        <div id="ctrl-map" class="map-element"></div>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <div class="panel">
+    <div class="panel-title">Vínculos</div>
+    <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Intenção</th>
+            <th>Veículo</th>
+            <th>Peso</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of filteredVinculos; let i = index" [class.highlight]="v === highlightVinculoRef">
+          <td>{{ v.intencao.origem.uf }}/{{ v.intencao.origem.cidade }} → {{ v.intencao.destino.uf }}/{{ v.intencao.destino.cidade }}</td>
+          <td>{{ v.veiculo.placa }}</td>
+          <td>{{ v.intencao.pesoKg | number:'1.0-0' }} kg</td>
+          <td><span [class]="getStatusClass(v.status)">{{ v.status }}</span></td>
+          <td class="actions-cell">
+            <button class="icon-btn sm" data-tooltip="Ver no mapa" aria-label="Ver no mapa" (click)="verNoMapa(i)">📍</button>
+            <button class="icon-btn sm" [attr.data-tooltip]="v.confirmado ? 'Vínculo confirmado' : 'Confirmar vínculo'" aria-label="Confirmar vínculo" (click)="confirmarVinculo(i)" [disabled]="v.confirmado || v.status!=='vinculado'">
+              <svg class="icon icon-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <polyline points="9 11 12 14 22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+            </button>
+            
+            <button class="icon-btn sm" data-tooltip="Remover" aria-label="Remover" (click)="removerVinculo(i)">
+              <svg class="icon icon-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <path d="M3 6h18" />
+                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+              </svg>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  </div>
+
+<!-- Modal: vínculos do veículo -->
+<div class="modal-overlay" *ngIf="veiculoVinculosModalOpen" (click)="fecharModalVinculosVeiculo()"></div>
+<div class="modal" *ngIf="veiculoVinculosModalOpen" [class.open]="veiculoVinculosModalOpen">
+  <div class="modal-header">
+    <div class="modal-title">Vínculos do veículo {{ veiculos[veiculoVinculosModalForIndex!]?.placa }}</div>
+    <button class="btn btn-ghost" (click)="fecharModalVinculosVeiculo()">Fechar</button>
+  </div>
+  <div class="modal-body">
+    <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Intenção</th>
+            <th>Peso</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of modalVinculos">
+            <td>{{ item.v.intencao.origem.uf }}/{{ item.v.intencao.origem.cidade }} → {{ item.v.intencao.destino.uf }}/{{ item.v.intencao.destino.cidade }}</td>
+            <td>{{ item.v.intencao.pesoKg | number:'1.0-0' }} kg</td>
+            <td><span [class]="getStatusClass(item.v.status)">{{ item.v.status }}</span></td>
+            <td class="actions-cell">
+              <button class="icon-btn sm" data-tooltip="Ver no mapa" aria-label="Ver no mapa" (click)="verNoMapa(item.i)">📍</button>
+              
+              <button class="icon-btn sm" [attr.data-tooltip]="item.v.confirmado ? 'Vínculo confirmado' : 'Confirmar vínculo'" aria-label="Confirmar vínculo" (click)="confirmarVinculo(item.i)" [disabled]="item.v.confirmado || item.v.status!=='vinculado'">
+                <svg class="icon icon-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                  <polyline points="9 11 12 14 22 4" />
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                </svg>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="modalVinculos.length === 0">
+            <td colspan="4">Nenhum vínculo para este veículo.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn" (click)="fecharModalVinculosVeiculo()">Fechar</button>
+  </div>
+</div>
+
+<!-- Toast de desfazer vínculo -->
+<div class="undo-toast" *ngIf="undoVisible">
+  <span class="msg">Vínculo criado.</span>
+  <button class="btn btn-ghost" (click)="undoLinking()">Desfazer</button>
+  <button class="icon-btn close" (click)="clearUndo()" aria-label="Fechar">✕</button>
+</div>
+
+<!-- Modal: confirmar vínculo com motorista (opcional) -->
+<div class="modal-overlay" *ngIf="motoristaModalOpen" (click)="closeMotoristaModal()"></div>
+<div class="modal" *ngIf="motoristaModalOpen" [class.open]="motoristaModalOpen">
+  <div class="modal-header">
+    <div class="modal-title">Confirmar vínculo</div>
+    <button class="btn btn-ghost" (click)="closeMotoristaModal()">Fechar</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-grid">
+      <label>
+        <span>Motorista</span>
+        <input type="text" [(ngModel)]="motoristaTemp" placeholder="Nome do motorista (opcional)" (keyup.enter)="confirmarComMotorista()" />
+      </label>
+      <div class="muted" style="font-size: 12px;">Este campo é opcional. Se deixar em branco, o vínculo será confirmado sem motorista.</div>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn" (click)="closeMotoristaModal()">Cancelar</button>
+    <button class="btn btn-primary" (click)="confirmarComMotorista()">Confirmar</button>
+  </div>
+</div>

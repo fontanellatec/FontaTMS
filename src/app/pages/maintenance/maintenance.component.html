@@ -1,0 +1,323 @@
+<div class="maintenance-page">
+  <div class="header">
+    <h3>Ordens de Serviço</h3>
+    <span class="muted">Oficina · Controle de OS</span>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters card">
+    <div class="row">
+      <label>
+        <span>Código</span>
+        <input [(ngModel)]="filtroCodigo" placeholder="Ex.: OS011" />
+      </label>
+      <label>
+        <span>Placa</span>
+        <input [(ngModel)]="filtroPlaca" placeholder="Ex.: MDC1786" />
+      </label>
+      <label class="grow">
+        <span>Descrição</span>
+        <input [(ngModel)]="filtroDescricao" placeholder="Descrição da OS" />
+      </label>
+      <label>
+        <span>Nº Frota</span>
+        <input [(ngModel)]="filtroFrota" placeholder="Ex.: Lona" />
+      </label>
+      <label>
+        <span>Tipo</span>
+        <select [(ngModel)]="filtroTipo">
+          <option value="Todos">TODOS</option>
+          <option value="Preventiva">Preventiva</option>
+          <option value="Corretiva">Corretiva</option>
+        </select>
+      </label>
+      <label>
+        <span>Prioridade</span>
+        <select [(ngModel)]="filtroPrioridade">
+          <option value="Todos">TODOS</option>
+          <option value="Baixa">Baixa</option>
+          <option value="Média">Média</option>
+          <option value="Alta">Alta</option>
+        </select>
+      </label>
+      <div class="actions">
+        <button class="btn">Pesquisar</button>
+        <button class="btn secondary">Cadastrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kanban -->
+  <div class="kanban">
+    <div class="column" [class.drag-over]="dragOverStatus==='Nova'" (dragover)="onDragOver($event)" (dragenter)="onDragEnter('Nova')" (dragleave)="onDragLeave('Nova')" (drop)="onDrop('Nova')">
+      <div class="col-header">
+        <h4>Novas</h4>
+        <span class="count-badge" *ngIf="novas.length > 0">{{ novas.length }}</span>
+      </div>
+      <div class="card" *ngFor="let os of novas" draggable="true" (dragstart)="onDragStart(os)" (dragend)="onDragEnd()">
+        <div class="card-top">
+          <div class="os-code">{{ os.codigo }}</div>
+          <div class="icons">
+            <button class="icon-btn" title="Detalhes" (click)="abrirDetalhes(os)">ℹ</button>
+            <button class="icon-btn success" title="Iniciar" (click)="iniciar(os)">▶</button>
+          </div>
+        </div>
+        <div class="os-info">
+          <div><span class="label">Placa</span> {{ os.placa }}</div>
+          <div><span class="label">Tipo</span>
+            <span class="chip" [class.preventiva]="os.tipo==='Preventiva'" [class.corretiva]="os.tipo==='Corretiva'">
+              <svg class="tipo-icon" viewBox="0 0 24 24" *ngIf="os.tipo==='Preventiva'" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v6c0 5 3 9 9 9s9-4 9-9V7l-9-5Z"/></svg>
+              <svg class="tipo-icon" viewBox="0 0 24 24" *ngIf="os.tipo==='Corretiva'" fill="none" stroke="currentColor" stroke-width="2"><path d="m14.5 11.5-7 7H3v-4.5l7-7"/><path d="m18 3-3 3 3 3 3-3-3-3Z"/></svg>
+              {{ os.tipo }}
+            </span>
+          </div>
+          <div><span class="label">Prioridade</span> <span class="chip priority" [ngClass]="getPriorityClass(os.prioridade)">{{ os.prioridade }}</span></div>
+        </div>
+      </div>
+      <div class="empty" *ngIf="novas.length === 0">Nenhuma OS nova.</div>
+    </div>
+
+    <div class="column" [class.drag-over]="dragOverStatus==='Execução'" (dragover)="onDragOver($event)" (dragenter)="onDragEnter('Execução')" (dragleave)="onDragLeave('Execução')" (drop)="onDrop('Execução')">
+      <div class="col-header">
+        <h4>Em execução</h4>
+        <span class="count-badge" *ngIf="execucao.length > 0">{{ execucao.length }}</span>
+      </div>
+      <div class="card" *ngFor="let os of execucao" draggable="true" (dragstart)="onDragStart(os)" (dragend)="onDragEnd()">
+        <div class="card-top">
+          <div class="os-code">{{ os.codigo }}</div>
+          <div class="icons">
+            <button class="icon-btn" title="Detalhes" (click)="abrirDetalhes(os)">ℹ</button>
+            <button class="icon-btn success" title="Concluir" (click)="concluir(os)">✔</button>
+          </div>
+        </div>
+        <div class="os-info">
+          <div><span class="label">Placa</span> {{ os.placa }}</div>
+          <div><span class="label">Tipo</span>
+            <span class="chip" [class.preventiva]="os.tipo==='Preventiva'" [class.corretiva]="os.tipo==='Corretiva'">
+              <svg class="tipo-icon" viewBox="0 0 24 24" *ngIf="os.tipo==='Preventiva'" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v6c0 5 3 9 9 9s9-4 9-9V7l-9-5Z"/></svg>
+              <svg class="tipo-icon" viewBox="0 0 24 24" *ngIf="os.tipo==='Corretiva'" fill="none" stroke="currentColor" stroke-width="2"><path d="m14.5 11.5-7 7H3v-4.5l7-7"/><path d="m18 3-3 3 3 3 3-3-3-3Z"/></svg>
+              {{ os.tipo }}
+            </span>
+          </div>
+          <div><span class="label">Prioridade</span> <span class="chip priority" [ngClass]="getPriorityClass(os.prioridade)">{{ os.prioridade }}</span></div>
+        </div>
+      </div>
+      <div class="empty" *ngIf="execucao.length === 0">Nenhuma OS em execução.</div>
+    </div>
+
+    <div class="column" [class.drag-over]="dragOverStatus==='Concluída'" (dragover)="onDragOver($event)" (dragenter)="onDragEnter('Concluída')" (dragleave)="onDragLeave('Concluída')" (drop)="onDrop('Concluída')">
+      <div class="col-header">
+        <h4>Concluídas</h4>
+        <span class="count-badge" *ngIf="concluidas.length > 0">{{ concluidas.length }}</span>
+      </div>
+      <div class="card" *ngFor="let os of concluidas" draggable="true" (dragstart)="onDragStart(os)" (dragend)="onDragEnd()">
+        <div class="card-top">
+          <div class="os-code">{{ os.codigo }}</div>
+          <div class="icons">
+            <button class="icon-btn" title="Detalhes" (click)="abrirDetalhes(os)">ℹ</button>
+          </div>
+        </div>
+        <div class="os-info">
+          <div><span class="label">Placa</span> {{ os.placa }}</div>
+          <div><span class="label">Tipo</span>
+            <span class="chip" [class.preventiva]="os.tipo==='Preventiva'" [class.corretiva]="os.tipo==='Corretiva'">
+              <svg class="tipo-icon" viewBox="0 0 24 24" *ngIf="os.tipo==='Preventiva'" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v6c0 5 3 9 9 9s9-4 9-9V7l-9-5Z"/></svg>
+              <svg class="tipo-icon" viewBox="0 0 24 24" *ngIf="os.tipo==='Corretiva'" fill="none" stroke="currentColor" stroke-width="2"><path d="m14.5 11.5-7 7H3v-4.5l7-7"/><path d="m18 3-3 3 3 3 3-3-3-3Z"/></svg>
+              {{ os.tipo }}
+            </span>
+          </div>
+          <div><span class="label">Prioridade</span> <span class="chip priority" [ngClass]="getPriorityClass(os.prioridade)">{{ os.prioridade }}</span></div>
+        </div>
+      </div>
+      <div class="empty" *ngIf="concluidas.length === 0">Nenhuma OS concluída.</div>
+    </div>
+  </div>
+
+  <!-- Modal Detalhes -->
+  <div class="modal-backdrop" *ngIf="detailOpen" (click)="fecharDetalhes()"></div>
+  <div class="modal" *ngIf="detailOpen" [class.open]="detailOpen">
+    <div class="modal-header">
+      <h4>Ordem de Serviço {{ selecionada?.id }}</h4>
+      <button class="icon" (click)="fecharDetalhes()">✕</button>
+    </div>
+    <div class="modal-body" *ngIf="selecionada as s">
+      <div class="status-ribbon">
+        <div class="step" [class.active]="s.status==='Nova'" [class.nova]="s.status==='Nova'">Nova</div>
+        <div class="step" [class.active]="s.status==='Execução'" [class.execucao]="s.status==='Execução'">Em execução</div>
+        <div class="step" [class.active]="s.status==='Concluída'" [class.concluida]="s.status==='Concluída'">Concluída</div>
+      </div>
+      <div class="counters">
+        <span class="counter open">Serviços abertos: {{ getServicosAbertos(s) }}</span>
+        <span class="counter done">Serviços concluídos: {{ getServicosConcluidos(s) }}</span>
+      </div>
+      <div class="summary">
+        <div class="item"><span class="label">Placa</span><span class="value">{{ s.placa }}</span></div>
+        <div class="item"><span class="label">Tipo</span>
+          <span class="value"><span class="chip" [class.preventiva]="s.tipo==='Preventiva'" [class.corretiva]="s.tipo==='Corretiva'">
+            <svg class="tipo-icon" viewBox="0 0 24 24" *ngIf="s.tipo==='Preventiva'" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v6c0 5 3 9 9 9s9-4 9-9V7l-9-5Z"/></svg>
+            <svg class="tipo-icon" viewBox="0 0 24 24" *ngIf="s.tipo==='Corretiva'" fill="none" stroke="currentColor" stroke-width="2"><path d="m14.5 11.5-7 7H3v-4.5l7-7"/><path d="m18 3-3 3 3 3 3-3-3-3Z"/></svg>
+            {{ s.tipo }}</span></span>
+        </div>
+        <div class="item"><span class="label">Prioridade</span><span class="value"><span class="chip priority" [ngClass]="getPriorityClass(s.prioridade)">{{ s.prioridade }}</span></span></div>
+        <div class="item"><span class="label">Resp.</span><span class="value">{{ s.responsavel }}</span></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h5>Serviços</h5>
+          <div class="actions">
+            <button class="btn sm" (click)="openHoras()">Horas</button>
+            <button class="btn sm" (click)="openNovoServico()">Adicionar</button>
+          </div>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Seq</th>
+              <th>Serviço</th>
+              <th>Qtd</th>
+              <th>Prev.</th>
+              <th>Real.</th>
+              <th>Situação</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let it of s.servicos">
+              <td>{{ it.seq }}</td>
+              <td>{{ it.servico }}</td>
+              <td>{{ it.quantidade }}</td>
+              <td>{{ it.horasPrev }}</td>
+              <td>{{ it.horasReal || '—' }}</td>
+              <td><span [class]="it.situacao === 'CONCLUÍDO' ? 'chip done' : 'chip open'">{{ it.situacao }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h5>Peças</h5>
+          <div class="actions">
+            <button class="btn sm" (click)="openNovaPeca()">Adicionar</button>
+          </div>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Seq</th>
+              <th>Produto</th>
+              <th>Mecânico</th>
+              <th>Qtd</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of s.pecas">
+              <td>{{ p.seq }}</td>
+              <td>{{ p.produto }}</td>
+              <td>{{ p.mecanico }}</td>
+              <td>{{ p.quantidade }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h5>Comentários</h5>
+          <div class="actions">
+            <input class="input" [(ngModel)]="novoComentario" placeholder="Adicionar comentário" />
+            <button class="btn sm" (click)="adicionarComentario()" [disabled]="!novoComentario">Adicionar</button>
+          </div>
+        </div>
+        <div class="comments">
+          <div class="comment" *ngFor="let c of s.comentarios">
+            <div class="meta">{{ c.dataHora }} — {{ c.usuario }}</div>
+            <div class="text">{{ c.texto }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn" (click)="concluir(s)">Finalizar</button>
+        <button class="btn secondary" (click)="fecharDetalhes()">Fechar</button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Horas -->
+  <div class="modal sm" *ngIf="horasModalOpen" [class.open]="horasModalOpen">
+    <div class="modal-header">
+      <div>Registrar Horas de Serviço</div>
+      <button class="btn sm" (click)="horasModalOpen=false">✕</button>
+    </div>
+    <div class="modal-body">
+      <label>
+        <span class="label">Serviço</span>
+        <select class="input" [(ngModel)]="horasForm.seq">
+          <option *ngFor="let s of selecionada?.servicos" [value]="s.seq">{{s.seq}} - {{s.servico}}</option>
+        </select>
+      </label>
+      <div style="height:8px"></div>
+      <label>
+        <span class="label">Horas realizadas</span>
+        <input class="input" [(ngModel)]="horasForm.horasReal" placeholder="ex: 1h20m" />
+      </label>
+      <div class="footer-actions">
+        <button class="btn" (click)="saveHoras()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Novo Serviço -->
+  <div class="modal sm" *ngIf="novoServicoModalOpen" [class.open]="novoServicoModalOpen">
+    <div class="modal-header">
+      <div>Novo Serviço</div>
+      <button class="btn sm" (click)="novoServicoModalOpen=false">✕</button>
+    </div>
+    <div class="modal-body">
+      <label>
+        <span class="label">Serviço</span>
+        <input class="input" [(ngModel)]="novoServicoForm.servico" placeholder="ex: Alinhamento" />
+      </label>
+      <div style="height:8px"></div>
+      <label>
+        <span class="label">Quantidade</span>
+        <input class="input" type="number" [(ngModel)]="novoServicoForm.quantidade" />
+      </label>
+      <div style="height:8px"></div>
+      <label>
+        <span class="label">Horas previstas</span>
+        <input class="input" [(ngModel)]="novoServicoForm.horasPrev" placeholder="ex: 1h" />
+      </label>
+      <div class="footer-actions">
+        <button class="btn" (click)="saveNovoServico()">Adicionar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Nova Peça -->
+  <div class="modal sm" *ngIf="novaPecaModalOpen" [class.open]="novaPecaModalOpen">
+    <div class="modal-header">
+      <div>Novo Item de Peça</div>
+      <button class="btn sm" (click)="novaPecaModalOpen=false">✕</button>
+    </div>
+    <div class="modal-body">
+      <label>
+        <span class="label">Produto</span>
+        <input class="input" [(ngModel)]="novaPecaForm.produto" placeholder="ex: Filtro de óleo" />
+      </label>
+      <div style="height:8px"></div>
+      <label>
+        <span class="label">Mecânico</span>
+        <input class="input" [(ngModel)]="novaPecaForm.mecanico" placeholder="ex: Mario Souza" />
+      </label>
+      <div style="height:8px"></div>
+      <label>
+        <span class="label">Quantidade</span>
+        <input class="input" type="number" [(ngModel)]="novaPecaForm.quantidade" />
+      </label>
+      <div class="footer-actions">
+        <button class="btn" (click)="saveNovaPeca()">Adicionar</button>
+      </div>
+    </div>
+  </div>
+</div>

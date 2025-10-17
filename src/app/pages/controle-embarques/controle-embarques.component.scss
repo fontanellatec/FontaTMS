@@ -1,0 +1,160 @@
+.ctrl-embarques-card { padding: 16px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; }
+.actions { display: flex; gap: 8px; }
+
+/* Header de página no padrão Motoristas/Embarques */
+.header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.header h3 { margin: 0; }
+.header .muted { color: var(--muted-color, #6b7280); font-size: 12px; }
+
+/* Ações alinhadas à direita dentro da barra de filtros */
+.filters .actions { margin-left: auto; display: flex; gap: 8px; }
+
+.filters { display: flex; align-items: center; gap: 12px; margin: 12px 0; }
+.filter { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+.filter input, .filter select { background: var(--surface-secondary); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 8px; }
+.filter.grow { flex: 1; display: flex; justify-content: flex-end; }
+
+/* Indicadores rápidos */
+.stats { display: grid; grid-template-columns: repeat(4, max-content); gap: 12px; margin: 8px 0 14px; }
+.stat { display: flex; align-items: baseline; gap: 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.stat-label { font-size: 12px; color: var(--text-secondary); }
+.stat-value { font-weight: 700; }
+
+.layout-grid { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 12px; }
+.panel { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.panel-title { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text-secondary); }
+.panel-actions { padding: 8px 12px; border-bottom: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+.table-container { overflow: auto; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+.table thead th { background: var(--surface-secondary); font-size: 12px; color: var(--text-secondary); }
+/* Fixar largura da coluna de ações */
+.table thead th:last-child,
+.table tbody td:last-child { width: 120px; }
+
+.status { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: capitalize; }
+.status.em-rota { background: rgba(34, 197, 94, 0.12); color: var(--success); }
+.status.pendente { background: rgba(251, 191, 36, 0.12); color: var(--warning); }
+.status.concluido { background: rgba(2, 132, 199, 0.12); color: var(--info); }
+.status.vinculado { background: rgba(106, 90, 205, 0.12); color: #6a5acd; }
+
+.map-card { position: relative; }
+.map-legend { position: absolute; top: 10px; left: 10px; display: flex; gap: 10px; z-index: 2000; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; }
+.map-legend .item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.map-legend .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid rgba(0,0,0,0.12); }
+.map-legend .swatch.em-rota { background: #22c55e; }
+.map-legend .swatch.vinculado { background: #3b82f6; }
+.map-legend .swatch.concluido { background: #64748b; }
+.map-legend .swatch.pendente { background: #a3a3a3; }
+.map-toolbar { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; z-index: 2000; }
+.icon-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.icon-btn:hover { background: color-mix(in oklab, var(--surface) 92%, var(--primary)); }
+.icon-btn.sm { width: 28px; height: 28px; font-size: 13px; }
+.icon-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Ícones dentro dos botões */
+.icon { width: 16px; height: 16px; display: inline-block; }
+.icon-success { color: var(--success, #22c55e); }
+.icon-danger { color: var(--danger, #ef4444); }
+.icon-info { color: var(--info, #2563eb); }
+.icon-btn:disabled .icon { color: var(--text-secondary); }
+
+/* Animação sutil nos ícones coloridos */
+.icon { transition: transform .12s ease, filter .12s ease; }
+.icon-btn:hover .icon-success, .icon-btn:focus .icon-success { transform: scale(1.12); filter: drop-shadow(0 2px 6px rgba(34,197,94,.3)); }
+.icon-btn:hover .icon-danger, .icon-btn:focus .icon-danger { transform: scale(1.12); filter: drop-shadow(0 2px 6px rgba(239,68,68,.3)); }
+.map-canvas { height: 560px; background: var(--surface-secondary); border-top: 1px solid var(--border); }
+.map-element { width: 100%; height: 100%; }
+
+/* Tooltip customizado dos botões do mapa */
+.icon-btn { position: relative; }
+.icon-btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: -36px;
+  right: 0;
+  background: rgba(17, 24, 39, 0.92);
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity .15s ease, transform .15s ease;
+  z-index: 3000;
+}
+.icon-btn[data-tooltip]::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: 10px;
+  border-width: 6px 6px 0 6px;
+  border-style: solid;
+  border-color: rgba(17, 24, 39, 0.92) transparent transparent transparent;
+  opacity: 0;
+  transition: opacity .15s ease;
+  z-index: 3000;
+}
+.icon-btn:hover::after, .icon-btn:focus::after,
+.icon-btn:hover::before, .icon-btn:focus::before {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Ícone de caminhão (DivIcon) */
+.leaflet-div-icon.truck-marker-icon { background: transparent; border: none; }
+.truck-marker { font-size: 20px; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35)); }
+/* Ícones customizados de origem/destino (intenções) */
+.leaflet-div-icon.poi-icon { background: transparent; border: none; }
+.poi-bubble { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+.origin-icon .poi-bubble { background: #3b82f6; }
+.dest-icon .poi-bubble { background: #f59e0b; }
+.list { display: flex; flex-direction: column; padding: 8px; gap: 6px; }
+.list-item { text-align: left; width: 100%; border: 1px solid var(--border); background: var(--surface-secondary); color: var(--text); border-radius: var(--radius); padding: 8px 10px; cursor: pointer; }
+.list-item .title { font-weight: 600; font-size: 13px; color: var(--text); }
+.list-item .subtitle { font-size: 12px; color: var(--text-secondary); }
+.list-item.selected { outline: 2px solid var(--primary); border-color: var(--primary); background: color-mix(in oklab, var(--primary) 12%, var(--surface-secondary)); }
+.list-item.dragging { opacity: .65; }
+.list-item.drag-over { outline: 2px dashed var(--primary); background: color-mix(in oklab, var(--primary) 8%, var(--surface-secondary)); }
+.empty { padding: 12px; }
+
+.op-actions { display: flex; justify-content: flex-end; margin: 12px 0; }
+
+/* Evitar crescimento vertical: aplicar rolagem nas listas */
+.panel .list { max-height: 560px; overflow: auto; }
+
+/* Destaque linha de vínculo recém-criado */
+.table tr.highlight td { background: color-mix(in oklab, var(--primary) 14%, var(--surface)); }
+
+/* Modal local do Controle de Embarques */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(2px); z-index: 6000; }
+.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.98); width: 720px; max-width: 96vw; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.18); z-index: 6100; border-radius: var(--radius); transition: transform 0.15s ease; }
+.modal.open { transform: translate(-50%, -50%) scale(1); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.modal-title { font-size: 16px; font-weight: 700; color: var(--text); }
+.modal-body { padding: 16px; max-height: 60vh; overflow: auto; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--border); }
+
+/* Célula de ações compactas na modal */
+.actions-cell { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+
+/* Badge/link para contador de vínculos no veículo */
+.badge-link { display: inline-flex; align-items: center; gap: 6px; border: none; background: transparent; color: var(--primary); cursor: pointer; font-weight: 600; }
+.badge-link:hover { text-decoration: underline; }
+
+/* Linha de título do item + chip moderno de vínculos */
+.title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.link-chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; padding: 4px 8px; border-radius: 999px; font-size: 12px; }
+.link-chip .count { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 12px; background: color-mix(in oklab, var(--primary) 14%, var(--surface-secondary)); color: var(--primary); font-weight: 700; border: 1px solid color-mix(in oklab, var(--primary) 40%, var(--border)); }
+.link-chip:hover { background: color-mix(in oklab, var(--surface) 88%, var(--primary)); }
+
+/* Toast de desfazer */
+.undo-toast { position: fixed; right: 16px; bottom: 16px; z-index: 6200; display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 10px 24px rgba(0,0,0,0.18); padding: 10px 12px; border-radius: 10px; }
+.undo-toast .msg { font-size: 13px; color: var(--text); }
+.undo-toast .btn { padding: 6px 8px; }
+.undo-toast .icon-btn.close { width: 28px; height: 28px; line-height: 1; }

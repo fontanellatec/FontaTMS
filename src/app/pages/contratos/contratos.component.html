@@ -1,0 +1,182 @@
+<div class="contratos-page">
+  <div class="header">
+    <h3>Contratos</h3>
+    <span class="muted">Gestão de contratos e vigências</span>
+  </div>
+
+  <!-- Filtros no padrão do ERP -->
+  <div class="filters">
+    <label class="filter">
+      <span>Status:</span>
+      <select [(ngModel)]="filtroStatus" (ngModelChange)="onFiltersChanged()">
+        <option>Todos</option>
+        <option>Ativo</option>
+        <option>Suspenso</option>
+        <option>Vencido</option>
+        <option>Cancelado</option>
+      </select>
+    </label>
+    <label class="filter grow">
+      <span>Cliente:</span>
+      <input [(ngModel)]="filtroCliente" (ngModelChange)="onFiltersChanged()" placeholder="Razão Social" />
+    </label>
+    <label class="filter">
+      <span>Nº Contrato:</span>
+      <input [(ngModel)]="filtroNumero" (ngModelChange)="onFiltersChanged()" placeholder="ex.: CTR-2025-001" />
+    </label>
+    <label class="filter">
+      <span>Vigência De:</span>
+      <input type="date" [(ngModel)]="vigenciaDe" (ngModelChange)="onFiltersChanged()" />
+    </label>
+    <label class="filter">
+      <span>Até:</span>
+      <input type="date" [(ngModel)]="vigenciaAte" (ngModelChange)="onFiltersChanged()" />
+    </label>
+    <label class="filter">
+      <span>Renovação:</span>
+      <select [(ngModel)]="filtroRenovacao" (ngModelChange)="onFiltersChanged()">
+        <option>Todos</option>
+        <option>Sim</option>
+        <option>Não</option>
+      </select>
+    </label>
+    <div class="actions">
+      <button class="btn" (click)="exportCSV()">Exportar</button>
+      <button class="btn" (click)="printTable()">Imprimir</button>
+      <button class="btn btn-primary" (click)="openNew()">Novo Contrato</button>
+    </div>
+  </div>
+
+  <!-- Listagem -->
+  <div class="table card list-card">
+    <div class="row header">
+      <div>Nº</div>
+      <div>Cliente</div>
+      <div>Início</div>
+      <div>Fim</div>
+      <div class="cell-right">Valor Mensal</div>
+      <div>Situação</div>
+      <div>Renovação Auto.</div>
+      <div class="cell-center">SLA (h)</div>
+      <div>Penalidade</div>
+      <div>Observações</div>
+      <div class="col-actions">Ações</div>
+    </div>
+    <div class="table-body">
+      <div class="row" *ngFor="let r of paged">
+        <div class="cell-center">{{ r.numero }}</div>
+        <div>{{ r.cliente }}</div>
+        <div class="cell-center">{{ r.inicio }}</div>
+        <div class="cell-center">
+          {{ r.fim }}
+          <span class="badge expira" *ngIf="isNearExpiry(r)">Vence em {{ daysToEnd(r) }}d</span>
+        </div>
+        <div class="cell-right">{{ formatCurrency(r.valorMensal) }}</div>
+        <div><span [class]="getStatusClass(r.status)">{{ r.status }}</span></div>
+        <div class="cell-center">{{ r.renovacaoAuto ? 'Sim' : 'Não' }}</div>
+        <div class="cell-center">{{ r.slaHoras ?? '—' }}</div>
+        <div>{{ r.penalidade || '—' }}</div>
+        <div class="obs">{{ r.observacao || '—' }}</div>
+        <div class="actions-cell">
+          <button class="icon-btn sm" data-tooltip="Renovar" aria-label="Renovar" (click)="renovar(r)" [disabled]="!(r.status==='Vencido'||r.status==='Suspenso')">
+            <svg class="icon icon-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <!-- refresh-cw -->
+              <path d="M23 4v6h-6" />
+              <path d="M1 20v-6h6" />
+              <path d="M3.51 9a9 9 0 0 1 14.13-3.36L23 10" />
+              <path d="M20.49 15a9 9 0 0 1-14.13 3.36L1 14" />
+            </svg>
+          </button>
+          
+          <button class="icon-btn sm" data-tooltip="Cancelar" aria-label="Cancelar" (click)="cancelar(r)">
+            <svg class="icon icon-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M3 6h18" />
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <path d="M10 11v6" />
+              <path d="M14 11v6" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="row empty" *ngIf="filtered.length === 0">
+        <div class="muted">Nenhum contrato encontrado com os filtros atuais.</div>
+      </div>
+    </div>
+
+    <div class="table-footer">
+      <div class="footer-left">
+        <button class="btn sm" (click)="firstPage()">«</button>
+        <button class="btn sm" (click)="prevPage()">‹</button>
+        <span class="muted">Página {{ page }} / {{ pageCount }}</span>
+        <button class="btn sm" (click)="nextPage()">›</button>
+        <button class="btn sm" (click)="lastPage()">»</button>
+      </div>
+      <div class="footer-right">
+        <div class="page-size">
+          <span>Tamanho:</span>
+          <select [ngModel]="pageSize" (ngModelChange)="setPageSize($event)">
+            <option *ngFor="let sz of pageSizeOptions" [value]="sz">{{ sz }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Novo Contrato -->
+  <div class="modal-backdrop" *ngIf="newOpen" (click)="closeNew()"></div>
+  <div class="modal" *ngIf="newOpen" role="dialog" aria-modal="true" aria-labelledby="new-contract-title">
+    <div class="modal-header">
+      <div id="new-contract-title">Novo Contrato</div>
+      <button class="btn sm" (click)="closeNew()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <label>
+          <span>Nº Contrato</span>
+          <input [(ngModel)]="newForm.numero" placeholder="ex.: CTR-2025-055" />
+        </label>
+        <label class="grow">
+          <span>Cliente</span>
+          <input [(ngModel)]="newForm.cliente" placeholder="Razão Social" />
+        </label>
+        <label>
+          <span>Início</span>
+          <input type="text" [(ngModel)]="newForm.inicio" placeholder="dd/MM/yyyy" />
+        </label>
+        <label>
+          <span>Fim</span>
+          <input type="text" [(ngModel)]="newForm.fim" placeholder="dd/MM/yyyy" />
+        </label>
+        <label>
+          <span>Valor Mensal</span>
+          <input type="number" step="0.01" [(ngModel)]="newForm.valorMensal" />
+        </label>
+        <label>
+          <span>Status</span>
+          <select [(ngModel)]="newForm.status">
+            <option>Ativo</option>
+            <option>Suspenso</option>
+            <option>Vencido</option>
+            <option>Cancelado</option>
+          </select>
+        </label>
+        <label>
+          <span>Renovação Automática</span>
+          <select [(ngModel)]="newForm.renovacaoAuto">
+            <option [ngValue]="true">Sim</option>
+            <option [ngValue]="false">Não</option>
+          </select>
+        </label>
+        <label class="col-span-2">
+          <span>Observações</span>
+          <textarea rows="3" [(ngModel)]="newForm.observacao" placeholder="Resumo do contrato"></textarea>
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" (click)="saveNew()">Salvar</button>
+        <button class="btn" (click)="closeNew()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>

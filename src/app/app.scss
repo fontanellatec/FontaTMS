@@ -1,0 +1,254 @@
+/* Layout principal do ERP - Sidebar Design */
+.shell {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+}
+
+/* Sidebar Navigation */
+.sidebar {
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.sidebar-header {
+  padding: 24px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--brand-primary);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+}
+
+.brand-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--sidebar-text);
+  line-height: 1;
+}
+
+.brand-subtitle {
+  font-size: 12px;
+  color: var(--sidebar-text-muted);
+  font-weight: 500;
+  line-height: 1;
+}
+
+/* Sidebar Navigation */
+.sidebar-nav {
+  flex: 1;
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  color: var(--sidebar-text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  border-right: 3px solid transparent;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--sidebar-text);
+}
+
+.nav-item.active {
+  background: rgba(13, 148, 136, 0.15);
+  color: var(--brand-accent);
+  border-right-color: var(--brand-primary);
+}
+
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.brand-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-logo {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--brand-primary);
+  opacity: 0.8;
+}
+
+.footer-brand {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sidebar-text);
+  line-height: 1;
+}
+
+.footer-subtitle {
+  font-size: 10px;
+  color: var(--sidebar-text-muted);
+  font-weight: 500;
+  line-height: 1;
+}
+
+/* Main Content Area */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-x: hidden; /* evita scroll lateral global; privilegia scroll interno dos conteúdos */
+}
+
+/* Top Header */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  height: 72px;
+}
+
+.topbar-left {
+  flex: 1;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border-radius: var(--radius);
+}
+
+.icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.theme-toggle {
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border-radius: var(--radius);
+  position: relative;
+}
+
+.theme-toggle input {
+  display: none;
+}
+
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* Content Area */
+.content {
+  flex: 1;
+  padding: 32px;
+  background: var(--bg);
+  overflow-x: hidden; /* garante que páginas largas (tabelas) rolem dentro de seus containers */
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  
+  .sidebar {
+    display: none;
+  }
+  
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .content {
+    padding: 24px 16px;
+  }
+}
+
+/* Grid utilities for content */
+.grid {
+  display: grid;
+  gap: 24px;
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1024px) {
+  .grid-cols-3 { 
+    grid-template-columns: 1fr; 
+  }
+}

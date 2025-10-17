@@ -1,0 +1,328 @@
+<div class="controle-frota-page">
+  <div class="header">
+    <h3>Controle de Frota</h3>
+    <span class="muted">Situação de veículos e motoristas</span>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters">
+    <label class="filter">
+      <span>Data Base:</span>
+      <input [(ngModel)]="filtroDataBase" placeholder="dd/mm/aaaa" />
+    </label>
+    <label class="filter">
+      <span>Frota:</span>
+      <input [(ngModel)]="filtroFrota" placeholder="ex.: 116" />
+    </label>
+    <label class="filter">
+      <span>Tipo Operação Frota:</span>
+      <select [(ngModel)]="filtroTipoOperacaoFrota">
+        <option value="">Todas</option>
+        <option>Distribuição</option>
+        <option>Transferência</option>
+        <option>LOG - XG05</option>
+        <option>LOG - CS</option>
+        <option>LOG - CR</option>
+      </select>
+    </label>
+    <label class="filter">
+      <span>Tipo Conjunto Veículo:</span>
+      <select [(ngModel)]="filtroTipoConjuntoVeiculo">
+        <option value="">Todos</option>
+        <option>LS</option>
+        <option>Carreta</option>
+        <option>Bitrem</option>
+        <option>Rodotrem</option>
+      </select>
+    </label>
+    <label class="filter">
+      <span>Situação Veículo:</span>
+      <select [(ngModel)]="filtroSituacaoVeiculo">
+        <option value="">Todas</option>
+        <option>Em rota</option>
+        <option>Parado</option>
+        <option>Manutenção</option>
+      </select>
+    </label>
+    <label class="filter">
+      <span>Situação Motorista:</span>
+      <select [(ngModel)]="filtroSituacaoMotorista">
+        <option value="">Todas</option>
+        <option>Em viagem</option>
+        <option>Folga</option>
+        <option>Suspenso</option>
+        <option>Aguardando Descarga</option>
+      </select>
+    </label>
+    <label class="filter">
+      <span>Categoria Motorista:</span>
+      <select [(ngModel)]="filtroCategoriaMotorista">
+        <option value="">Todas</option>
+        <option>Categoria I</option>
+        <option>Categoria II</option>
+      </select>
+    </label>
+    <label class="filter">
+      <span>Veículo:</span>
+      <input [(ngModel)]="filtroVeiculo" placeholder="Placa/Veículo" />
+    </label>
+    <label class="filter">
+      <span>Motorista:</span>
+      <input [(ngModel)]="filtroMotorista" placeholder="Nome" />
+    </label>
+    <div class="actions">
+      <div class="segmented">
+        <button class="btn sm" [class.active]="segmento === 'Veiculo'" (click)="setSegmento('Veiculo')">Veículo</button>
+        <button class="btn sm" [class.active]="segmento === 'Motorista'" (click)="setSegmento('Motorista')">Motorista</button>
+      </div>
+      <button class="btn btn-primary" (click)="pesquisar()">Pesquisar</button>
+    </div>
+  </div>
+
+  <!-- Tabela -->
+  <div class="table card list-card">
+    <div class="row header">
+      <div>Frota</div>
+      <div>Veículo</div>
+      <div>Tipo Conjunto Veículo</div>
+      <div>Situação Veículo</div>
+      <div>Tipo Operação Frota</div>
+      <div>Motorista</div>
+      <div>Situação Motorista</div>
+      <div>Categoria Motorista</div>
+      <div>Gestor</div>
+      <div>Vínculo</div>
+    </div>
+    <div class="table-body">
+      <div class="row" *ngFor="let r of paged; let idx = index">
+        <div>{{ r.frota }}</div>
+        <div>{{ r.veiculo }}</div>
+        <div>{{ r.tipoConjuntoVeiculo }}</div>
+        <div>{{ r.situacaoVeiculo }}</div>
+        <div>{{ r.tipoOperacaoFrota }}</div>
+        <div>{{ r.motorista }}</div>
+        <div>{{ r.situacaoMotorista }}</div>
+        <div>{{ r.categoriaMotorista }}</div>
+        <div>{{ r.gestor }}</div>
+        <div class="col-actions">
+          <button class="icon-btn sm" (click)="vincular(r)" aria-label="Vincular" data-tooltip="Vincular">
+            <svg class="icon icon-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7" />
+              <polyline points="7,7 17,7 17,17" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="row empty" *ngIf="filtered.length === 0">
+        <div class="muted">Nenhum registro encontrado com os filtros atuais.</div>
+      </div>
+    </div>
+    <div class="table-footer">
+      <div class="footer-left">
+        <span class="muted">Página {{ page }} de {{ pageCount }}</span>
+        <span class="muted">• Mostrando {{ (page-1)*pageSize + 1 }}–{{ Math.min(page*pageSize, filtered.length) }} de {{ filtered.length }}</span>
+      </div>
+      <div class="footer-right">
+        <label class="page-size">
+          <span>Tamanho</span>
+          <select [(ngModel)]="pageSize" (ngModelChange)="setPageSize($event)">
+            <option *ngFor="let s of pageSizeOptions" [value]="s">{{ s }}</option>
+          </select>
+        </label>
+        <button class="btn sm" (click)="prevPage()" [disabled]="page<=1">Anterior</button>
+        <button class="btn sm" (click)="nextPage()" [disabled]="page>=pageCount">Próxima</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modal de Vínculo -->
+  <div class="modal-overlay" *ngIf="vinculoModalOpen" (click)="fecharVinculoModal()"></div>
+  <div class="modal" *ngIf="vinculoModalOpen" [class.open]="vinculoModalOpen" role="dialog" aria-modal="true" aria-labelledby="vinculo-modal-title" tabindex="-1">
+    <div class="modal-header">
+      <div class="modal-title" id="vinculo-modal-title">Vínculo Veículo</div>
+      <button class="btn btn-ghost close" (click)="fecharVinculoModal()" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="muted" style="margin-bottom:8px;">Coordenador: {{ selectedRecord?.gestor }}</div>
+
+      <div class="actions-tabs segmented" role="tablist" aria-label="Seções de vínculo">
+        <button class="segmented-btn" [class.active]="vinculoTab==='Motorista'" (click)="setVinculoTab('Motorista')" role="tab" [attr.aria-selected]="vinculoTab==='Motorista'">Motorista</button>
+        <button class="segmented-btn" [class.active]="vinculoTab==='Gestor'" (click)="setVinculoTab('Gestor')" role="tab" [attr.aria-selected]="vinculoTab==='Gestor'">Gestor</button>
+        <button class="segmented-btn" [class.active]="vinculoTab==='Engate'" (click)="setVinculoTab('Engate')" role="tab" [attr.aria-selected]="vinculoTab==='Engate'">Engate</button>
+        <button class="segmented-btn" [class.active]="vinculoTab==='TipoConjunto'" (click)="setVinculoTab('TipoConjunto')" role="tab" [attr.aria-selected]="vinculoTab==='TipoConjunto'">Tipo Conjunto</button>
+      </div>
+
+      <!-- Motorista -->
+      <div *ngIf="vinculoTab==='Motorista'" role="tabpanel">
+        <div class="form-grid">
+          <label>
+            <span>Data</span>
+            <input [(ngModel)]="vinculo.data" placeholder="dd/mm/aaaa" />
+          </label>
+          <label>
+            <span>Hora</span>
+            <input [(ngModel)]="vinculo.hora" placeholder="hh:mm" />
+          </label>
+        </div>
+        <div class="form-grid">
+          <label>
+            <span>Tipo</span>
+            <select [(ngModel)]="vinculo.tipo">
+              <option>Saída</option>
+              <option>Entrada</option>
+            </select>
+          </label>
+          <label class="grow">
+            <span>Situação Motorista</span>
+            <select [(ngModel)]="vinculo.situacaoMotorista">
+              <option value="">Selecione</option>
+              <option>Disponível</option>
+              <option>Em viagem</option>
+              <option>Folga</option>
+              <option>Suspenso</option>
+              <option>Aguardando Descarga</option>
+            </select>
+          </label>
+        </div>
+        <div class="form-grid">
+          <label class="grow">
+            <span>Veículo</span>
+            <div class="inline">
+              <input [(ngModel)]="vinculo.veiculo1" placeholder="Placa 1" />
+              <input [(ngModel)]="vinculo.veiculo2" placeholder="Placa 2" />
+            </div>
+          </label>
+          <label class="grow">
+            <span>Motorista</span>
+            <div class="inline">
+              <input [(ngModel)]="vinculo.motoristaTelefone" placeholder="Telefone" />
+              <input [(ngModel)]="vinculo.motoristaNome" placeholder="Nome" />
+            </div>
+          </label>
+        </div>
+        <label class="checkbox">
+          <input type="checkbox" [(ngModel)]="vinculoKeepMotorista" />
+          <span>Não retirar motorista do veículo</span>
+        </label>
+        <div class="form-grid">
+          <label>
+            <span>Data Início</span>
+            <input [(ngModel)]="vinculo.dataInicio" placeholder="dd/mm/aaaa" />
+          </label>
+          <label>
+            <span>Data Fim</span>
+            <input [(ngModel)]="vinculo.dataFim" placeholder="dd/mm/aaaa" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Gestor -->
+      <div *ngIf="vinculoTab==='Gestor'" role="tabpanel">
+        <div class="form-grid">
+          <label class="grow">
+            <span>Gestor</span>
+            <input [value]="selectedRecord?.gestor" placeholder="Nome do gestor" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Engate -->
+      <div *ngIf="vinculoTab==='Engate'" role="tabpanel">
+        <div class="engate-board">
+          <div class="slots">
+            <!-- Veículo principal -->
+            <div class="slot vehicle">
+              <div class="slot-title">Veículo</div>
+              <div class="slot-body">
+                <div class="plate-pill" [attr.aria-label]="'Placa do veículo ' + (engateVehiclePlate||'—')">{{ engateVehiclePlate || '—' }}</div>
+              </div>
+            </div>
+
+            <!-- Reboques dinâmicos -->
+            <div class="slot trailer"
+                 *ngFor="let s of engateSlots; let i = index"
+                 [class.filled]="!!s"
+                 [class.drag-over]="engateDragOverIndex===i"
+                 (dragenter)="onSlotDragEnter(i, $event)"
+                 (dragleave)="onSlotDragLeave(i)"
+                 (dragover)="onSlotDragOver(i, $event)"
+                 (drop)="onSlotDrop(i, $event)">
+              <div class="slot-title">Reboque {{ i + 1 }}</div>
+              <div class="slot-body">
+                <ng-container *ngIf="s; else emptySlot">
+                  <div class="plate-pill">
+                    {{ s }}
+                    <button class="icon remove" (click)="clearSlot(i)" aria-label="Remover placa">✕</button>
+                  </div>
+                </ng-container>
+                <ng-template #emptySlot>
+                  <div class="empty-drop">Arraste a placa aqui</div>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lista de placas disponíveis -->
+          <div class="available-plates"
+               [class.drag-over]="engateDragOverIndex===-1"
+               (dragenter)="onAvailableDragEnter($event)"
+               (dragleave)="onAvailableDragLeave()"
+               (dragover)="onAvailableDragOver($event)"
+               (drop)="onAvailableDrop($event)">
+            <label class="search">
+              <span>Pesquisar</span>
+              <input [(ngModel)]="engateQuery" placeholder="Placa" />
+            </label>
+            <div class="chips">
+              <button class="plate-chip"
+                      *ngFor="let p of platesFiltered"
+                      [class.assigned]="isPlateAssigned(p)"
+                      [attr.draggable]="!isPlateAssigned(p)"
+                      (dragstart)="onPlateDragStart(p, $event)"
+                      (click)="assignToNextSlot(p)"
+                      type="button"
+                      [attr.aria-disabled]="isPlateAssigned(p) ? true : null">
+                {{ p }}
+              </button>
+            </div>
+            <div class="hint">Arraste uma placa para um reboque, ou clique para preencher o próximo vazio. Para remover, arraste a placa de volta para esta área.</div>
+          </div>
+        </div>
+
+        <!-- Tipo de engate -->
+        <div class="form-grid" style="margin-top:12px;">
+          <label class="grow">
+            <span>Tipo de Engate</span>
+            <select [(ngModel)]="engateTipo" (ngModelChange)="onChangeEngateTipo($event)">
+              <option value="">Selecione</option>
+              <option>LS</option>
+              <option>Carreta</option>
+              <option>Bitrem</option>
+              <option>Rodotrem</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <!-- Tipo Conjunto -->
+      <div *ngIf="vinculoTab==='TipoConjunto'" role="tabpanel">
+        <div class="form-grid">
+          <label class="grow">
+            <span>Tipo Conjunto</span>
+            <select>
+              <option>LS</option>
+              <option>Carreta</option>
+              <option>Bitrem</option>
+              <option>Rodotrem</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" (click)="fecharVinculoModal()">Fechar</button>
+      <button class="btn btn-primary" (click)="salvarVinculo()">Salvar</button>
+    </div>
+  </div>

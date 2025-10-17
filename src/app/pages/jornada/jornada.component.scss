@@ -1,0 +1,111 @@
+.jornada-container {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+}
+
+.jornada-stats {
+  padding: 24px;
+}
+
+.stats-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: var(--surface-secondary);
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-primary);
+  color: white;
+}
+
+.stat-icon svg { width: 20px; height: 20px; }
+.stat-value { font-size: 20px; font-weight: 700; color: var(--text); }
+.stat-label { font-size: 12px; color: var(--text-secondary); }
+
+.calendar-card { padding: 24px; }
+.calendar-controls { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; gap: 12px; }
+.calendar-controls .nav { display: flex; gap: 8px; }
+.calendar-controls .filters { display: flex; align-items: center; gap: 12px; }
+.calendar-controls .filter { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+.calendar-controls select { background: var(--surface-secondary); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 8px; }
+.calendar-controls .actions { display: flex; gap: 8px; }
+.legend { display: flex; gap: 8px; }
+.legend-item { font-size: 12px; padding: 4px 8px; border-radius: 12px; font-weight: 600; }
+.legend-item.trabalhando { background: rgba(13, 148, 136, 0.12); color: var(--brand-primary); }
+.legend-item.dsr { background: rgba(2, 132, 199, 0.12); color: var(--info); }
+.legend-item.folga { background: rgba(34, 197, 94, 0.12); color: var(--success); }
+.legend-item.ausente { background: rgba(239, 68, 68, 0.12); color: var(--danger); }
+.legend-item.atestado { background: rgba(251, 191, 36, 0.12); color: var(--warning); }
+.legend-item.ferias { background: rgba(168, 85, 247, 0.12); color: rgb(126, 34, 206); }
+
+.calendar { margin-top: 12px; }
+.calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.weekday { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+
+.day { min-height: 96px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-secondary); padding: 8px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; transition: transform 0.08s ease, box-shadow 0.15s ease; }
+.day.empty { background: transparent; border-color: transparent; }
+.day:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+.day.dimmed { opacity: 0.45; }
+.day-header { font-size: 12px; font-weight: 700; color: var(--text); }
+.day-status { font-size: 12px; font-weight: 600; }
+
+.day.trabalhando { background: rgba(13, 148, 136, 0.08); }
+.day.dsr { background: rgba(2, 132, 199, 0.08); }
+.day.folga { background: rgba(34, 197, 94, 0.08); }
+.day.ausente { background: rgba(239, 68, 68, 0.08); }
+.day.atestado { background: rgba(251, 191, 36, 0.08); }
+.day.ferias { background: rgba(168, 85, 247, 0.08); }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(2px); z-index: 90; }
+.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.98); width: 520px; max-width: 92vw; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.18); z-index: 100; border-radius: var(--radius); transition: transform 0.15s ease; }
+.modal.open { transform: translate(-50%, -50%) scale(1); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--border); }
+.modal-title { font-size: 16px; font-weight: 700; color: var(--text); }
+.modal-subtitle { font-size: 12px; color: var(--text-secondary); }
+.modal-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.modal-grid { display: grid; grid-template-columns: 1fr 220px; gap: 16px; align-items: start; }
+.modal-left { display: flex; flex-direction: column; gap: 12px; }
+.modal-right { display: flex; flex-direction: column; gap: 12px; }
+.modal-meta { display: grid; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.modal-field label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+.modal-select { width: 100%; background: var(--surface-secondary); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px; }
+.modal-textarea { width: 100%; background: var(--surface-secondary); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px; resize: vertical; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+.metric { padding: 12px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface-secondary); display: grid; gap: 6px; }
+.metric-title { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+.metric-value { font-size: 20px; font-weight: 800; color: var(--text); }
+.metric.worked { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.3); }
+.metric.dsr-progress { background: rgba(120, 120, 120, 0.12); border-color: rgba(120, 120, 120, 0.35); }
+.metric.dsr-available { background: rgba(59, 130, 246, 0.12); border-color: rgba(59, 130, 246, 0.3); }
+.status-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.status-option { padding: 10px 12px; border-radius: var(--radius); border: 1px solid var(--border); font-weight: 600; cursor: pointer; background: var(--surface-secondary); }
+.status-option:hover { filter: brightness(1.05); }
+.status-option.opt-trabalhando { background: rgba(13, 148, 136, 0.12); color: var(--brand-primary); }
+.status-option.opt-dsr { background: rgba(2, 132, 199, 0.12); color: var(--info); }
+.status-option.opt-folga { background: rgba(34, 197, 94, 0.12); color: var(--success); }
+.status-option.opt-ausente { background: rgba(239, 68, 68, 0.12); color: var(--danger); }
+.status-option.opt-atestado { background: rgba(251, 191, 36, 0.12); color: var(--warning); }
+
+@media (max-width: 1024px) {
+  .jornada-container { grid-template-columns: 1fr; }
+}
+.drawer-body select { background: var(--surface-secondary); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 8px; }

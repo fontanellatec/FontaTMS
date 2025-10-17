@@ -1,0 +1,131 @@
+<div class="jornada-container">
+  <!-- Stats Section -->
+  <div class="card jornada-stats">
+    <div class="card-header">
+      <h3 class="card-title">Estatísticas de Jornada</h3>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-item" *ngFor="let s of stats">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path *ngIf="s.icon === 'users'" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle *ngIf="s.icon === 'users'" cx="9" cy="7" r="4"/>
+
+            <path *ngIf="s.icon === 'route'" d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            
+            <path *ngIf="s.icon === 'available'" d="M9 12l2 2 4-4"/>
+            
+            <path *ngIf="s.icon === 'absent'" d="M18 6 6 18"/>
+            <path *ngIf="s.icon === 'absent'" d="M6 6l12 12"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ s.value }}</span>
+          <span class="stat-label">{{ s.label }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar Card -->
+  <div class="card calendar-card">
+    <div class="card-header">
+      <div class="card-title">Calendário de Jornada — {{ monthName }} {{ year }}</div>
+      <div class="legend">
+        <span class="legend-item trabalhando">Trabalhando</span>
+        <span class="legend-item dsr">DSR</span>
+        <span class="legend-item folga">Folga</span>
+        <span class="legend-item ausente">Ausente</span>
+        <span class="legend-item atestado">Atestado</span>
+        <span class="legend-item ferias">Férias</span>
+      </div>
+    </div>
+    <div class="calendar-controls">
+      <div class="nav">
+        <button class="btn btn-ghost" (click)="prevMonth()">◀ Mês anterior</button>
+        <button class="btn btn-ghost" (click)="goToday()">Hoje</button>
+        <button class="btn btn-ghost" (click)="nextMonth()">Mês seguinte ▶</button>
+      </div>
+      <div class="filters">
+        <label class="filter">
+          <span>Motorista:</span>
+          <select [(ngModel)]="selectedDriver" (ngModelChange)="onDriverChange()">
+            <option *ngFor="let d of drivers" [value]="d">{{ d }}</option>
+          </select>
+        </label>
+        <label class="filter">
+          <span>Status:</span>
+          <select [(ngModel)]="selectedStatus">
+            <option>Todos</option>
+            <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
+          </select>
+        </label>
+        <div class="actions">
+          <button class="btn btn-primary" (click)="exportCSV()">Exportar CSV</button>
+          <button class="btn" (click)="printSchedule()">Imprimir</button>
+        </div>
+      </div>
+    </div>
+    <div class="calendar">
+      <div class="calendar-weekdays">
+        <div class="weekday" *ngFor="let d of daysOfWeek">{{ d }}</div>
+      </div>
+      <div class="calendar-grid">
+        <div class="day" *ngFor="let c of calendarCells" (click)="selectDay(c)" [class.empty]="!c.day" [class.trabalhando]="c.statusClass==='trabalhando'" [class.dsr]="c.statusClass==='dsr'" [class.folga]="c.statusClass==='folga'" [class.ausente]="c.statusClass==='ausente'" [class.atestado]="c.statusClass==='atestado'" [class.ferias]="c.statusClass==='ferias'" [class.dimmed]="isDimmed(c)">
+          <div class="day-header" *ngIf="c.day">{{ c.day }}</div>
+          <div class="day-status" *ngIf="c.day">{{ c.status }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de edição de status / lançamento -->
+  <div class="modal-overlay" *ngIf="modalOpen" (click)="closeModal()"></div>
+  <div class="modal" *ngIf="modalOpen" [class.open]="modalOpen">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Dia {{ selectedDay?.day }} — {{ monthName }} {{ year }}</div>
+        <div class="modal-subtitle">Motorista: {{ selectedDay?.driver }}</div>
+      </div>
+      <button class="btn btn-ghost" (click)="closeModal()">Fechar</button>
+    </div>
+    <div class="modal-body modal-grid">
+      <div class="modal-left">
+        <div class="modal-meta">
+          <div><strong>Motorista:</strong> {{ selectedDay?.driver }}</div>
+          <div><strong>Gestor:</strong> {{ managerName }}</div>
+          <div><strong>Data:</strong> {{ selectedDay ? (getSelectedDayDate() | date:'dd/MM/yyyy') : '' }}</div>
+        </div>
+        <div class="modal-field">
+          <label>Selecione o que você quer lançar:</label>
+          <select class="modal-select" [(ngModel)]="selectedAction">
+            <option [ngValue]="null" disabled>Selecione uma opção</option>
+            <option *ngFor="let a of jornadaActions" [value]="a">{{ a }}</option>
+          </select>
+        </div>
+        <div class="modal-field">
+          <label>Observação</label>
+          <textarea class="modal-textarea" rows="4" [(ngModel)]="observation" placeholder="Opcional"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" (click)="closeModal()">Cancelar</button>
+          <button class="btn btn-primary" [disabled]="!selectedAction" (click)="saveModal()">Salvar</button>
+        </div>
+      </div>
+      <div class="modal-right">
+        <div class="metric worked">
+          <div class="metric-title">Trabalhados</div>
+          <div class="metric-value">{{ workedDaysCount }} dias</div>
+        </div>
+        <div class="metric dsr-progress">
+          <div class="metric-title">Dias para DSR</div>
+          <div class="metric-value">{{ dsrWeekProgress }}/6</div>
+        </div>
+        <div class="metric dsr-available">
+          <div class="metric-title">DSR Disponível</div>
+          <div class="metric-value">{{ dsrAvailable }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,80 @@
+<div class="drivers-page">
+  <div class="header">
+    <h3>Motoristas</h3>
+    <span class="muted">Equipe em operação</span>
+  </div>
+
+  <div class="filters">
+    <div class="field">
+      <label>Status</label>
+      <select [(ngModel)]="selectedStatus">
+        <option value="Todos">Todos</option>
+        <option *ngFor="let st of statuses" [value]="st">{{ st }}</option>
+      </select>
+    </div>
+    <div class="field grow">
+      <label>Buscar</label>
+      <input [(ngModel)]="searchTerm" placeholder="Nome ou equipe" />
+    </div>
+  </div>
+
+  <div class="table card">
+    <div class="row header">
+      <div>Nome</div>
+      <div>Status</div>
+      <div>Equipe</div>
+      <div>Última atualização</div>
+      <div>Ações</div>
+    </div>
+    <div class="row" *ngFor="let r of filtered">
+      <div>{{ r.nome }}</div>
+      <div><span [class]="getStatusClass(r.status)">{{ r.status }}</span></div>
+      <div>{{ r.equipe }}</div>
+      <div>{{ r.ultimaAtualizacao }}</div>
+      <div>
+        <button class="btn sm" (click)="openDetail(r)">Detalhes</button>
+      </div>
+    </div>
+    <div class="row empty" *ngIf="filtered.length === 0">
+      <div class="muted">Nenhum motorista encontrado com os filtros atuais.</div>
+    </div>
+  </div>
+
+  <!-- Modal de detalhes -->
+  <div class="modal-backdrop" *ngIf="detailOpen" (click)="closeDetail()"></div>
+  <div class="modal" *ngIf="detailOpen" [class.open]="detailOpen">
+    <div class="modal-header">
+      <h4>Detalhes do Motorista</h4>
+      <button class="icon" (click)="closeDetail()">✕</button>
+    </div>
+    <div class="modal-body" *ngIf="selected as s">
+      <div class="grid">
+        <div>
+          <div class="label">Nome</div>
+          <div class="value">{{ s.nome }}</div>
+        </div>
+        <div>
+          <div class="label">Status</div>
+          <div class="value"><span [class]="getStatusClass(s.status)">{{ s.status }}</span></div>
+        </div>
+        <div>
+          <div class="label">Equipe</div>
+          <div class="value">{{ s.equipe }}</div>
+        </div>
+        <div>
+          <div class="label">Última atualização</div>
+          <div class="value">{{ s.ultimaAtualizacao }}</div>
+        </div>
+        <div>
+          <div class="label">Viagens no mês</div>
+          <div class="value">{{ s.viagensMes }}</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="btn" routerLink="/jornada">Abrir Jornada</a>
+        <button class="btn secondary" (click)="closeDetail()">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>

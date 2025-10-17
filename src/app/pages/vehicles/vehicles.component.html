@@ -1,0 +1,219 @@
+<div class="vehicles-page">
+  <div class="header">
+    <h3>Veículos</h3>
+    <span class="muted">Frota e manutenção</span>
+  </div>
+
+  <div class="filters">
+    <div class="field">
+      <label>Status</label>
+      <select [(ngModel)]="selectedStatus" (ngModelChange)="onFiltersChanged()">
+        <option value="Todos">Todos</option>
+        <option *ngFor="let st of statuses" [value]="st">{{ st }}</option>
+      </select>
+    </div>
+    <div class="field grow">
+      <label>Buscar</label>
+      <input [(ngModel)]="searchTerm" (ngModelChange)="onFiltersChanged()" placeholder="Placa ou modelo" />
+    </div>
+  </div>
+
+  <div class="table card list-card">
+    <div class="row header">
+      <div>Placa</div>
+      <div>Modelo</div>
+      <div>Status</div>
+      <div>Próx. manutenção</div>
+      <div>Ações</div>
+    </div>
+    <div class="table-body">
+      <div class="row" *ngFor="let r of paged">
+        <div>{{ r.placa }}</div>
+        <div>{{ r.modelo }}</div>
+        <div><span [class]="getStatusClass(r.status)">{{ r.status }}</span></div>
+        <div>{{ r.proxManutencao }}</div>
+        <div>
+          <button class="btn sm" (click)="openDetail(r)">Detalhes</button>
+        </div>
+      </div>
+      <div class="row empty" *ngIf="filtered.length === 0">
+        <div class="muted">Nenhum veículo encontrado com os filtros atuais.</div>
+      </div>
+    </div>
+    <div class="table-footer">
+      <div class="footer-left">
+        <span class="muted">Página {{ page }} de {{ pageCount }}</span>
+        <span class="muted">• Mostrando {{ (page-1)*pageSize + 1 }}–{{ Math.min(page*pageSize, filtered.length) }} de {{ filtered.length }}</span>
+      </div>
+      <div class="footer-right">
+        <label class="page-size">
+          <span>Tamanho</span>
+          <select [(ngModel)]="pageSize" (ngModelChange)="setPageSize($event)">
+            <option *ngFor="let s of pageSizeOptions" [value]="s">{{ s }}</option>
+          </select>
+        </label>
+        <button class="btn sm" (click)="prevPage()" [disabled]="page<=1">Anterior</button>
+        <button class="btn sm" (click)="nextPage()" [disabled]="page>=pageCount">Próxima</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de detalhes -->
+  <div class="modal-backdrop" *ngIf="detailOpen" (click)="closeDetail()"></div>
+  <div class="modal" *ngIf="detailOpen" [class.open]="detailOpen">
+    <div class="modal-header">
+      <h4>Detalhes do Veículo</h4>
+      <button class="icon" (click)="closeDetail()">✕</button>
+    </div>
+    <div class="modal-body" *ngIf="selected as s">
+      <div class="grid">
+        <div>
+          <div class="label">Placa</div>
+          <div class="value">{{ s.placa }}</div>
+        </div>
+        <div>
+          <div class="label">Modelo</div>
+          <div class="value">{{ s.modelo }}</div>
+        </div>
+        <div>
+          <div class="label">Status</div>
+          <div class="value"><span [class]="getStatusClass(s.status)">{{ s.status }}</span></div>
+        </div>
+        <div>
+          <div class="label">Próxima manutenção</div>
+          <div class="value">{{ s.proxManutencao }}</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn" (click)="openSchedule(s)">Agendar manutenção</button>
+        <button class="btn secondary" (click)="closeDetail()">Fechar</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal de agendamento de manutenção -->
+  <div class="modal-backdrop" *ngIf="scheduleOpen" (click)="closeSchedule()"></div>
+  <div class="modal" *ngIf="scheduleOpen" [class.open]="scheduleOpen">
+    <div class="modal-header">
+      <h4>Agendar manutenção</h4>
+      <button class="icon" (click)="closeSchedule()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid" *ngIf="scheduleFor as v">
+        <div>
+          <div class="label">Veículo</div>
+          <div class="value">{{ v.placa }} — {{ v.modelo }}</div>
+        </div>
+        <div>
+          <div class="label">Status atual</div>
+          <div class="value"><span [class]="getStatusClass(v.status)">{{ v.status }}</span></div>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          <span>Data</span>
+          <input type="date" [(ngModel)]="scheduleForm.date" />
+        </label>
+        <label>
+          <span>Tipo</span>
+          <select [(ngModel)]="scheduleForm.type">
+            <option value="Preventiva">Preventiva</option>
+            <option value="Corretiva">Corretiva</option>
+          </select>
+        </label>
+        <label>
+          <span>Fornecedor</span>
+          <input type="text" [(ngModel)]="scheduleForm.fornecedor" placeholder="Empresa/Oficina" />
+        </label>
+        <label>
+          <span>Tempo estimado</span>
+          <input type="text" [(ngModel)]="scheduleForm.tempo" placeholder="ex.: 4h" />
+        </label>
+        <label class="col-span-2">
+          <span>Descrição</span>
+          <textarea [(ngModel)]="scheduleForm.descricao" rows="3" placeholder="Detalhes da manutenção"></textarea>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button class="btn" (click)="saveSchedule()" [disabled]="!scheduleForm.date">Agendar</button>
+        <button class="btn secondary" (click)="closeSchedule()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agendamentos Recentes -->
+  <div class="agendamentos-card">
+    <div class="ag-header">
+      <h4>Agendamentos recentes</h4>
+      <span class="count-badge" *ngIf="agendamentos.length > 0">{{ agendamentos.length }}</span>
+    </div>
+
+    <div class="ag-empty" *ngIf="agendamentos.length === 0">
+      <span class="muted">Nenhum agendamento registrado ainda.</span>
+    </div>
+
+    <div class="ag-table-container" *ngIf="agendamentos.length > 0">
+      <table class="ag-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Placa</th>
+            <th>Tipo</th>
+            <th>Descrição</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of agendamentos; let i = index">
+            <td>{{ a.date }}</td>
+            <td>{{ a.placa }}</td>
+            <td>{{ a.type }}</td>
+            <td>{{ a.descricao || '—' }}</td>
+            <td class="actions-cell">
+              <button class="icon-btn success" (click)="concluirAgendamento(i)" title="Concluir" aria-label="Concluir">✔</button>
+              <button class="icon-btn danger" (click)="cancelarAgendamento(i)" title="Cancelar" aria-label="Cancelar">✖</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Histórico de agendamentos -->
+  <div class="agendamentos-card">
+    <div class="ag-header">
+      <h4>Histórico de agendamentos</h4>
+      <span class="count-badge" *ngIf="historicoAgendamentos.length > 0">{{ historicoAgendamentos.length }}</span>
+    </div>
+
+    <div class="ag-empty" *ngIf="historicoAgendamentos.length === 0">
+      <span class="muted">Nenhum item no histórico ainda.</span>
+    </div>
+
+    <div class="ag-table-container" *ngIf="historicoAgendamentos.length > 0">
+      <table class="ag-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Placa</th>
+            <th>Tipo</th>
+            <th>Situação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let h of historicoAgendamentos">
+            <td>{{ h.date }}</td>
+            <td>{{ h.placa }}</td>
+            <td>{{ h.type }}</td>
+            <td>
+              <span [ngClass]="h.status === 'Concluído' ? 'chip concluido' : 'chip cancelado'">{{ h.status }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

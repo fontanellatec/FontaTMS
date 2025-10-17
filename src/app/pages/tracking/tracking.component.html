@@ -1,0 +1,81 @@
+<div class="tracking-page">
+  <div class="header">
+    <h3>Rastreamento</h3>
+    <span class="muted">Monitoramento de frota</span>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters card">
+    <div class="row">
+      <label>
+        <span>Nº Frota</span>
+        <input [(ngModel)]="filtroFrota" placeholder="ex.: 116" />
+      </label>
+      <label>
+        <span>Placa</span>
+        <input [(ngModel)]="filtroPlaca" placeholder="ex.: ABC1D23" />
+      </label>
+      <label>
+        <span>Coordenador</span>
+        <input [(ngModel)]="filtroCoordenador" placeholder="Nome do coordenador" />
+      </label>
+      <label>
+        <span>Gestor</span>
+        <input [(ngModel)]="filtroGestor" placeholder="Nome do gestor" />
+      </label>
+      <div class="actions">
+        <button class="btn" (click)="onPesquisar()">Pesquisar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conteúdo -->
+  <div class="content-grid">
+    <!-- Painel de veículos -->
+    <div class="card vehicles-panel">
+      <div class="panel-header">
+        <strong>Veículos da Frota</strong>
+        <span class="count" *ngIf="filtered.length > 0">{{ filtered.length }}</span>
+      </div>
+      <div class="vehicles-list">
+        <div class="vehicle-item" *ngFor="let v of filtered" (click)="onVehicleClick(v)" [class.selected]="selectedPlaca === v.placa" [attr.data-placa]="v.placa" tabindex="0">
+          <div class="line">
+            <span class="label">Frota</span>
+            <span class="value">{{ v.frota }}</span>
+          </div>
+          <div class="line">
+            <span class="label">Placa</span>
+            <span class="value">{{ v.placa }}</span>
+          </div>
+          <div class="line">
+            <span class="label">Localização</span>
+            <span class="value">{{ v.localizacao }}</span>
+          </div>
+          <div class="line">
+            <span class="label">Coordenador</span>
+            <span class="value">{{ v.coordenador }}</span>
+          </div>
+          <div class="line">
+            <span class="label">Gestor</span>
+            <span class="value">{{ v.gestor }}</span>
+          </div>
+        </div>
+        <div class="empty" *ngIf="filtered.length === 0">
+          <span class="muted">Nenhum veículo encontrado com os filtros atuais.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mapa -->
+    <div class="card map-card">
+      <div class="map-toolbar">
+        <button class="icon-btn" (click)="zoomOut()" aria-label="Diminuir zoom" data-tooltip="Diminuir zoom">−</button>
+        <button class="icon-btn" (click)="zoomIn()" aria-label="Aumentar zoom" data-tooltip="Aumentar zoom">+</button>
+        <button class="icon-btn" (click)="resetView()" aria-label="Recentrar mapa" data-tooltip="Recentrar mapa">⤿</button>
+      </div>
+      <div class="map-canvas">
+        <div id="map" class="map-element"></div>
+      </div>
+    </div>
+  </div>
+</div>

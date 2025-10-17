@@ -1,0 +1,215 @@
+<div class="dashboard-container">
+  <!-- Financial Overview Cards -->
+  <div class="financial-overview">
+    <div class="card financial-card receitas">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20m9-9H3"/>
+          </svg>
+        </div>
+        <div class="card-info">
+          <h3 class="card-title">Receitas</h3>
+          <p class="card-subtitle">Total do mês</p>
+        </div>
+      </div>
+      <div class="card-value">
+        <span class="value">R$ 245.680,00</span>
+        <span class="change positive">+12.5%</span>
+      </div>
+    </div>
+
+    <div class="card financial-card despesas">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14"/>
+          </svg>
+        </div>
+        <div class="card-info">
+          <h3 class="card-title">Despesas</h3>
+          <p class="card-subtitle">Total do mês</p>
+        </div>
+      </div>
+      <div class="card-value">
+        <span class="value">R$ 156.420,00</span>
+        <span class="change negative">+8.2%</span>
+      </div>
+    </div>
+
+    <div class="card financial-card saldo">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+        </div>
+        <div class="card-info">
+          <h3 class="card-title">Saldo Total</h3>
+          <p class="card-subtitle">Resultado líquido</p>
+        </div>
+      </div>
+      <div class="card-value">
+        <span class="value">R$ 89.260,00</span>
+        <span class="change positive">+18.7%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts and Analytics Section -->
+  <div class="analytics-section">
+    <div class="card chart-card">
+      <div class="card-header">
+        <h3 class="card-title">Fluxo de Caixa</h3>
+        <div class="chart-controls">
+          <button class="btn btn-ghost active">7 dias</button>
+          <button class="btn btn-ghost">30 dias</button>
+          <button class="btn btn-ghost">90 dias</button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <div class="chart-placeholder">
+          <svg viewBox="0 0 400 200" class="chart-svg" preserveAspectRatio="none">
+            <!-- Sample chart data -->
+            <defs>
+              <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:var(--brand-primary);stop-opacity:0.3"/>
+                <stop offset="100%" style="stop-color:var(--brand-primary);stop-opacity:0"/>
+              </linearGradient>
+            </defs>
+            <path d="M 0 150 Q 50 120 100 130 T 200 110 T 300 90 T 400 80" 
+                  stroke="var(--brand-primary)" 
+                  stroke-width="3" 
+                  fill="none"/>
+            <path d="M 0 150 Q 50 120 100 130 T 200 110 T 300 90 T 400 80 L 400 200 L 0 200 Z" 
+                  fill="url(#chartGradient)"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="card stats-card">
+      <div class="card-header">
+        <h3 class="card-title">Estatísticas Operacionais</h3>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">128</span>
+            <span class="stat-label">Embarques</span>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 12l2 2 4-4"/>
+              <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
+              <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">96</span>
+            <span class="stat-label">Entregas</span>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6 6 18"/>
+              <path d="M6 6l12 12"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">4</span>
+            <span class="stat-label">Atrasos</span>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14,2 14,8 20,8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10,9 9,9 8,9"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">52</span>
+            <span class="stat-label">Veículos Ativos</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Transactions Table -->
+  <div class="card transactions-card">
+    <div class="card-header">
+      <h3 class="card-title">Transações Recentes</h3>
+      <button class="btn btn-primary">Ver Todas</button>
+    </div>
+    <div class="table-container">
+      <table class="transactions-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Categoria</th>
+            <th>Valor</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>15/01/2024</td>
+            <td>Frete - São Paulo/Rio</td>
+            <td>Receita</td>
+            <td class="value positive">+R$ 2.450,00</td>
+            <td><span class="status-badge success">Concluído</span></td>
+          </tr>
+          <tr>
+            <td>15/01/2024</td>
+            <td>Combustível - Posto Shell</td>
+            <td>Despesa</td>
+            <td class="value negative">-R$ 380,00</td>
+            <td><span class="status-badge success">Pago</span></td>
+          </tr>
+          <tr>
+            <td>14/01/2024</td>
+            <td>Manutenção Veículo #1234</td>
+            <td>Despesa</td>
+            <td class="value negative">-R$ 850,00</td>
+            <td><span class="status-badge pending">Pendente</span></td>
+          </tr>
+          <tr>
+            <td>14/01/2024</td>
+            <td>Frete - Belo Horizonte/SP</td>
+            <td>Receita</td>
+            <td class="value positive">+R$ 1.890,00</td>
+            <td><span class="status-badge success">Concluído</span></td>
+          </tr>
+          <tr>
+            <td>13/01/2024</td>
+            <td>Seguro Frota</td>
+            <td>Despesa</td>
+            <td class="value negative">-R$ 1.200,00</td>
+            <td><span class="status-badge success">Pago</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,103 @@
+<div class="header">
+  <h3>Embarques</h3>
+  <span class="muted">Operações de transporte</span>
+</div>
+
+<!-- Filtros fora da listagem, seguindo padrão de Motoristas -->
+<div class="filters">
+  <label class="filter">
+    <span>Status:</span>
+    <select [(ngModel)]="selectedStatus">
+      <option>Todos</option>
+      <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+    </select>
+  </label>
+  <label class="filter">
+    <span>De:</span>
+    <input type="date" [(ngModel)]="fromDate"/>
+  </label>
+  <label class="filter">
+    <span>Até:</span>
+    <input type="date" [(ngModel)]="toDate"/>
+  </label>
+  <label class="filter grow">
+    <span>Pesquisar:</span>
+    <input type="text" [(ngModel)]="searchTerm" placeholder="ID, motorista, origem, destino"/>
+  </label>
+  <div class="actions">
+    <button class="btn" (click)="exportCSV()">Exportar CSV</button>
+    <button class="btn" (click)="printList()">Imprimir</button>
+    <button class="btn btn-primary" (click)="openNewShipmentModal()">Novo Embarque</button>
+  </div>
+</div>
+
+<!-- Removido wrapper em card para evitar duplo fundo -->
+
+  <div class="table card list-card">
+    <div class="row header">
+      <div>#ID</div>
+      <div>Motorista</div>
+      <div>Veículo</div>
+      <div>Origem</div>
+      <div>Destino</div>
+      <div>Status</div>
+      <div>ETA</div>
+    </div>
+    <div class="table-body">
+      <div class="row" *ngFor="let r of filteredShipments">
+        <div>{{ r.id }}</div>
+        <div>{{ r.motorista }}</div>
+        <div>{{ r.veiculo }}</div>
+        <div>{{ r.origem }}</div>
+        <div>{{ r.destino }}</div>
+        <div><span [class]="getStatusClass(r.status)">{{ r.status }}</span></div>
+        <div>{{ r.eta }}</div>
+      </div>
+      <div class="row empty" *ngIf="filteredShipments.length === 0">
+        <div class="muted">Nenhum embarque encontrado.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Novo Embarque -->
+  <div class="modal-overlay" *ngIf="newModalOpen" (click)="closeNewShipmentModal()"></div>
+  <div class="modal" *ngIf="newModalOpen" [class.open]="newModalOpen">
+    <div class="modal-header">
+      <div class="modal-title">Novo Embarque</div>
+      <button class="btn btn-ghost" (click)="closeNewShipmentModal()">Fechar</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <label>
+          <span>Motorista</span>
+          <input type="text" [(ngModel)]="newShipment.motorista" placeholder="Nome do motorista"/>
+        </label>
+        <label>
+          <span>Veículo</span>
+          <input type="text" [(ngModel)]="newShipment.veiculo" placeholder="Placa"/>
+        </label>
+        <label>
+          <span>Origem</span>
+          <input type="text" [(ngModel)]="newShipment.origem"/>
+        </label>
+        <label>
+          <span>Destino</span>
+          <input type="text" [(ngModel)]="newShipment.destino"/>
+        </label>
+        <label>
+          <span>ETA</span>
+          <input type="text" [(ngModel)]="newShipment.eta" placeholder="HH:mm"/>
+        </label>
+        <label>
+          <span>Status</span>
+          <select [(ngModel)]="newShipment.status">
+            <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+          </select>
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" (click)="closeNewShipmentModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="saveNewShipment()">Salvar</button>
+      </div>
+    </div>
+  </div>

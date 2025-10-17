@@ -1,0 +1,135 @@
+<div class="programacao-page">
+  <div class="header">
+    <h3>Programação</h3>
+    <span class="muted">Planejamento e operação de frota</span>
+  </div>
+
+  <!-- Filtros no padrão Motoristas (sem card) -->
+  <div class="filters">
+    <label class="filter">
+      <span>Frota:</span>
+      <input [(ngModel)]="filtroFrota" placeholder="ex.: 116" />
+    </label>
+    <label class="filter">
+      <span>Motorista:</span>
+      <input [(ngModel)]="filtroMotorista" placeholder="Nome" />
+    </label>
+    <label class="filter">
+      <span>Situação Veículo:</span>
+      <select [(ngModel)]="filtroSituacaoVeiculo">
+        <option value="">Todos</option>
+        <option>Em rota</option>
+        <option>Parado</option>
+      </select>
+    </label>
+    <label class="filter">
+      <span>Tipo Operação:</span>
+      <select [(ngModel)]="filtroTipoOperacaoFrota">
+        <option value="">Todas</option>
+        <option>Distribuição</option>
+        <option>Transferência</option>
+      </select>
+    </label>
+    <label class="filter grow">
+      <span>Cidade:</span>
+      <input [(ngModel)]="filtroCidade" placeholder="ex.: São Paulo" />
+    </label>
+    <div class="actions">
+      <button class="btn" (click)="mostrarParados()">Parados</button>
+      <button class="btn" (click)="mostrarPrincipal()">Principal</button>
+      <button class="btn btn-primary" (click)="pesquisar()">Pesquisar</button>
+    </div>
+  </div>
+
+  <!-- Listagem no padrão de Motoristas (grid dentro de card) -->
+  <div class="table card list-card">
+    <div class="row header">
+      <div class="cell-center">D.Parados</div>
+      <div class="cell-center">Tempo Fora</div>
+      <div class="cell-center">Frota</div>
+      <div>Localização</div>
+      <div>Motorista</div>
+      <div>Situação veiculo</div>
+      <div>Origem</div>
+      <div>Início viagem</div>
+      <div>Destino</div>
+      <div>P.Entrega</div>
+      <div class="cell-center">P.Viagem</div>
+      <div class="cell-right">Total Receitas</div>
+      <div class="cell-right">Total Diário</div>
+      <div>Observação</div>
+      <div class="cell-right">Receitas (PV + OR)</div>
+      <div>Situação Motorista</div>
+      <div>Tipo Conjunto Veículo</div>
+      <div>Tipo Operação Frota</div>
+      <div>Ult.Manutenção</div>
+      <div class="cell-center">Falta</div>
+      <div class="cell-center">Folga</div>
+      <div class="cell-center">Jornada</div>
+      <div class="cell-center">Entregas</div>
+      <div class="col-actions">Ações</div>
+    </div>
+    <div class="table-body">
+      <div class="row" *ngFor="let r of paged; let idx = index">
+        <div class="cell-center">{{ r.dParados }}</div>
+        <div class="cell-center">{{ r.tempoFora }}</div>
+        <div class="cell-center">{{ r.frota }}</div>
+        <div class="localizacao">
+          <svg class="map-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 21s-6-4.35-6-10a6 6 0 1 1 12 0c0 5.65-6 10-6 10z"/>
+            <circle cx="12" cy="11" r="2.5"/>
+          </svg>
+          <span>{{ r.localizacao.cidade }}-{{ r.localizacao.uf }}</span>
+        </div>
+        <div>{{ r.motorista }}</div>
+        <div>{{ r.situacaoVeiculo }}</div>
+        <div>{{ r.origem }}</div>
+        <div>{{ r.inicioViagem }}</div>
+        <div>{{ r.destino }}</div>
+        <div>{{ r.pEntrega }}</div>
+        <div class="cell-center">{{ r.pViagem }}</div>
+        <div class="cell-right">{{ r.totalReceitas | currency:'BRL':'symbol-narrow' }}</div>
+        <div class="cell-right">{{ r.totalDiario | currency:'BRL':'symbol-narrow' }}</div>
+        <div class="obs">{{ r.observacao }}</div>
+        <div class="cell-right">{{ r.receitasPVOR | currency:'BRL':'symbol-narrow' }}</div>
+        <div>{{ r.situacaoMotorista }}</div>
+        <div>{{ r.tipoConjuntoVeiculo }}</div>
+        <div>{{ r.tipoOperacaoFrota }}</div>
+        <div>{{ r.ultManutencao }}</div>
+        <div class="cell-center">{{ r.falta }}</div>
+        <div class="cell-center">{{ r.folga }}</div>
+        <div class="cell-center">{{ r.jornada }}</div>
+        <div class="cell-center">{{ r.entregas }}</div>
+        <div class="actions-cell">
+          <button class="action-btn primary" (click)="operacionalizar(r)">Operacionalizar</button>
+          <button class="action-btn" (click)="verRota(r)">Ver rota</button>
+          <button class="action-btn" (click)="programarManutencao(r)">Programar manutenção</button>
+          <button class="action-btn" (click)="programarAcerto(r)">Programar Acerto</button>
+        </div>
+      </div>
+      <div class="row empty" *ngIf="filtered.length === 0">
+        <div class="muted">Nenhum registro encontrado com os filtros atuais.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rodapé de tabela com paginação -->
+  <div class="table-footer">
+    <div class="footer-left">
+      <button class="btn sm" (click)="firstPage()">«</button>
+      <button class="btn sm" (click)="prevPage()">‹</button>
+      <span>Página {{ page }} / {{ pageCount }}</span>
+      <button class="btn sm" (click)="nextPage()">›</button>
+      <button class="btn sm" (click)="lastPage()">»</button>
+    </div>
+    <div class="footer-right">
+      <div class="page-size">
+        <span>Itens:</span>
+        <select [(ngModel)]="pageSize">
+          <option *ngFor="let s of pageSizeOptions" [value]="s">{{ s }}</option>
+        </select>
+      </div>
+      <span class="muted">Exibindo {{ (page - 1) * pageSize + 1 }} a {{ Math.min(page * pageSize, filtered.length) }} de {{ filtered.length }}</span>
+    </div>
+  </div>
+</div>

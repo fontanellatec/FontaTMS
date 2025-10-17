@@ -1,0 +1,84 @@
+.maintenance-page { padding: 16px; }
+
+.header { display:flex; align-items:center; gap:12px; margin-bottom: 12px; }
+.muted { color:#6b7280; font-size: 12px; }
+
+.card { background:#fff; border:1px solid #e5e7eb; border-radius:8px; }
+
+.filters.card { padding: 12px; margin-bottom: 16px; }
+.filters .row { display:grid; grid-template-columns: repeat(7, minmax(120px, 1fr)); gap:12px; align-items:end; }
+.filters label span { display:block; font-size:12px; color:#6b7280; margin-bottom:6px; }
+.filters input, .filters select { width:100%; height:32px; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px; background:#fff; }
+.filters .grow { grid-column: span 2; }
+.filters .actions { display:flex; gap:8px; justify-content:flex-end; align-items:center; }
+
+.btn { height:32px; padding:0 10px; border-radius:6px; border:1px solid #d1d5db; background:#fff; cursor:pointer; }
+.btn:hover { background:#f9fafb; }
+.btn.sm { height:28px; font-size:12px; }
+.btn.secondary { background:#f9fafb; }
+.input { height:28px; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px; }
+
+.kanban { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; }
+.column { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding: 8px; }
+.col-header { display:flex; align-items:center; justify-content:space-between; padding:8px; border-bottom:1px solid #f3f4f6; }
+.count-badge { background:#f3f4f6; border:1px solid #e5e7eb; border-radius:999px; padding:2px 8px; font-size:12px; color:#374151; }
+
+.card { margin:8px; padding:10px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05); }
+.card-top { display:flex; align-items:center; justify-content:space-between; }
+.os-code { font-weight:600; }
+.icons { display:flex; gap:6px; }
+.icon-btn { height:28px; width:28px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; border:1px solid #d1d5db; background:#fff; cursor:pointer; font-size:16px; line-height:1; }
+.icon-btn:hover { background:#f3f4f6; }
+.icon-btn.success { color:#14532d; }
+.os-info { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-top:8px; font-size:13px; }
+.label { color:#6b7280; font-size:12px; margin-right:6px; }
+.chip { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:600; border:1px solid transparent; }
+.chip.exec { background:#fde68a; color:#7c2d12; border-color:#fcd34d; }
+.chip.done { background:#dcfce7; color:#14532d; border-color:#bbf7d0; }
+.chip.open { background:#f3f4f6; color:#374151; border-color:#e5e7eb; }
+.empty { padding:12px; color:#6b7280; font-size: 12px; }
+
+/* Barra de status e contadores no modal */
+.status-ribbon { display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin: 8px 16px; }
+.status-ribbon .step { text-align:center; font-weight:600; font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid #e5e7eb; background:#f3f4f6; color:#374151; }
+.status-ribbon .step.active.nova { background:#e0f2fe; border-color:#bae6fd; color:#075985; }
+.status-ribbon .step.active.execucao { background:#fde68a; border-color:#fcd34d; color:#7c2d12; }
+.status-ribbon .step.active.concluida { background:#dcfce7; border-color:#bbf7d0; color:#14532d; }
+.counters { display:flex; gap:8px; align-items:center; margin: 0 16px 8px; }
+.counter { font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid #e5e7eb; background:#f9fafb; color:#374151; }
+.counter.open { background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
+.counter.done { background:#dcfce7; border-color:#bbf7d0; color:#14532d; }
+
+/* Chips de prioridade e ícones de tipo */
+.chip.priority.baixa { background:#e0f2fe; color:#075985; border-color:#bae6fd; }
+.chip.priority.media { background:#fde68a; color:#7c2d12; border-color:#fcd34d; }
+.chip.priority.alta { background:#fecaca; color:#7f1d1d; border-color:#fca5a5; }
+.tipo-icon { width:14px; height:14px; margin-right:6px; vertical-align:-2px; }
+
+/* Drag and drop para Kanban */
+.column.drag-over { outline:2px dashed #93c5fd; background:#f0f9ff; }
+.card.dragging { opacity:0.6; }
+
+.modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.3); }
+.modal { position:fixed; inset:auto 0 0 0; margin:auto; top:7%; width:860px; max-width: calc(100% - 40px); background:#fff; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.15); }
+.modal-header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #f3f4f6; }
+.modal-body { padding:16px; }
+.summary { display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:16px; }
+.summary .item { display:flex; flex-direction:column; gap:4px; }
+.summary .label { font-size:12px; color:#6b7280; }
+.summary .value { font-weight:600; }
+
+.section { margin-top:12px; }
+.section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.table { width:100%; border-collapse:collapse; border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; }
+.table th, .table td { text-align:left; padding:10px 12px; border-bottom:1px solid #f3f4f6; }
+.table thead th { background:#f9fafb; font-size:12px; color:#6b7280; }
+.comments { display:flex; flex-direction:column; gap:8px; }
+.comment .meta { font-size:12px; color:#6b7280; }
+.comment .text { font-size:13px; }
+
+.footer-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+/* Modal compacto e chips de tipo */
+.modal.sm { width:520px; }
+.chip.preventiva { background:#e0f2fe; color:#075985; border-color:#bae6fd; }
+.chip.corretiva { background:#fff7ed; color:#9a3412; border-color:#fed7aa; }

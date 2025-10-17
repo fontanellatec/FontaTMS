@@ -1,0 +1,251 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>Controle de Colaboradores</h1>
+  </div>
+
+  <!-- Cards de estatísticas -->
+  <div class="stats-cards">
+    <div class="stat-card">
+      <div class="stat-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Colaboradores Ativos</div>
+        <div class="stat-value">{{ ativos }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5-6 5 6"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Admissões (Mês)</div>
+        <div class="stat-value">{{ admissoesMes }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4"/><path d="M17 14l-5 6-5-6"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Demissões (Mês)</div>
+        <div class="stat-value">{{ demissoesMes }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 3h18"/><path d="M3 7h18"/><path d="M8 11h10"/><path d="M8 15h10"/><path d="M8 19h10"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Tempo Médio de Empresa</div>
+        <div class="stat-value alt">{{ tempoMedioEmpresa }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aniversariantes do mês -->
+  <div class="birthdays">
+    <div class="birthdays-header">
+      <strong>Aniversariantes do Mês</strong>
+      <span class="muted">Total {{ aniversariantes.length }}</span>
+    </div>
+    <div class="birthdays-scroll" role="list">
+      <div class="bday-card" role="listitem" *ngFor="let a of aniversariantes">
+        <div class="bday-date">{{ a.dia }}</div>
+        <img [src]="a.foto || avatarUrl(a.nome)" class="avatar" alt="Avatar"/>
+        <div class="bday-name">{{ a.nome }}</div>
+        <div *ngIf="a.hoje" class="bday-chip">Hoje!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters">
+    <div class="filter-row">
+      <div class="filter">
+        <label>Nome</label>
+        <input type="text" [(ngModel)]="filtroNome" placeholder="Buscar por nome" />
+      </div>
+      <div class="filter">
+        <label>Cargo</label>
+        <select [(ngModel)]="filtroCargo">
+          <option *ngFor="let cg of cargos" [value]="cg">{{ cg }}</option>
+        </select>
+      </div>
+      <div class="filter">
+        <label>Setor</label>
+        <select [(ngModel)]="filtroSetor">
+          <option *ngFor="let st of setores" [value]="st">{{ st }}</option>
+        </select>
+      </div>
+      <div class="filter">
+        <label>Tempo de Casa</label>
+        <select [(ngModel)]="filtroTempoCasa">
+          <option value="Todos">Todos</option>
+          <option value="< 1 ano">< 1 ano</option>
+          <option value="1-3 anos">1-3 anos</option>
+          <option value="> 3 anos">&gt; 3 anos</option>
+        </select>
+      </div>
+      <div class="filter">
+        <label>Status</label>
+        <select [(ngModel)]="filtroStatus">
+          <option value="Todos">Todos</option>
+          <option value="Ativo">Ativo</option>
+          <option value="Inativo">Inativo</option>
+          <option value="Suspenso">Suspenso</option>
+        </select>
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn secondary" (click)="limpar()">Limpar</button>
+      <button class="btn primary" (click)="filtrar()">
+        <span class="icon">⚙️</span>
+        Filtrar
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabela de colaboradores -->
+  <div class="card">
+    <div class="card-title">Colaboradores</div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Foto</th>
+          <th>Nome</th>
+          <th>Cargo</th>
+          <th>Setor</th>
+          <th>Badge de Tempo</th>
+          <th>Tempo Total</th>
+          <th>Status</th>
+          <th>Registros</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of filtered">
+          <td>
+            <img [src]="c.foto || avatarUrl(c.nome)" class="avatar" alt="Avatar" />
+          </td>
+          <td class="name">{{ c.nome }}</td>
+          <td>{{ c.cargo }}</td>
+          <td>{{ c.setor }}</td>
+          <td>
+            <span *ngFor="let b of c.badges" class="badge tempo">{{ b }}</span>
+          </td>
+          <td>{{ tempoTotal(c) }}</td>
+          <td><span [class]="getStatusClass(c.status)">{{ c.status }}</span></td>
+          <td>
+            <button class="btn sm" (click)="verHistorico(c)">Ver Histórico</button>
+          </td>
+          <td class="actions-cell">
+            <button class="btn sm primary" (click)="lancar(c)">Lançar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal: Histórico (padrão) -->
+  <div class="modal-overlay" *ngIf="modalHistoricoOpen" (click)="fecharHistorico()"></div>
+  <div class="modal sm" *ngIf="modalHistoricoOpen" [class.open]="modalHistoricoOpen">
+    <div class="modal-header">
+      <div class="modal-title">Histórico</div>
+      <button class="icon" (click)="fecharHistorico()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="summary" *ngIf="selectedColab">
+        <div class="item">
+          <span class="label">Colaborador</span>
+          <span class="value">{{ selectedColab.nome }}</span>
+        </div>
+        <div class="item">
+          <span class="label">Cargo</span>
+          <span class="value">{{ selectedColab.cargo }}</span>
+        </div>
+        <div class="item">
+          <span class="label">Setor</span>
+          <span class="value">{{ selectedColab.setor }}</span>
+        </div>
+      </div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Tipo</th>
+            <th>Observação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of getHistoricoSelecionado()">
+            <td>{{ r.data }}</td>
+            <td>{{ r.tipo }}</td>
+            <td>{{ r.observacao }}</td>
+          </tr>
+          <tr *ngIf="getHistoricoSelecionado().length === 0">
+            <td colspan="3" class="muted">Sem registros para este colaborador.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" (click)="fecharHistorico()">Fechar</button>
+    </div>
+  </div>
+
+  <!-- Modal: Lançar novo registro (padrão) -->
+  <div class="modal-overlay" *ngIf="modalLancamentoOpen" (click)="fecharLancamento()"></div>
+  <div class="modal" *ngIf="modalLancamentoOpen" [class.open]="modalLancamentoOpen">
+    <div class="modal-header">
+      <div class="modal-title">Lançar Registro RH</div>
+      <button class="icon" title="Fechar" (click)="fecharLancamento()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Resumo do colaborador -->
+      <div class="collab-summary" *ngIf="selectedColab">
+        <img [src]="selectedColab.foto || avatarUrl(selectedColab.nome)" class="avatar collab-avatar" alt="Avatar" />
+        <div class="collab-info">
+          <div class="collab-name">{{ selectedColab.nome }}</div>
+          <div class="collab-meta">
+            <div><strong>Cargo:</strong> {{ selectedColab.cargo }}</div>
+            <div><strong>Setor:</strong> {{ selectedColab.setor }}</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Formulário -->
+      <div class="form-grid">
+        <label>
+          <span>Tipo de Registro</span>
+          <select [(ngModel)]="novoRegistro.tipo">
+            <option *ngFor="let t of tiposRegistro" [value]="t">{{ t }}</option>
+          </select>
+        </label>
+        <label class="grow">
+          <span>Descrição</span>
+          <textarea rows="4" [(ngModel)]="novoRegistro.observacao" placeholder="Descreva o registro..."></textarea>
+        </label>
+        <label>
+          <span>Data</span>
+          <input type="text" [(ngModel)]="novoRegistro.data" placeholder="dd/mm/aaaa" />
+        </label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" (click)="fecharLancamento()">Fechar</button>
+      <button class="btn btn-primary" [disabled]="!(novoRegistro.observacao && novoRegistro.observacao.trim().length)" (click)="salvarLancamento()">Salvar Registro</button>
+    </div>
+  </div>
+</div>

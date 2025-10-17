@@ -1,0 +1,165 @@
+<div class="embarque-page">
+  <div class="header">
+    <h3>Intenção de Embarque</h3>
+    <span class="muted">Registre origem, destino e peso para cotação</span>
+  </div>
+
+  <div class="card form-card">
+    <div class="row">
+      <div class="col">
+        <div class="section-header">
+          <strong>Origem</strong>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="origemEnderecoCompleto" />
+            <span>Endereço completo</span>
+          </label>
+        </div>
+        <div class="grid">
+          <label>
+            <span>UF</span>
+            <select [(ngModel)]="form.origem.uf">
+              <option value="">Selecione</option>
+              <option *ngFor="let uf of ufs" [value]="uf">{{ uf }}</option>
+            </select>
+          </label>
+          <label class="grow">
+            <span>Cidade</span>
+            <input [(ngModel)]="form.origem.cidade" placeholder="ex.: São Paulo" />
+          </label>
+        </div>
+        <div class="grid" *ngIf="origemEnderecoCompleto">
+          <label class="grow">
+            <span>Rua</span>
+            <input [(ngModel)]="form.origem.rua" />
+          </label>
+          <label>
+            <span>Número</span>
+            <input [(ngModel)]="form.origem.numero" />
+          </label>
+          <label>
+            <span>Bairro</span>
+            <input [(ngModel)]="form.origem.bairro" />
+          </label>
+          <label class="grow">
+            <span>Complemento</span>
+            <input [(ngModel)]="form.origem.complemento" />
+          </label>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="section-header">
+          <strong>Destino</strong>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="destinoEnderecoCompleto" />
+            <span>Endereço completo</span>
+          </label>
+        </div>
+        <div class="grid">
+          <label>
+            <span>UF</span>
+            <select [(ngModel)]="form.destino.uf">
+              <option value="">Selecione</option>
+              <option *ngFor="let uf of ufs" [value]="uf">{{ uf }}</option>
+            </select>
+          </label>
+          <label class="grow">
+            <span>Cidade</span>
+            <input [(ngModel)]="form.destino.cidade" placeholder="ex.: Rio de Janeiro" />
+          </label>
+        </div>
+        <div class="grid" *ngIf="destinoEnderecoCompleto">
+          <label class="grow">
+            <span>Rua</span>
+            <input [(ngModel)]="form.destino.rua" />
+          </label>
+          <label>
+            <span>Número</span>
+            <input [(ngModel)]="form.destino.numero" />
+          </label>
+          <label>
+            <span>Bairro</span>
+            <input [(ngModel)]="form.destino.bairro" />
+          </label>
+          <label class="grow">
+            <span>Complemento</span>
+            <input [(ngModel)]="form.destino.complemento" />
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col sm">
+        <label>
+          <span>Peso (kg)</span>
+          <input type="number" min="0" [(ngModel)]="form.pesoKg" placeholder="ex.: 12000" />
+        </label>
+      </div>
+      <div class="col sm">
+        <label>
+          <span>Tipo de carga</span>
+          <select [(ngModel)]="form.tipoCarga">
+            <option value="">Selecione</option>
+            <option *ngFor="let t of tiposCarga" [value]="t">{{ t }}</option>
+          </select>
+        </label>
+      </div>
+      <div class="col sm">
+        <label>
+          <span>Data coleta</span>
+          <input type="date" [(ngModel)]="form.dataColeta" />
+        </label>
+      </div>
+      <div class="col sm">
+        <label>
+          <span>Data entrega</span>
+          <input type="date" [(ngModel)]="form.dataEntrega" />
+        </label>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label class="grow">
+          <span>Observações</span>
+          <textarea [(ngModel)]="form.observacoes" rows="3" placeholder="Requisitos, janelas de coleta/entrega, restrições..."></textarea>
+        </label>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" (click)="onSubmit()">Solicitar proposta</button>
+      <span class="error" *ngIf="erroMsg">{{ erroMsg }}</span>
+      <span class="success" *ngIf="enviadoComSucesso">Intenção registrada! Propostas serão recebidas pelo comercial.</span>
+    </div>
+  </div>
+
+  <div class="card storage-card">
+    <div class="section-header">
+      <strong>Intenções registradas (local)</strong>
+      <span class="muted">(apenas demonstração)</span>
+    </div>
+    <div class="table">
+      <div class="row header">
+        <div>Origem</div>
+        <div>Destino</div>
+        <div>Peso</div>
+        <div>Tipo</div>
+        <div>Coleta</div>
+        <div>Entrega</div>
+      </div>
+      <div class="row" *ngFor="let r of getStorage()">
+        <div>{{ r.origem.uf }} / {{ r.origem.cidade }}</div>
+        <div>{{ r.destino.uf }} / {{ r.destino.cidade }}</div>
+        <div>{{ r.pesoKg | number:'1.0-0' }} kg</div>
+        <div>{{ r.tipoCarga || '—' }}</div>
+        <div>{{ r.dataColeta || '—' }}</div>
+        <div>{{ r.dataEntrega || '—' }}</div>
+      </div>
+      <div class="row empty" *ngIf="getStorage().length === 0">
+        <div class="muted">Nenhuma intenção registrada ainda.</div>
+      </div>
+    </div>
+  </div>
+</div>
