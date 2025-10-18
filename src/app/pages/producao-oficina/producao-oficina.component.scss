@@ -1,0 +1,232 @@
+.producao-oficina-page { padding: 16px; min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+.header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.muted { color: var(--muted-color, #6b7280); font-size: 12px; }
+
+/* Barra de filtros - padrão Acerto de Viagem */
+.filters { display: grid; grid-template-columns: repeat(6, minmax(140px, 1fr)); gap: 12px; align-items: end; }
+.filters .filter { display: flex; flex-direction: column; gap: 6px; }
+.filters .filter > span { font-size: 12px; color: #4b5563; }
+.filters input, .filters select { height: 32px; border: 1px solid #d1d5db; border-radius: 6px; padding: 0 8px; }
+.filters .actions { display: flex; justify-content: flex-end; }
+
+/* Ajustes solicitados */
+.producao-oficina-page .filters { margin-bottom: 14px; }
+.filters .actions .btn, .filters .actions .btn.btn-primary { height: 28px; padding: 4px 10px; font-size: 12px; }
+
+/* Campo de data com máscara + datepicker */
+.filters .date-field { display: flex; align-items: center; gap: 8px; }
+.filters .date-field .native-date { position: absolute; left: -9999px; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.filters .date-field .calendar { height: 28px; width: 28px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #374151; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.filters .actions { display: flex; justify-content: flex-start; justify-self: start; align-self: end; gap: 8px; }
+.status { cursor: pointer; }
+
+/* Modal básico + OS */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.25); z-index: 50; }
+.modal { position: fixed; z-index: 60; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--surface, #fff); color: var(--text, #111827); border: 1px solid var(--border, #e5e7eb); border-radius: 10px; width: min(920px, 92vw); max-height: 86vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,.2); }
+.modal-header { padding: 14px 18px; border-bottom: 1px solid var(--border, #e5e7eb); }
+.modal-body { padding: 16px; overflow: auto; }
+.modal-footer { padding: 12px 16px; border-top: 1px solid var(--border, #e5e7eb); display: flex; justify-content: flex-end; gap: 8px; }
+
+.os-modal .modal-title { font-size: 20px; font-weight: 600; color: var(--text); }
+.os-modal .code { margin: 8px 0 12px; font-size: 14px; }
+
+.os-modal .os-table { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.os-modal .os-table .table { width: 100%; border-collapse: collapse; }
+.os-modal .os-table .table th, .os-modal .os-table .table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; font-size: 13px; line-height: 1.35; color: var(--text); }
+.os-modal .os-table .table thead th { background: var(--surface-secondary); font-size: 12px; color: var(--text-secondary); }
+
+/* Additional OS modal styles */
+.os-modal .modal-body { padding: 0 16px 12px; }
+
+.os-modal .code-line {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 0 12px;
+  margin-bottom: 10px;
+}
+
+.os-modal .code-line .code {
+  font-weight: 600;
+}
+
+.os-modal .table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.os-modal .table th,
+.os-modal .table td {
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.os-modal .table th {
+  background: var(--surface);
+  font-weight: 600;
+}
+
+.os-modal .table td.cell-center {
+  text-align: center;
+}
+
+.os-modal .footer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  color: var(--muted);
+}
+
+.os-modal .pager button {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  border-radius: 4px;
+}
+
+.os-modal .status-square {
+  width: 20px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.os-modal .status-square.blue { background: #1d4ed8; } /* Nova */
+.os-modal .status-square.orange { background: #f59e0b; } /* Execução */
+.os-modal .status-square.green { background: #10b981; } /* Concluída */
+
+/* Edit modal styles */
+.os-modal .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Clickable cells */
+.table td.editable {
+  cursor: pointer;
+}
+.table td.editable:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+/* Edit modal */
+.edit-modal { width: min(520px, 92vw); }
+.edit-modal .modal-body { padding: 12px 16px; }
+.edit-modal .textarea {
+  width: 100%;
+  min-height: 110px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 13px;
+}
+.edit-modal .date-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.edit-modal .native-date {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+.edit-modal .calendar {
+  height: 28px;
+  width: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-cell { display: flex; align-items: center; gap: 8px; }
+.status-text { color: var(--text-secondary,#4b5563); }
+.status-square { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:3px; border: 1px solid var(--border); font-size: 12px; font-weight: 700; }
+.status-square.blue { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+.status-square.orange { background: #f59e0b; border-color: #f59e0b; color: #111; }
+.status-square.green { background: #16a34a; border-color: #16a34a; color: #fff; }
+.status-square.gray { background: #9ca3af; border-color: #9ca3af; color: #fff; }
+.status-square.red { background: #ef4444; border-color: #ef4444; color: #fff; }
+
+.os-footer { margin-top: 8px; }
+.os-footer .footer-left { display: flex; align-items: center; gap: 6px; }
+.os-footer .footer-right { display: flex; align-items: center; gap: 12px; }
+.os-footer .page-size { display: flex; align-items: center; gap: 8px; }
+
+/* Abas no padrão ERP */
+.tabs { margin-left: auto; display: flex; gap: 8px; }
+.tab { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-secondary); color: var(--text); cursor: pointer; font-size: 12px; }
+.tab.active { background: var(--brand-primary,#2563eb); color:#fff; border-color: transparent; }
+
+.table-container {
+  overflow-x: auto; /* scroll horizontal interno */
+  overflow-y: auto; /* scroll vertical interno */
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  height: calc(100vh - 220px);
+  overscroll-behavior: contain;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.table { width: max-content; border-collapse: collapse; }
+.table th, .table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; font-size: 13px; line-height: 1.35; color: var(--text); white-space: nowrap; }
+.table thead th { background: var(--surface-secondary); font-size: 12px; color: var(--text-secondary); }
+
+/* Fixar colunas até Placa */
+.producao-table { position: relative; --w-select: 40px; --w-frota: 72px; --w-placa: 220px; }
+.producao-table th:nth-child(1), .producao-table td:nth-child(1) { position: sticky; left: 0; z-index: 5; min-width: var(--w-select); width: var(--w-select); background: var(--surface); box-shadow: 1px 0 0 var(--border); text-align: center; }
+.producao-table th:nth-child(2), .producao-table td:nth-child(2) { position: sticky; left: var(--w-select); z-index: 4; min-width: var(--w-frota); width: var(--w-frota); background: var(--surface); box-shadow: 1px 0 0 var(--border); }
+.producao-table th:nth-child(3), .producao-table td:nth-child(3) { position: sticky; left: calc(var(--w-select) + var(--w-frota)); z-index: 3; min-width: var(--w-placa); width: var(--w-placa); background: var(--surface); box-shadow: 1px 0 0 var(--border); }
+
+/* Colunas estreitas das etapas */
+.producao-table th:nth-last-child(-n+12),
+.producao-table td.cell { min-width: 64px; }
+
+.cell-right { text-align: right; }
+.cell-center { text-align: center; }
+.obs { max-width: 360px; overflow: hidden; text-overflow: ellipsis; }
+
+/* Ícones de situação */
+.status-icon { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:6px; margin-right:4px; font-size:12px; font-weight:700; }
+.status-icon.ok { background: rgba(34, 197, 94, .18); color: #16a34a; border: 1px solid rgba(34, 197, 94, .35); }
+.status-icon.alerta { background: rgba(239, 68, 68, .18); color: #dc2626; border: 1px solid rgba(239, 68, 68, .35); }
+.status-icon.pendente { background: rgba(251, 191, 36, .18); color: #d97706; border: 1px solid rgba(251, 191, 36, .35); }
+.status-icon.aprovado { background: rgba(2, 132, 199, .18); color: #2563eb; border: 1px solid rgba(2, 132, 199, .35); }
+
+/* Células de etapas (cores simplificadas) */
+.cell { min-width: 64px; height: 26px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-secondary); position: relative; }
+.cell.blue { background: rgba(14, 165, 233, .18); border-color: rgba(14, 165, 233, .45); }
+.cell.orange { background: rgba(251, 146, 60, .18); border-color: rgba(251, 146, 60, .45); }
+.cell.green { background: rgba(34, 197, 94, .18); border-color: rgba(34, 197, 94, .45); }
+.cell.star::after { content: '*'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#f59e0b; font-weight:700; }
+.cell.x::after { content: 'X'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#16a34a; font-weight:700; }
+
+.table-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+.footer-left { display: flex; align-items: center; gap: 6px; }
+.footer-right { display: flex; align-items: center; gap: 12px; }
+.page-size { display: flex; align-items: center; gap: 8px; }
+.edit-modal .select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  height: 36px;
+  padding: 4px 8px;
+  font-size: 14px;
+}
+.edit-modal .field-label { display: block; margin-bottom: 6px; color: var(--text-secondary); }

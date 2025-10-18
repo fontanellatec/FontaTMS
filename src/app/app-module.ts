@@ -22,6 +22,7 @@ import { ContratosComponent } from './pages/contratos/contratos.component';
 import { ControleColaboradoresComponent } from './pages/controle-colaboradores/controle-colaboradores.component';
 import { ControleFrotaComponent } from './pages/controle-frota/controle-frota.component';
 import { AcertoViagemComponent } from './pages/acerto-viagem/acerto-viagem.component';
+import { ProducaoOficinaComponent } from './pages/producao-oficina/producao-oficina.component';
 
 @NgModule({
   declarations: [
@@ -48,6 +49,7 @@ import { AcertoViagemComponent } from './pages/acerto-viagem/acerto-viagem.compo
     ,ControleColaboradoresComponent
     ,ControleFrotaComponent
     ,AcertoViagemComponent
+    ,ProducaoOficinaComponent
   ],
   providers: [
     provideBrowserGlobalErrorListeners(),

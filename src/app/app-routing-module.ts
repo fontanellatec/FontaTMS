@@ -17,6 +17,7 @@ import { ContratosComponent } from './pages/contratos/contratos.component';
 import { ControleColaboradoresComponent } from './pages/controle-colaboradores/controle-colaboradores.component';
 import { ControleFrotaComponent } from './pages/controle-frota/controle-frota.component';
 import { AcertoViagemComponent } from './pages/acerto-viagem/acerto-viagem.component';
+import { ProducaoOficinaComponent } from './pages/producao-oficina/producao-oficina.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -36,6 +37,7 @@ const routes: Routes = [
   { path: 'controle-frota', component: ControleFrotaComponent, canActivate: [authGuard] },
   { path: 'contratos', component: ContratosComponent, canActivate: [authGuard] },
   { path: 'acerto-viagem', component: AcertoViagemComponent, canActivate: [authGuard] },
+  { path: 'producao-oficina', component: ProducaoOficinaComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: 'dashboard' }
 ];
 

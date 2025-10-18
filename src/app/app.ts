@@ -45,6 +45,7 @@ export class App implements OnInit {
     if (url.includes('/jornada')) return 'Jornada';
     if (url.includes('/financeiro')) return 'Financeiro';
     if (url.includes('/manutencao')) return 'Manutenção';
+    if (url.includes('/producao-oficina')) return 'Produção Oficina';
     if (url.includes('/shipments')) return 'Embarques';
     if (url.includes('/vehicles')) return 'Veículos';
     if (url.includes('/drivers')) return 'Motoristas';

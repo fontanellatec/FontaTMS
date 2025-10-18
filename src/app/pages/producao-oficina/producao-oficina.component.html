@@ -1,0 +1,271 @@
+<div class="producao-oficina-page">
+  <div class="header">
+    <h3>Produção Oficina</h3>
+    <div class="tabs">
+      <button class="tab" [class.active]="activeTab==='principal'" (click)="activeTab='principal'">Principal</button>
+      <button class="tab" [class.active]="activeTab==='prioridade'" (click)="activeTab='prioridade'">Prioridade</button>
+      <button class="tab" [class.active]="activeTab==='concluido'" (click)="activeTab='concluido'">Concluído</button>
+</div>
+  </div>
+
+  <div class="filters">
+    <label class="filter">
+      <span>Data Entrada:</span>
+      <div class="date-field">
+        <input type="text" [(ngModel)]="fDataEntrada" (input)="onDateInput('fDataEntrada', $event)" inputmode="numeric" placeholder="dd/mm/aaaa" />
+        <input type="date" class="native-date" #de (change)="onNativeDateChange('fDataEntrada', $event.target.value)" />
+        <button type="button" class="calendar" (click)="de.showPicker()">📅</button>
+      </div>
+    </label>
+    <label class="filter">
+      <span>Prazo:</span>
+      <div class="date-field">
+        <input type="text" [(ngModel)]="fPrazo" (input)="onDateInput('fPrazo', $event)" inputmode="numeric" placeholder="dd/mm/aaaa" />
+        <input type="date" class="native-date" #pr (change)="onNativeDateChange('fPrazo', $event.target.value)" />
+        <button type="button" class="calendar" (click)="pr.showPicker()">📅</button>
+      </div>
+    </label>
+    <label class="filter">
+      <span>Frota:</span>
+      <input type="text" [(ngModel)]="fFrota" />
+    </label>
+    <label class="filter">
+      <span>Placa:</span>
+      <input type="text" [(ngModel)]="fPlaca" />
+    </label>
+    <label class="filter">
+      <span>Tipo:</span>
+      <select [(ngModel)]="fTipo">
+        <option value="">Todos</option>
+        <option *ngFor="let t of tipoOptions" [value]="t">{{ t }}</option>
+      </select>
+    </label>
+
+    <label class="filter">
+      <span>Situação veículo:</span>
+      <select [(ngModel)]="fSituacaoVeiculo">
+        <option value="">Todos</option>
+        <option *ngFor="let s of situacaoVeiculoOptions" [value]="s">{{ s }}</option>
+      </select>
+    </label>
+    <label class="filter">
+      <span>Situação:</span>
+      <select [(ngModel)]="fSituacao">
+        <option value="">Todos</option>
+        <option *ngFor="let s of situacaoOptions" [value]="s">{{ s }}</option>
+      </select>
+    </label>
+    <label class="filter">
+      <span>Tipo Conjunto Veículo:</span>
+      <select [(ngModel)]="fTipoConjuntoVeiculo">
+        <option value="">Todos</option>
+        <option *ngFor="let t of tipoConjuntoOptions" [value]="t">{{ t }}</option>
+      </select>
+    </label>
+    <label class="filter">
+      <span>Descrição:</span>
+      <input type="text" [(ngModel)]="fDescricao" />
+    </label>
+    <label class="filter">
+      <span>Oficina:</span>
+      <select [(ngModel)]="fOficina">
+        <option value="">Todos</option>
+        <option *ngFor="let o of oficinasOptions" [value]="o">{{ o }}</option>
+      </select>
+    </label>
+
+    <div class="actions">
+      <button class="btn btn-primary" (click)="pesquisar()">Pesquisar</button>
+    </div>
+  </div>
+
+  <div class="table-container card">
+    <table class="table producao-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Frota</th>
+          <th>Placa</th>
+          <th>Tipo Conjunto Veículo</th>
+          <th>Observação</th>
+          <th>Tipo</th>
+          <th>Data</th>
+          <th>Dias</th>
+          <th>Data Prazo</th>
+          <th>Situação</th>
+          <th>CAV</th>
+          <th>PN</th>
+          <th>RAS</th>
+          <th>AL</th>
+          <th>LAV</th>
+          <th>PINT</th>
+          <th>CQ</th>
+          <th>CAR</th>
+          <th>PN</th>
+          <th>LAV</th>
+          <th>TA</th>
+          <th>LO</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of paged">
+          <td><input type="checkbox" [(ngModel)]="r.selected" /></td>
+          <td>{{ r.frota }}</td>
+          <td>{{ r.placa }}</td>
+          <td>{{ r.tipoConjuntoVeiculo }}</td>
+          <td class="obs editable" (click)="openEdit(r, 'observacao')">{{ r.observacao || '—' }}</td>
+          <td class="editable" (click)="openEdit(r, 'tipo')">{{ r.tipo }}</td>
+          <td>{{ r.data }}</td>
+          <td class="cell-center">{{ r.dias }}</td>
+          <td class="editable" (click)="openEdit(r, 'prazo')">{{ r.prazo }}</td>
+          <td class="cell-center status" (click)="openSituacaoModal(r)">
+            <ng-container *ngIf="primaryStatus(r) as st">
+              <span class="status-icon" [ngClass]="st" [title]="st | titlecase">
+                {{ st === 'ok' ? '✓' : st === 'alerta' ? '!' : st === 'pendente' ? '•' : '✔' }}
+              </span>
+            </ng-container>
+          </td>
+          <td [class]="etapaClass(r.etapas.cav)"></td>
+          <td [class]="etapaClass(r.etapas.pn)"></td>
+          <td [class]="etapaClass(r.etapas.ras)"></td>
+          <td [class]="etapaClass(r.etapas.al)"></td>
+          <td [class]="etapaClass(r.etapas.lav)"></td>
+          <td [class]="etapaClass(r.etapas.pint)"></td>
+          <td [class]="etapaClass(r.etapas.cq)"></td>
+          <td [class]="etapaClass(r.etapas.car)"></td>
+          <td [class]="etapaClass(r.etapas.pn2)"></td>
+          <td [class]="etapaClass(r.etapas.lav2)"></td>
+          <td [class]="etapaClass(r.etapas.ta)"></td>
+          <td [class]="etapaClass(r.etapas.lo)"></td>
+        </tr>
+        <tr *ngIf="filtered.length === 0">
+          <td class="muted" colspan="22">Nenhum registro encontrado.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-footer">
+    <div class="footer-left">
+      <button class="btn sm" (click)="firstPage()">«</button>
+      <button class="btn sm" (click)="prevPage()">‹</button>
+      <span>Página {{ page }} / {{ pageCount }}</span>
+      <button class="btn sm" (click)="nextPage()">›</button>
+      <button class="btn sm" (click)="lastPage()">»</button>
+    </div>
+    <div class="footer-right">
+      <div class="page-size">
+        <span>Itens:</span>
+        <select [(ngModel)]="pageSize">
+          <option *ngFor="let s of pageSizeOptions" [value]="s">{{ s }}</option>
+        </select>
+      </div>
+      <span class="muted">Exibindo {{ (page - 1) * pageSize + 1 }} a {{ Math.min(page * pageSize, filtered.length) }} de {{ filtered.length }}</span>
+    </div>
+</div>
+
+<!-- Modal overlay -->
+<div class="modal-backdrop" *ngIf="modalOpen" (click)="closeModal()"></div>
+<div class="modal os-modal" *ngIf="modalOpen" role="dialog" aria-modal="true">
+  <div class="modal-header">
+    <h3 class="modal-title">Situação Ordem de Serviço</h3>
+  </div>
+  <div class="modal-body">
+    <p class="code"><strong>Código Produção Oficina:</strong> {{ modalCodigoProducaoOficina }}</p>
+
+    <div class="table-container os-table">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Frota</th>
+            <th>Placa</th>
+            <th>OS</th>
+            <th>Data</th>
+            <th>Setor</th>
+            <th>Tipo</th>
+            <th>Oficina</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let i of modalItemsPaged">
+            <td>{{ i.frota }}</td>
+            <td>{{ i.placa }}</td>
+            <td>{{ i.os }}</td>
+            <td>{{ i.data }}</td>
+            <td>{{ i.setor }}</td>
+            <td>{{ i.tipo }}</td>
+            <td>{{ i.oficina }}</td>
+            <td class="status-cell">
+              <span class="status-text">{{ i.statusText }}</span>
+              <span class="status-square"
+                [class.blue]="i.statusColor==='blue'"
+                [class.orange]="i.statusColor==='orange'"
+                [class.green]="i.statusColor==='green'"
+                [class.gray]="i.statusColor==='gray'"
+                [class.red]="i.statusColor==='red'">
+                <ng-container *ngIf="i.star">*</ng-container>
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer os-footer">
+      <div class="footer-left">
+        <button class="btn sm" (click)="modalFirstPage()">«</button>
+        <button class="btn sm" (click)="modalPrevPage()">‹</button>
+        <span>Página {{ modalPage }} de {{ modalItemsPageCount }}</span>
+        <button class="btn sm" (click)="modalNextPage()">›</button>
+        <button class="btn sm" (click)="modalLastPage()">»</button>
+      </div>
+      <div class="footer-right">
+        <div class="page-size">
+          <span>Itens:</span>
+          <select [(ngModel)]="modalPageSize">
+            <option *ngFor="let s of modalPageSizeOptions" [value]="s">{{ s }}</option>
+          </select>
+        </div>
+        <span class="muted">Exibindo {{ (modalPage - 1) * modalPageSize + 1 }} à {{ Math.min(modalPage * modalPageSize, modalItems.length) }} de {{ modalItems.length }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn sm" (click)="closeModal()">Fechar</button>
+  </div>
+</div>
+
+<!-- Edit modal -->
+<div class="modal-backdrop" *ngIf="editOpen" (click)="closeEdit()"></div>
+<div class="modal edit-modal" *ngIf="editOpen" role="dialog" aria-modal="true">
+  <div class="modal-header">
+    <h3 class="modal-title">
+      {{ editType === 'prazo' ? 'Editar Data Prazo' : (editType === 'tipo' ? 'Produção Oficina Tipo' : 'Editar Observação') }}
+    </h3>
+  </div>
+  <div class="modal-body">
+    <!-- Prazo (data) -->
+    <div *ngIf="editType === 'prazo'" class="date-field">
+      <input type="text" [(ngModel)]="editDateMasked" (input)="onEditDateInput($event)" inputmode="numeric" placeholder="dd/mm/aaaa" />
+      <input type="date" class="native-date" #ed [value]="toNativeDate(editDateMasked)" (change)="onEditNativeDateChange($event.target.value)" />
+      <button type="button" class="calendar" (click)="ed.showPicker()">📅</button>
+    </div>
+    <!-- Tipo -->
+    <div *ngIf="editType === 'tipo'">
+      <label class="field-label">Tipo</label>
+      <select [(ngModel)]="editTipo" class="select">
+        <option *ngFor="let opt of tipoOptions" [value]="opt">{{ opt }}</option>
+      </select>
+    </div>
+    <!-- Observação -->
+    <div *ngIf="editType === 'observacao'">
+      <textarea [(ngModel)]="editObsText" rows="4" class="textarea"></textarea>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn sm" (click)="closeEdit()">Cancelar</button>
+    <button class="btn sm btn-primary" (click)="saveEdit()">Salvar</button>
+  </div>
+</div>
+</div>
