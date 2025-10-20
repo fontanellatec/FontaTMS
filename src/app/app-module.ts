@@ -1,5 +1,6 @@
 import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { CommonModule } from '@angular/common';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 
@@ -22,6 +23,9 @@ import { ContratosComponent } from './pages/contratos/contratos.component';
 import { ControleColaboradoresComponent } from './pages/controle-colaboradores/controle-colaboradores.component';
 import { ControleFrotaComponent } from './pages/controle-frota/controle-frota.component';
 import { AcertoViagemComponent } from './pages/acerto-viagem/acerto-viagem.component';
+import { ProducaoOficinaComponent } from './pages/producao-oficina/producao-oficina.component';
+import { PrecificacaoAbastecimentoComponent } from './pages/precificacao-abastecimento/precificacao-abastecimento.component';
+import { FreteTerceiroComponent } from './pages/frete-terceiro/frete-terceiro.component';
 
 @NgModule({
   declarations: [
@@ -29,6 +33,7 @@ import { AcertoViagemComponent } from './pages/acerto-viagem/acerto-viagem.compo
   ],
   imports: [
     BrowserModule,
+    CommonModule,
     AppRoutingModule,
     HttpClientModule,
     FormsModule,
@@ -48,6 +53,9 @@ import { AcertoViagemComponent } from './pages/acerto-viagem/acerto-viagem.compo
     ,ControleColaboradoresComponent
     ,ControleFrotaComponent
     ,AcertoViagemComponent
+    ,ProducaoOficinaComponent
+    ,PrecificacaoAbastecimentoComponent
+    ,FreteTerceiroComponent
   ],
   providers: [
     provideBrowserGlobalErrorListeners(),

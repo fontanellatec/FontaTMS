@@ -45,6 +45,7 @@ export class App implements OnInit {
     if (url.includes('/jornada')) return 'Jornada';
     if (url.includes('/financeiro')) return 'Financeiro';
     if (url.includes('/manutencao')) return 'Manutenção';
+    if (url.includes('/producao-oficina')) return 'Produção Oficina';
     if (url.includes('/shipments')) return 'Embarques';
     if (url.includes('/vehicles')) return 'Veículos';
     if (url.includes('/drivers')) return 'Motoristas';
@@ -56,7 +57,9 @@ export class App implements OnInit {
     if (url.includes('/controle-colaboradores')) return 'Controle de Colaboradores';
     if (url.includes('/contratos')) return 'Contratos';
     if (url.includes('/controle-frota')) return 'Controle de Frota';
+    if (url.includes('/precificacao-abastecimento')) return 'Precificação de Abastecimento';
     if (url.includes('/acerto-viagem')) return 'Acerto de Viagem';
+    if (url.includes('/frete-terceiro')) return 'Frete Terceiro';
     return 'Dashboard';
   }
 

@@ -56,6 +56,20 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  /* Scroll interno quando houver muitos itens */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Permite que o flex-child possa encolher e o scroll funcione */
+  min-height: 0;
+
+  /* Ocultar barras de rolagem, manter rolagem funcional */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge antigo */
+}
+/* WebKit/Blink (Chrome, Edge moderno, Safari) */
+.sidebar-nav::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .nav-item {

@@ -1,0 +1,411 @@
+<div class="precificacao-page">
+  <div class="header">
+    <h3>Precificação de Abastecimento</h3>
+    <span class="muted">Preços por fornecedor · histórico · mapa</span>
+  </div>
+
+  <!-- Abas -->
+  <div class="tabs">
+    <button class="tab-btn" [class.active]="tab==='precificacao'" (click)="setTab('precificacao')">Precificação</button>
+    <button class="tab-btn" [class.active]="tab==='dashboards'" (click)="setTab('dashboards')">Dashboards</button>
+    <button class="tab-btn" [class.active]="tab==='mapa'" (click)="setTab('mapa')">Mapa</button>
+  </div>
+
+  <!-- Aba: Precificação -->
+  @if (tab==='precificacao') { <div role="tabpanel">
+    <div class="card form-card">
+      <div class="form-grid">
+        <label>
+          <span>Fornecedor</span>
+          <select [(ngModel)]="form.fornecedorId" (ngModelChange)="onFornecedorChange($event)">
+            <option [ngValue]="null">Selecione</option>
+            @for (f of fornecedores; track $index) { <option [ngValue]="f.id">{{ f.nome }}</option> }
+          </select>
+        </label>
+        <label class="grow">
+          <span>Bomba</span>
+          <select [(ngModel)]="form.bombaId" (ngModelChange)="onBombaChange($event)">
+            <option [ngValue]="null">Selecione</option>
+            @for (b of getBombasPorFornecedor(form.fornecedorId); track $index) { <option [ngValue]="b.id">{{ b.nome }}</option> }
+          </select>
+        </label>
+        <label>
+          <span>Combustível</span>
+          <select [(ngModel)]="form.combustivel">
+            <option [ngValue]="''">Selecionar...</option>
+            @for (c of combustiveis; track $index) { <option [ngValue]="c" [disabled]="!bombaHasCombustivel(form.fornecedorId, form.bombaId, c)">{{ c }}</option> }
+          </select>
+        </label>
+        <label>
+          <span>Preço (R$)</span>
+          <input type="number" step="0.01" [(ngModel)]="form.preco" placeholder="0,00" />
+        </label>
+        <label>
+          <span>Data/Hora</span>
+          <input type="datetime-local" [(ngModel)]="form.dataHora" />
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" (click)="salvarPreco()">Salvar preço</button>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-header">
+          <strong>Preço atual</strong>
+          @if (form.bombaId && form.combustivel) { <span class="muted">{{ form.combustivel }}</span> }
+        </div>
+        @if (form.bombaId && form.combustivel) {
+          <div class="current-price">
+            <div class="value">{{ getPrecoAtualSelecionado() ?? '—' }}</div>
+            @if (getPrecoAtualSelecionado()===null) { <div class="hint">Sem registro para este combustível.</div> }
+          </div>
+        } @else {
+          <div class="empty">Selecione uma bomba e combustível.</div>
+        }
+      </div>
+
+      <div class="card">
+        <div class="section-header">
+          <strong>Notas de Entrada do Fornecedor</strong>
+        </div>
+        <div class="list">
+            @for (n of notasEntradaPorFornecedor(form.fornecedorId); track $index) {
+              <div class="list-item">
+                <div class="line"><span class="label">Número:</span> <span class="value">{{ n.numero }}</span></div>
+                <div class="line"><span class="label">Data:</span> <span class="value">{{ n.data }}</span></div>
+                <div class="line"><span class="label">Valor:</span> <span class="value">{{ n.valor | currency:'BRL':'symbol-narrow' }}</span></div>
+              </div>
+            }
+            @if (!hasNotasEntrada(form.fornecedorId)) { <div class="empty">Sem notas de entrada.</div> }
+          </div>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="section-header">
+        <strong>Histórico de Preços</strong>
+      </div>
+      <div class="table">
+        <div class="row header">
+          <div>Data/Hora</div>
+          <div>Fornecedor</div>
+          <div>Bomba</div>
+          <div>Combustível</div>
+          <div class="cell-right">Preço</div>
+        </div>
+        <div class="table-body">
+          @for (h of getHistoricoPorBomba(form.bombaId); track $index) {
+            <div class="row">
+              <div>{{ formatDateTimeBR(h.dataHora) }}</div>
+              <div>{{ fornecedorById(h.fornecedorId)?.nome }}</div>
+              <div>{{ bombaById(h.bombaId)?.nome }}</div>
+              <div>{{ h.combustivel }}</div>
+              <div class="cell-right">{{ h.preco | currency:'BRL':'symbol-narrow' }}</div>
+            </div>
+          }
+          @if (getHistoricoPorBomba(form.bombaId).length===0) {
+            <div class="row empty">
+              <div class="muted">Sem registros para a bomba selecionada.</div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Aba: Dashboards -->
+  @if (tab==='dashboards') { <div role="tabpanel">
+    <div class="card">
+      <div class="kpis">
+        <div class="kpi">
+          <span class="label">Média Diesel S10 (7d)</span>
+          <strong class="value">{{ mediaDieselS10 !== null && mediaDieselS10 !== undefined ? (mediaDieselS10 | number:'1.2-2') : '—' }}</strong>
+        </div>
+        <div class="kpi">
+          <span class="label">Variação semana Diesel S10</span>
+          <strong class="value">{{ variacaoDieselS10Semana !== null && variacaoDieselS10Semana !== undefined ? (variacaoDieselS10Semana | number:'1.0-2') : '—' }}</strong>
+        </div>
+        <div class="kpi">
+          <span class="label">Registros</span>
+          <strong class="value">{{ registrosTotal }}</strong>
+        </div>
+        <div class="kpi">
+          <span class="label">Fornecedores monitorados</span>
+          <strong class="value">{{ fornecedoresMonitorados }}</strong>
+        </div>
+      </div>
+      <div class="chart">
+        <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+          <g class="grid">
+            <line x1="0" y1="38" x2="100" y2="38"></line>
+            <line x1="0" y1="30" x2="100" y2="30"></line>
+            <line x1="0" y1="22" x2="100" y2="22"></line>
+            <line x1="0" y1="14" x2="100" y2="14"></line>
+            <line x1="0" y1="6" x2="100" y2="6"></line>
+          </g>
+          <polyline [attr.points]="polylinePoints()" fill="none" stroke="var(--brand, #0d9488)" stroke-width="2" />
+        </svg>
+        <div class="chart-caption">Últimos registros Diesel S10</div>
+      </div>
+    </div>
+
+    <div class="dash-toolbar">
+      <div class="subtabs">
+        <button class="tab-btn" [class.active]="dashTab==='resumo'" (click)="setDashTab('resumo')">Resumo</button>
+        <button class="tab-btn" [class.active]="dashTab==='precos'" (click)="setDashTab('precos')">Preços</button>
+        <button class="tab-btn" [class.active]="dashTab==='frota'" (click)="setDashTab('frota')">Frota</button>
+        <button class="tab-btn" [class.active]="dashTab==='notas'" (click)="setDashTab('notas')">Notas</button>
+        <button class="tab-btn" [class.active]="dashTab==='alertas'" (click)="setDashTab('alertas')">Alertas</button>
+      </div>
+      <div class="period">
+        <span>Período:</span>
+        <div class="btn-group">
+          <button class="btn btn-ghost" [class.active]="filtroPeriodo==='mes_atual'" (click)="setPeriodo('mes_atual')">Mês atual</button>
+          <button class="btn btn-ghost" [class.active]="filtroPeriodo==='30d'" (click)="setPeriodo('30d')">30d</button>
+          <button class="btn btn-ghost" [class.active]="filtroPeriodo==='90d'" (click)="setPeriodo('90d')">90d</button>
+        </div>
+      </div>
+    </div>
+
+    @switch (dashTab) {
+      @case ('resumo') {
+        <div class="grid-2">
+          <div class="card">
+            <div class="section-header"><strong>KPIs do período</strong></div>
+            <div class="list">
+              <div class="list-item"><div class="line"><span class="label">Litros:</span> <span class="value">{{ litrosPeriodo() }}</span></div></div>
+              <div class="list-item"><div class="line"><span class="label">Gasto total:</span> <span class="value">{{ gastoPeriodo() | currency:'BRL':'symbol-narrow' }}</span></div></div>
+              <div class="list-item"><div class="line"><span class="label">Preço médio por litro:</span> <span class="value">{{ precoMedioLitroPeriodo() ?? '—' }}</span></div></div>
+              <div class="list-item"><div class="line"><span class="label">Abastecimentos:</span> <span class="value">{{ abastecimentosCountPeriodo() }}</span></div></div>
+              <div class="list-item"><div class="line"><span class="label">Veículo de maior consumo:</span> <span class="value">{{ veiculoMaiorConsumoPeriodo() ?? '—' }}</span></div></div>
+              <div class="list-item"><div class="line"><span class="label">Fornecedor mais utilizado:</span> <span class="value">{{ fornecedorMaisUtilizadoPeriodo() ?? '—' }}</span></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="section-header"><strong>Custo total por mês</strong></div>
+            <div class="chart">
+              <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+                <g class="grid">
+                  <line x1="0" y1="38" x2="100" y2="38"></line>
+                  <line x1="0" y1="30" x2="100" y2="30"></line>
+                  <line x1="0" y1="22" x2="100" y2="22"></line>
+                  <line x1="0" y1="14" x2="100" y2="14"></line>
+                  <line x1="0" y1="6" x2="100" y2="6"></line>
+                </g>
+                <polyline [attr.points]="polylineCustoPorMesPoints()" fill="none" stroke="var(--brand, #0d9488)" stroke-width="2" />
+              </svg>
+              <div class="chart-caption">Últimos 6 meses</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-header"><strong>Participação por fornecedor</strong></div>
+          <div class="chart-bars">
+            @for (p of participacaoFornecedores(); track $index) {
+              <div class="bar-row">
+                <span class="label">{{ p.nome }}</span>
+                <div class="bar"><div class="fill" [style.width.%]="p.percent" [style.background]="colorParticipationBar($index)" [attr.title]="participationTooltip(p)"></div></div>
+                <span class="value">{{ p.percent }}%</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+      @case ('precos') {
+        <div class="grid-2">
+          <div class="card">
+            <div class="section-header"><strong>Variação Diesel S10 vs mês anterior</strong></div>
+            <div class="current-price"><div class="value">{{ variacaoPercentualMesAnterior('Diesel S10') ?? '—' }}%</div></div>
+          </div>
+          <div class="card">
+            <div class="section-header"><strong>Min/Max Diesel S10 no período</strong></div>
+            <div class="current-price"><div class="value">{{ minMaxPrecoPeriodo('Diesel S10').min ?? '—' }} / {{ minMaxPrecoPeriodo('Diesel S10').max ?? '—' }}</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-header"><strong>Ranking por custo médio (Diesel S10)</strong></div>
+          <div class="chart-bars">
+            @for (r of rankingFornecedoresPorCustoMedio('Diesel S10'); track $index) {
+              <div class="bar-row">
+                <span class="label">{{ r.nome }}</span>
+                <div class="bar"><div class="fill" [style.width.%]="(r.media / maxRankingMedia('Diesel S10')) * 100" [style.background]="colorRankingBar($index)" [attr.title]="rankingTooltip(r)"></div></div>
+                <span class="value">{{ r.media }}</span>
+              </div>
+            }
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-header"><strong>Distribuição de combustíveis por fornecedor (stacked)</strong></div>
+          <div class="chart-stacked">
+            @for (s of stackedPorFornecedorCombustivel(); track $index) {
+              <div class="stacked-row">
+                <span class="label">{{ s.nome }}</span>
+                <div class="stacked-bar">
+                  @for (seg of s.segments; track $index) {
+                    <div class="segment" [ngStyle]="{ 'flex': seg.percent }" [style.background]="colorCombustivel(seg.combustivel)" [attr.title]="seg.combustivel + ' ' + seg.percent + '%'"></div>
+                  }
+                </div>
+                <span class="value">{{ sumSegmentsPercent(s.segments) }}%</span>
+              </div>
+            }
+            <div class="legend">
+              @for (c of combustiveis; track $index) {
+                <div class="legend-item"><span class="swatch" [style.background]="colorCombustivel(c)"></span> <span class="name">{{ c }}</span></div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+      @case ('frota') {
+        <div class="card">
+          <div class="section-header"><strong>Média geral de consumo da frota</strong></div>
+          <div class="current-price"><div class="value">{{ mediaGeralConsumoFrota() ?? '—' }} km/L</div></div>
+        </div>
+        <div class="card">
+          <div class="section-header"><strong>km/L por veículo</strong></div>
+          <div class="chart-bars">
+            @for (v of kmLPorVeiculo(); track $index) {
+              <div class="bar-row">
+                <span class="label">{{ v.placa }}</span>
+                <div class="bar"><div class="fill" [style.width.%]="(v.kmL / maxKmL()) * 100" [style.background]="colorKmLBar($index)" [attr.title]="v?.placa + ' · ' + v?.kmL + ' km/L'"></div></div>
+                <span class="value">{{ v.kmL }}</span>
+              </div>
+            }
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-header"><strong>Desvio vs esperado</strong></div>
+          <div class="list">
+            @for (d of desvioConsumoPorVeiculo(); track $index) {
+              <div class="list-item">
+                <div class="line"><span class="label">{{ d.placa }}</span> <span class="value">{{ d.desvioPct }}%</span></div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+      @case ('notas') {
+        <div class="grid-2">
+          <div class="card">
+            <div class="section-header"><strong>Métricas de divergência</strong></div>
+            <div class="list">
+              <div class="list-item"><div class="line"><span class="label">Diferença média preço vs nota:</span> <span class="value">{{ diferencaMediaPrecoNotaPct() ?? '—' }}%</span></div></div>
+              <div class="list-item"><div class="line"><span class="label">Valor total divergente:</span> <span class="value">{{ valorTotalDivergente() | currency:'BRL':'symbol-narrow' }}</span></div></div>
+              <div class="list-item"><div class="line"><span class="label">Notas com diferença &gt; 2%:</span> <span class="value">{{ quantNotasComDiferenca() }}</span></div></div>
+              <div class="list-item"><div class="line"><span class="label">Fornecedor com maior índice:</span> <span class="value">{{ fornecedorMaiorIndiceDivergencia() ?? '—' }}</span></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="section-header"><strong>Notas de entrada</strong></div>
+            <div class="table">
+              <div class="row header"><div>Número</div><div>Fornecedor</div><div>Data</div><div class="cell-right">Valor</div></div>
+              <div class="table-body">
+                @for (n of notasEntrada; track $index) {
+                  <div class="row">
+                    <div>{{ n.numero }}</div>
+                    <div>{{ fornecedorById(n.fornecedorId)?.nome }}</div>
+                    <div>{{ n.data }}</div>
+                    <div class="cell-right">{{ n.valor | currency:'BRL':'symbol-narrow' }}</div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+      @case ('alertas') {
+        <div class="card">
+          <div class="section-header"><strong>Alertas</strong></div>
+          <div class="list">
+            @for (a of alertas(); track $index) {
+              <div class="list-item">
+                <div class="line"><span class="label">{{ a.tipo }}</span> <span class="value">{{ a.descricao }}</span></div>
+                <div class="line"><span class="label">Veículo:</span> <span class="value">{{ a.veiculo }}</span></div>
+                <div class="line"><span class="label">Fornecedor:</span> <span class="value">{{ a.fornecedor }}</span></div>
+                <div class="line"><span class="label">Data/Hora:</span> <span class="value">{{ formatDateTimeBR(a.dataHora) }}</span></div>
+              </div>
+            }
+            @if (alertas().length===0) { <div class="empty">Sem alertas no período.</div> }
+          </div>
+        </div>
+      }
+    }
+
+  </div>
+  }
+
+  <!-- Aba: Mapa (marcadores e proximidade de veículos) -->
+  @if (tab==='mapa') { <div role="tabpanel">
+    <div class="map-filters">
+      <div class="filters-shell">
+        <label>
+          <span>Buscar placa</span>
+          <input [(ngModel)]="searchPlaca" (ngModelChange)="onSearchPlacaChange($event)" placeholder="ex.: ABC1D23" />
+        </label>
+        <label>
+          <span>Raio (km)</span>
+          <input type="number" [(ngModel)]="radiusKm" (ngModelChange)="onRadiusChange($event)" min="1" step="1" />
+        </label>
+        <label>
+          <span>Fornecedor</span>
+          <select [ngModel]="selectedSupplierId" (ngModelChange)="onSupplierFilterChange($event)">
+            <option [ngValue]="null">Todos</option>
+            @for (f of fornecedores; track $index) { <option [ngValue]="f.id">{{ f.nome }}</option> }
+          </select>
+        </label>
+        <label>
+          <span>Veículo</span>
+          <select [ngModel]="selectedVehiclePlaca" (ngModelChange)="onVehicleFilterChange($event)">
+            <option [ngValue]="''">Todos</option>
+            @for (v of veiculos; track $index) { <option [ngValue]="v.placa">{{ v.placa }}</option> }
+          </select>
+        </label>
+        <label>
+          <span>Mostrar</span>
+          <div class="inline-controls">
+            <label class="checkbox"><input type="checkbox" [checked]="showSuppliers" (change)="onToggleSuppliers($event.target.checked)" /> Fornecedores</label>
+            <label class="checkbox"><input type="checkbox" [checked]="showVehicles" (change)="onToggleVehicles($event.target.checked)" /> Veículos</label>
+          </div>
+        </label>
+        <div class="actions">
+          <button class="btn" (click)="toggleRadiusTool()" [class.active]="radiusToolActive">{{ radiusToolActive ? 'Seleção de centro: ativa' : 'Definir centro por clique' }}</button>
+          <button class="btn" (click)="clearMapFilters()">Limpar filtros</button>
+        </div>
+        <div class="hint">Clique no mapa para definir o centro do raio quando a seleção estiver ativa. Todos os fornecedores e veículos são exibidos por padrão; use os filtros para focar na região desejada.</div>
+      </div>
+    </div>
+
+    <div class="card map-card">
+      <div id="fuel-map" class="map-element"></div>
+      <div class="map-toolbar">
+        <button class="icon-btn" (click)="zoomOut()" aria-label="Diminuir zoom" data-tooltip="Diminuir zoom">−</button>
+        <button class="icon-btn" (click)="zoomIn()" aria-label="Aumentar zoom" data-tooltip="Aumentar zoom">+</button>
+        <button class="icon-btn" (click)="resetView()" aria-label="Recentrar mapa" data-tooltip="Recentrar mapa">⤿</button>
+      </div>
+      <div class="panel">
+        <div class="section-header"><strong>Veículos próximos</strong></div>
+        <div class="list">
+          @for (r of vehiclesNearby; track $index) {
+            <div class="list-item">
+              <div class="line"><span class="label">Placa:</span> <span class="value">{{ r.v.placa }}</span></div>
+              <div class="line"><span class="label">Local:</span> <span class="value">{{ r.v.localizacao }}</span></div>
+              <div class="line"><span class="label">Fornecedor mais próximo:</span> <span class="value">{{ r.fornecedor.nome }}</span></div>
+              <div class="line"><span class="label">Distância:</span> <span class="value">{{ r.distanciaKm }} km</span></div>
+              <div class="line"><span class="label">Preço (Diesel S10):</span> <span class="value">{{ r.preco !== null ? (r.preco | currency:'BRL':'symbol-narrow') : '—' }}</span></div>
+            </div>
+          }
+          @if (vehiclesNearby.length===0) { <div class="empty">Nenhum veículo dentro do raio informado.</div> }
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+</div>
+
+<!-- Combustível select movido para o form acima; bloco duplicado removido -->
+
+<!-- Bloco duplicado de gráfico removido; o gráfico já existe na aba Dashboards -->
