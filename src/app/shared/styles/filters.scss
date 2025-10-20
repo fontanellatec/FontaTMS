@@ -1,0 +1,344 @@
+/* Filtros Elegantes - Estilos Reutilizáveis */
+/* Este arquivo contém estilos reutilizáveis para filtros em todo o sistema */
+
+.filters {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0 24px 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+/* Animação para tooltips */
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+  /* Container principal dos filtros */
+  .filters-container {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* Grid dos campos de filtro */
+  .filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    align-items: end;
+  }
+
+  /* Estilo individual de cada filtro */
+  .filter {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+
+    span {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 2px;
+      letter-spacing: 0.01em;
+    }
+
+    input, select {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 10px 12px;
+      height: 40px;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+
+      &:focus {
+        outline: none;
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 3px rgba(var(--brand-primary-rgb), 0.1);
+        background: var(--surface);
+      }
+
+      &:hover:not(:focus) {
+        border-color: var(--border-hover);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+      }
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 8px center;
+      background-repeat: no-repeat;
+      background-size: 16px;
+      padding-right: 32px;
+    }
+  }
+
+  /* Campo de busca com ícone */
+  .input-with-icon {
+    position: relative;
+
+    svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: var(--text-secondary);
+      opacity: 0.7;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    input {
+      padding-left: 42px;
+      padding-right: 40px;
+    }
+
+    .clear-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      z-index: 1;
+
+      &:hover {
+        background: var(--bg);
+        color: var(--text-secondary);
+        transform: translateY(-50%) scale(1.05);
+      }
+
+      svg {
+        width: 14px;
+        height: 14px;
+        position: static;
+        transform: none;
+      }
+    }
+  }
+
+  /* Área de ações */
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-end;
+    min-width: 140px;
+
+    .btn {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      min-width: 80px;
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    .action-icons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+  }
+
+  /* Botões de ação com ícones */
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+
+    &:hover {
+      background: var(--bg);
+      border-color: var(--border-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(var(--brand-primary-rgb), 0.2);
+    }
+
+    &.primary {
+      background: var(--brand-primary);
+      color: white;
+      border-color: var(--brand-primary);
+
+      &:hover {
+        background: var(--brand-primary-dark);
+        border-color: var(--brand-primary-dark);
+        box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.3);
+      }
+    }
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Tooltip */
+    &[data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: -36px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      animation: tooltipFadeIn 0.2s ease forwards;
+    }
+
+    /* Seta do tooltip */
+    &[data-tooltip]:hover::before {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 6px solid rgba(0, 0, 0, 0.9);
+      z-index: 1001;
+      opacity: 0;
+      animation: tooltipFadeIn 0.2s ease forwards;
+    }
+  }
+
+  /* Responsividade */
+  @media (max-width: 1024px) {
+    .filters-container {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .filters-grid {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .actions {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      min-width: auto;
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 16px;
+    margin: 12px 0 20px 0;
+
+    .filters-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .actions {
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+
+      .action-icons {
+        justify-content: center;
+      }
+    }
+  }
+}
+
+/* Variações de layout para diferentes necessidades */
+.filters.compact {
+  padding: 16px;
+  margin: 12px 0 16px 0;
+
+  .filters-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+
+  .filter {
+    span {
+      font-size: 12px;
+    }
+
+    input, select {
+      height: 36px;
+      font-size: 13px;
+      padding: 8px 10px;
+    }
+  }
+}
+
+.filters.inline {
+  .filters-container {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .filters-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  .actions {
+    flex-direction: row;
+    justify-content: flex-start;
+    min-width: auto;
+  }
+}

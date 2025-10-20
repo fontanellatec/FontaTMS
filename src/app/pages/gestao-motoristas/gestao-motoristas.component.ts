@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { JustificationFieldComponent } from '../../core/justification-field.component';
+import { JustificationConfig, JustificationPresets } from '../../core/justification-field.types';
 // Removido sanitizer, mockup viewer não será mais utilizado
 
 type DriverStatus = 'Ativo' | 'Inativo' | 'Suspenso';
@@ -42,7 +44,7 @@ interface Policies {
   templateUrl: './gestao-motoristas.component.html',
   styleUrls: ['./gestao-motoristas.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, JustificationFieldComponent]
 })
 export class GestaoMotoristasComponent {
   Math = Math;
@@ -52,7 +54,7 @@ export class GestaoMotoristasComponent {
   // Mockup removido
 
   // Gestão de Motoristas
-  tab: 'cadastro' | 'equipes' | 'politicas' = 'cadastro';
+  tab: any = 'cadastro';
   drivers: Driver[] = [];
   teams: Team[] = [];
   policies: Policies = {
@@ -74,10 +76,33 @@ export class GestaoMotoristasComponent {
   cadBloqueioFilter: 'Todos' | 'Sim' | 'Não' = 'Todos';
   cadFeriasFilter: 'Todos' | 'Sim' | 'Não' = 'Todos';
 
+  // Estado dos filtros (colapsado/expandido)
+  filtersCollapsed = false;
+  
+  // Estado dos KPIs (colapsado/expandido)
+  kpisCollapsed = false;
+
+  // Propriedade para busca geral
+  searchTerm = '';
+
   // Modal de motorista
   driverModalOpen = false;
   isEditing = false;
   driverForm: Driver | null = null;
+
+  // Modais de confirmação e justificativa
+  statusConfirmModalOpen = false;
+  blockJustificationModalOpen = false;
+  pendingStatusDriver: Driver | null = null;
+  pendingBlockDriver: Driver | null = null;
+  justificationText = '';
+  pendingBlockAction: 'block' | 'unblock' = 'block';
+  
+  // Configuração do campo de justificativa
+  justificationConfig: JustificationConfig = {
+    ...JustificationPresets.userBlock,
+    helpText: 'Esta ação será registrada no histórico do motorista e não poderá ser desfeita.'
+  };
 
   // Form Equipes
   newTeamName = '';
@@ -433,12 +458,43 @@ export class GestaoMotoristasComponent {
 
   // Status e Bloqueio
   toggleStatus(d: Driver): void {
-    d.status = d.status === 'Ativo' ? 'Inativo' : 'Ativo';
-    this.persistDrivers();
+    this.pendingStatusDriver = d;
+    this.statusConfirmModalOpen = true;
   }
-  toggleBloqueio(d: Driver): void {
-    d.bloqueado = !d.bloqueado;
+
+  confirmStatusChange(): void {
+    if (!this.pendingStatusDriver) return;
+    const newStatus = this.pendingStatusDriver.status === 'Ativo' ? 'Inativo' : 'Ativo';
+    this.pendingStatusDriver.status = newStatus;
     this.persistDrivers();
+    this.closeStatusConfirmModal();
+  }
+
+  closeStatusConfirmModal(): void {
+    this.statusConfirmModalOpen = false;
+    this.pendingStatusDriver = null;
+  }
+
+  toggleBloqueio(d: Driver): void {
+    this.pendingBlockDriver = d;
+    this.pendingBlockAction = d.bloqueado ? 'unblock' : 'block';
+    this.justificationText = '';
+    this.blockJustificationModalOpen = true;
+  }
+
+  confirmBlockChange(): void {
+    if (!this.pendingBlockDriver || !this.justificationText.trim()) return;
+    this.pendingBlockDriver.bloqueado = !this.pendingBlockDriver.bloqueado;
+    // Aqui você pode salvar a justificativa se necessário
+    // Por exemplo: this.saveBlockJustification(this.pendingBlockDriver.id, this.justificationText);
+    this.persistDrivers();
+    this.closeBlockJustificationModal();
+  }
+
+  closeBlockJustificationModal(): void {
+    this.blockJustificationModalOpen = false;
+    this.pendingBlockDriver = null;
+    this.justificationText = '';
   }
 
   // Contagens (cards)
@@ -487,6 +543,14 @@ export class GestaoMotoristasComponent {
     this.page = 1;
   }
 
+  toggleFilters(): void {
+    this.filtersCollapsed = !this.filtersCollapsed;
+  }
+
+  toggleKpis(): void {
+    this.kpisCollapsed = !this.kpisCollapsed;
+  }
+
   onCadSearchChanged(value: string): void {
     this.cadSearch = value ?? '';
     if (this.cadSearchDebounce) clearTimeout(this.cadSearchDebounce);
@@ -499,6 +563,11 @@ export class GestaoMotoristasComponent {
     if (!this.cadSearch) return;
     this.cadSearch = '';
     this.onCadFiltersChanged();
+  }
+
+  onSearchChanged(): void {
+    // Implementação da busca geral se necessário
+    // Por enquanto, mantém compatibilidade com o sistema existente
   }
 
   // Modais de cadastro: Categoria e Situação

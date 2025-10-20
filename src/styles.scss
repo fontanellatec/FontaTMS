@@ -22,21 +22,38 @@ body {
 :root {
   --bg: #f8fafc;
   --surface: #ffffff;
+  --surface-secondary: #f8fafc; /* slate-50 */
   --text: #1e293b;
   --text-secondary: #64748b;
+  --text-rgb: 30, 41, 59; /* slate-800 RGB */
   --muted: #94a3b8;
   --border: #e2e8f0;
+  --border-hover: #cbd5e1; /* slate-300 */
 
   /* FontaTec Brand Colors - Teal/Green Palette */
   --brand-primary: #0d9488; /* teal-600 */
+  --brand-primary-hover: #0f766e; /* teal-700 */
+  --brand-primary-dark: #134e4a; /* teal-900 */
+  --brand-primary-rgb: 13, 148, 136; /* teal-600 RGB */
   --brand-secondary: #14b8a6; /* teal-500 */
   --brand-accent: #5eead4; /* teal-300 */
-  --brand-dark: #134e4a; /* teal-900 */
   
   /* Status Colors */
   --success: #059669; /* emerald-600 */
+  --success-bg: rgba(5, 150, 105, 0.1); /* emerald with opacity */
+  --success-text: #047857; /* emerald-700 */
+  --success-dark: #064e3b; /* emerald-900 */
+  
   --warning: #d97706; /* amber-600 */
+  --warning-bg: rgba(217, 119, 6, 0.1); /* amber with opacity */
+  --warning-text: #92400e; /* amber-800 */
+  
   --error: #dc2626; /* red-600 */
+  --error-bg: rgba(220, 38, 38, 0.1); /* red with opacity */
+  --error-text: #991b1b; /* red-800 */
+  --error-text-dark: #7f1d1d; /* red-900 */
+  --error-dark: #7f1d1d; /* red-900 */
+  
   --info: #0284c7; /* sky-600 */
 
   /* Sidebar Colors (revert to solid) */
@@ -56,10 +73,39 @@ body {
 [data-theme="dark"] {
   --bg: #0f172a; /* slate-900 */
   --surface: #1e293b; /* slate-800 */
+  --surface-secondary: #334155; /* slate-700 */
   --text: #f1f5f9; /* slate-100 */
   --text-secondary: #cbd5e1; /* slate-300 */
+  --text-rgb: 241, 245, 249; /* slate-100 RGB */
   --muted: #64748b; /* slate-500 */
-  --border: #334155; /* slate-700 */
+  --border: #475569; /* slate-600 */
+  --border-hover: #64748b; /* slate-500 */
+  
+  /* Brand colors for dark theme */
+  --brand-primary: #14b8a6; /* teal-500 - brighter for dark */
+  --brand-primary-hover: #0d9488; /* teal-600 */
+  --brand-primary-dark: #0f766e; /* teal-700 */
+  --brand-primary-rgb: 20, 184, 166; /* teal-500 RGB */
+  --brand-accent: #5eead4; /* teal-300 */
+  
+  /* Status colors for dark theme */
+  --success: #10b981; /* emerald-500 - brighter */
+  --success-bg: rgba(16, 185, 129, 0.1); /* emerald with opacity */
+  --success-text: #34d399; /* emerald-400 */
+  --success-dark: #059669; /* emerald-600 */
+  
+  --error: #ef4444; /* red-500 - brighter */
+  --error-bg: rgba(239, 68, 68, 0.1); /* red with opacity */
+  --error-text: #f87171; /* red-400 */
+  --error-text-dark: #dc2626; /* red-600 */
+  --error-dark: #dc2626; /* red-600 */
+  
+  --warning: #f59e0b; /* amber-500 - brighter */
+  --warning-bg: rgba(245, 158, 11, 0.1); /* amber with opacity */
+  --warning-text: #fbbf24; /* amber-400 */
+  
+  --info: #3b82f6; /* blue-500 - brighter */
+  
   --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.4);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-card: 0 4px 6px rgba(0, 0, 0, 0.2);

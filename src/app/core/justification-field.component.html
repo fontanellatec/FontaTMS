@@ -1,0 +1,42 @@
+<div class="justification-field" [class.error]="hasError" [class.disabled]="config.disabled">
+  <label class="field-label" [for]="fieldId">
+    <span class="label-text">
+      {{ config.label }}
+      <span class="required" *ngIf="config.required">*</span>
+    </span>
+    <p class="help-text" *ngIf="config.helpText">{{ config.helpText }}</p>
+    
+    <div class="textarea-container" 
+         [class.focused]="isFocused"
+         [class.error]="hasError"
+         [class.warning]="isNearLimit">
+      <textarea 
+        [id]="fieldId"
+        [(ngModel)]="value"
+        [placeholder]="config.placeholder"
+        [maxlength]="config.maxLength"
+        [rows]="config.rows"
+        [disabled]="config.disabled"
+        class="justification-textarea"
+        (focus)="onFocus()"
+        (blur)="onBlur()"
+        (input)="onInput($event)">
+      </textarea>
+      
+      <div class="character-counter" 
+           [class.warning]="isNearLimit"
+           [class.error]="isOverLimit">
+        <span class="counter-text">{{ currentLength }}/{{ config.maxLength }}</span>
+      </div>
+    </div>
+  </label>
+  
+  <div class="error-message" *ngIf="errorMessage">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="15" y1="9" x2="9" y2="15"></line>
+      <line x1="9" y1="9" x2="15" y2="15"></line>
+    </svg>
+    {{ errorMessage }}
+  </div>
+</div>
