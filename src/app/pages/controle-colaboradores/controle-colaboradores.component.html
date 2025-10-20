@@ -55,14 +55,34 @@
   <div class="birthdays">
     <div class="birthdays-header">
       <strong>Aniversariantes do Mês</strong>
-      <span class="muted">Total {{ aniversariantes.length }}</span>
+      <span class="muted">Total {{ aniversariantesDoMes }}</span>
     </div>
     <div class="birthdays-scroll" role="list">
-      <div class="bday-card" role="listitem" *ngFor="let a of aniversariantes">
-        <div class="bday-date">{{ a.dia }}</div>
-        <img [src]="a.foto || avatarUrl(a.nome)" class="avatar" alt="Avatar"/>
-        <div class="bday-name">{{ a.nome }}</div>
-        <div *ngIf="a.hoje" class="bday-chip">Hoje!</div>
+      <div 
+        *ngFor="let aniversariante of aniversariantes" 
+        class="birthday-card"
+        [class.today]="aniversariante.hoje"
+        (click)="abrirParabens(aniversariante)"
+        role="listitem"
+        style="cursor: pointer;"
+      >
+        <div class="birthday-date">{{ aniversariante.dia }}</div>
+        <div class="birthday-photo-container">
+          <img 
+            [src]="aniversariante.foto || 'avatars/avatar-user.svg'" 
+            [alt]="aniversariante.nome"
+            class="birthday-photo"
+          >
+        </div>
+        <div class="birthday-name">{{ aniversariante.nome }}</div>
+        <div class="birthday-type-icon">
+          <i 
+            class="fas"
+            [class.fa-medal]="aniversariante.tipo === 'empresa'"
+            [class.fa-birthday-cake]="aniversariante.tipo === 'vida'"
+            [title]="aniversariante.tipo === 'empresa' ? 'Aniversário de empresa' : 'Aniversário de vida'"
+          ></i>
+        </div>
       </div>
     </div>
   </div>
@@ -136,7 +156,7 @@
           <td>
             <img [src]="c.foto || avatarUrl(c.nome)" class="avatar" alt="Avatar" />
           </td>
-          <td class="name">{{ c.nome }}</td>
+          <td class="name" (click)="abrirFicha(c)" style="cursor: pointer; color: #007bff; text-decoration: underline;">{{ c.nome }}</td>
           <td>{{ c.cargo }}</td>
           <td>{{ c.setor }}</td>
           <td>
@@ -247,5 +267,121 @@
       <button class="btn" (click)="fecharLancamento()">Fechar</button>
       <button class="btn btn-primary" [disabled]="!(novoRegistro.observacao && novoRegistro.observacao.trim().length)" (click)="salvarLancamento()">Salvar Registro</button>
     </div>
+  </div>
+</div>
+
+<!-- Modal: Ficha do Colaborador -->
+<div class="modal-overlay" *ngIf="modalFichaOpen" (click)="fecharFicha()"></div>
+<div class="modal lg" *ngIf="modalFichaOpen" [class.open]="modalFichaOpen">
+  <div class="modal-header">
+    <div class="modal-title">Ficha do Colaborador</div>
+    <button class="icon" (click)="fecharFicha()">✕</button>
+  </div>
+  <div class="modal-body" *ngIf="colaboradorSelecionado">
+    <div class="ficha-colaborador">
+      <!-- Foto e informações básicas -->
+      <div class="ficha-header">
+        <div class="ficha-foto">
+          <img 
+            [src]="colaboradorSelecionado.foto || 'avatars/avatar-user.svg'" 
+            [alt]="colaboradorSelecionado.nome"
+            class="colaborador-foto"
+          >
+        </div>
+        <div class="ficha-info-basica">
+          <h2>{{ colaboradorSelecionado.nome }}</h2>
+          <p class="cargo">{{ colaboradorSelecionado.cargo }}</p>
+          <span [class]="getStatusClass(colaboradorSelecionado.status)">{{ colaboradorSelecionado.status }}</span>
+        </div>
+      </div>
+
+      <!-- Informações detalhadas -->
+      <div class="ficha-detalhes">
+        <div class="ficha-row">
+          <div class="ficha-campo">
+            <label>Cargo:</label>
+            <span>{{ colaboradorSelecionado.cargo }}</span>
+          </div>
+          <div class="ficha-campo">
+            <label>Setor:</label>
+            <span>{{ colaboradorSelecionado.setor }}</span>
+          </div>
+        </div>
+
+        <div class="ficha-row">
+          <div class="ficha-campo">
+            <label>Admissão:</label>
+            <span>{{ formatarData(colaboradorSelecionado.admissao) }}</span>
+          </div>
+          <div class="ficha-campo">
+            <label>Tempo de Empresa:</label>
+            <span>{{ calcularTempoEmpresa(colaboradorSelecionado.admissao) }}</span>
+          </div>
+        </div>
+
+        <div class="ficha-row">
+          <div class="ficha-campo">
+            <label>Badge:</label>
+            <div class="badges-container">
+              <span *ngFor="let badge of colaboradorSelecionado.badges" class="badge tempo">{{ badge }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ficha-row">
+          <div class="ficha-campo">
+            <label>Data de Nascimento:</label>
+            <span>{{ formatarData(colaboradorSelecionado.nascimento) }}</span>
+          </div>
+          <div class="ficha-campo">
+            <label>WhatsApp:</label>
+            <span>{{ colaboradorSelecionado.whatsapp }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn" (click)="fecharFicha()">Fechar</button>
+  </div>
+</div>
+
+<!-- Modal: Parabéns Aniversariante -->
+<div class="modal-overlay" *ngIf="modalParabensOpen" (click)="fecharParabens()"></div>
+<div class="modal md" *ngIf="modalParabensOpen" [class.open]="modalParabensOpen">
+  <div class="modal-header">
+    <div class="modal-title">Parabéns!</div>
+    <button class="icon" (click)="fecharParabens()">✕</button>
+  </div>
+  <div class="modal-body" *ngIf="aniversarianteSelecionado">
+    <div class="parabens-container">
+      <!-- Foto do colaborador -->
+      <div class="parabens-foto">
+        <img 
+          [src]="aniversarianteSelecionado.foto || 'avatars/avatar-user.svg'" 
+          [alt]="aniversarianteSelecionado.nome"
+          class="colaborador-foto-parabens"
+        >
+      </div>
+      
+      <!-- Nome do colaborador -->
+      <h2 class="parabens-nome">{{ aniversarianteSelecionado.nome }}</h2>
+      
+      <!-- Mensagem personalizada -->
+       <div class="parabens-mensagem">
+         <p [innerHTML]="gerarMensagemParabens()"></p>
+       </div>
+    </div>
+  </div>
+  <div class="modal-actions parabens-actions">
+    <button class="btn btn-secondary" (click)="copiarMensagem()">
+      <i class="fas fa-copy"></i> Copiar
+    </button>
+    <button class="btn btn-success" (click)="abrirWhatsApp()">
+      <i class="fab fa-whatsapp"></i> WhatsApp
+    </button>
+    <button class="btn btn-primary" (click)="abrirEmail()">
+      <i class="fas fa-envelope"></i> Email
+    </button>
   </div>
 </div>

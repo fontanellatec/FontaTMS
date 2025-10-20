@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -12,6 +12,8 @@ interface Colaborador {
   setor: string;
   status: ColabStatus;
   admissao: string; // yyyy-MM-dd
+  nascimento: string;
+  whatsapp: string;
   demissao?: string; // yyyy-MM-dd
   badges: string[];
 }
@@ -21,6 +23,8 @@ interface Aniversariante {
   dia: string; // dd/MM
   foto?: string;
   hoje?: boolean;
+  tipo: 'vida' | 'empresa'; // tipo de aniversário
+  dataCompleta?: string; // data completa para cálculos
 }
 
 interface Registro {
@@ -37,7 +41,19 @@ interface Registro {
   standalone: true,
   imports: [CommonModule, FormsModule]
 })
-export class ControleColaboradoresComponent {
+export class ControleColaboradoresComponent implements OnInit {
+  ngOnInit() {
+    // Marcar aniversariantes de hoje
+    const hoje = new Date();
+    const diaHoje = hoje.getDate();
+    const mesHoje = hoje.getMonth() + 1;
+    
+    this.aniversariantes.forEach(aniversariante => {
+      const [dia, mes] = aniversariante.dia.split('/').map(Number);
+      aniversariante.hoje = (dia === diaHoje && mes === mesHoje);
+    });
+  }
+
   // Filtros
   filtroNome = '';
   filtroCargo = 'Todos';
@@ -47,23 +63,23 @@ export class ControleColaboradoresComponent {
 
   // Dados simulados
   colabs: Colaborador[] = [
-    { id: 'c1', nome: 'João Silva', cargo: 'Analista', setor: 'Operações', status: 'Ativo', admissao: '2018-02-10', badges: ['Veterano da Jornada'] },
-    { id: 'c2', nome: 'Maria Oliveira', cargo: 'Assistente', setor: 'RH', status: 'Inativo', admissao: '2022-05-18', badges: ['Pleno de Rota'], demissao: '2025-06-10' },
-    { id: 'c3', nome: 'Carlos Lima', cargo: 'Coordenador', setor: 'Operações', status: 'Ativo', admissao: '2020-03-01', badges: ['Veterano da Jornada'] },
-    { id: 'c4', nome: 'Ana Souza', cargo: 'Analista', setor: 'Financeiro', status: 'Ativo', admissao: '2023-08-15', badges: ['Pleno de Rota'] },
-    { id: 'c5', nome: 'Bruno Costa', cargo: 'Auxiliar', setor: 'Operações', status: 'Suspenso', admissao: '2021-11-25', badges: ['Veterano da Jornada'] },
-    { id: 'c6', nome: 'Fernanda Lima', cargo: 'Analista', setor: 'RH', status: 'Ativo', admissao: '2019-06-06', badges: ['Pleno de Rota'] },
-    { id: 'c7', nome: 'Ricardo Alves', cargo: 'Assistente', setor: 'Financeiro', status: 'Ativo', admissao: '2024-12-19', badges: ['Pleno de Rota'] }
+    { id: 'c1', nome: 'João Silva', cargo: 'Analista', setor: 'Operações', status: 'Ativo', admissao: '2018-02-10', nascimento: '1990-06-30', whatsapp: '(11) 99999-1234', badges: ['Veterano da Jornada'] },
+    { id: 'c2', nome: 'Maria Oliveira', cargo: 'Assistente', setor: 'RH', status: 'Inativo', admissao: '2022-05-18', nascimento: '1988-05-30', whatsapp: '(11) 98888-5678', badges: ['Pleno de Rota'], demissao: '2025-06-10' },
+    { id: 'c3', nome: 'Carlos Lima', cargo: 'Coordenador', setor: 'Operações', status: 'Ativo', admissao: '2020-03-01', nascimento: '1985-06-15', whatsapp: '(11) 97777-9012', badges: ['Veterano da Jornada'] },
+    { id: 'c4', nome: 'Ana Souza', cargo: 'Analista', setor: 'Financeiro', status: 'Ativo', admissao: '2023-08-15', nascimento: '1992-06-22', whatsapp: '(11) 96666-3456', badges: ['Pleno de Rota'] },
+    { id: 'c5', nome: 'Bruno Costa', cargo: 'Auxiliar', setor: 'Operações', status: 'Suspenso', admissao: '2021-11-25', nascimento: '1987-06-05', whatsapp: '(11) 95555-7890', badges: ['Veterano da Jornada'] },
+    { id: 'c6', nome: 'Fernanda Lima', cargo: 'Analista', setor: 'RH', status: 'Ativo', admissao: '2019-06-06', nascimento: '1988-06-05', whatsapp: '(11) 94444-2345', badges: ['Pleno de Rota'] },
+    { id: 'c7', nome: 'Ricardo Alves', cargo: 'Assistente', setor: 'Financeiro', status: 'Ativo', admissao: '2024-12-19', nascimento: '1991-06-07', whatsapp: '(11) 93333-6789', badges: ['Pleno de Rota'] }
   ];
 
   aniversariantes: Aniversariante[] = [
-    { nome: 'Maria Oliveira', dia: '30/05', foto: 'avatars/avatar-user.svg' },
-    { nome: 'João Silva', dia: '30/06', foto: 'avatars/avatar-user.svg', hoje: true },
-    { nome: 'Carlos Lima', dia: '15/06', foto: 'avatars/avatar-user.svg' },
-    { nome: 'Ana Souza', dia: '22/06', foto: 'avatars/avatar-user.svg' },
-    { nome: 'Bruno Costa', dia: '03/06', foto: 'avatars/avatar-user.svg' },
-    { nome: 'Fernanda Lima', dia: '05/06', foto: 'avatars/avatar-user.svg' },
-    { nome: 'Ricardo Alves', dia: '07/06', foto: 'avatars/avatar-user.svg' }
+    { nome: 'Maria Oliveira', dia: '30/05', foto: 'avatars/avatar-user.svg', tipo: 'vida', dataCompleta: '1990-05-30' },
+    { nome: 'João Silva', dia: '30/06', foto: 'avatars/avatar-user.svg', hoje: true, tipo: 'vida', dataCompleta: '1985-06-30' },
+    { nome: 'Carlos Lima', dia: '15/06', foto: 'avatars/avatar-user.svg', tipo: 'empresa', dataCompleta: '2020-06-15' },
+    { nome: 'Ana Souza', dia: '22/06', foto: 'avatars/avatar-user.svg', tipo: 'vida', dataCompleta: '1992-06-22' },
+    { nome: 'Bruno Costa', dia: '03/06', foto: 'avatars/avatar-user.svg', tipo: 'empresa', dataCompleta: '2021-06-03' },
+    { nome: 'Fernanda Lima', dia: '05/06', foto: 'avatars/avatar-user.svg', tipo: 'vida', dataCompleta: '1988-06-05' },
+    { nome: 'Ricardo Alves', dia: '07/06', foto: 'avatars/avatar-user.svg', tipo: 'empresa', dataCompleta: '2024-06-07' }
   ];
 
   // Opções dinâmicas derivadas dos dados
@@ -72,6 +88,14 @@ export class ControleColaboradoresComponent {
 
   // Estatísticas
   get ativos(): number { return this.colabs.filter(c => c.status === 'Ativo').length; }
+  get aniversariantesDoMes(): number {
+    const now = new Date();
+    const mesAtual = now.getMonth() + 1; // getMonth() retorna 0-11, precisamos 1-12
+    return this.aniversariantes.filter(a => {
+      const [dia, mes] = a.dia.split('/').map(Number);
+      return mes === mesAtual;
+    }).length;
+  }
   get admissoesMes(): number {
     const now = new Date();
     const m = now.getMonth();
@@ -147,8 +171,13 @@ export class ControleColaboradoresComponent {
       { id: 'r3', tipo: 'Advertência', data: '2024-11-02', observacao: 'Atraso recorrente.' }
     ]
   };
+  // Estado do modal da ficha do colaborador
+  modalFichaOpen = false;
+  colaboradorSelecionado: Colaborador | null = null;
   modalHistoricoOpen = false;
   modalLancamentoOpen = false;
+  modalParabensOpen = false;
+  aniversarianteSelecionado: Aniversariante | null = null;
   selectedColab?: Colaborador;
   tiposRegistro = ['Elogio', 'Anotação', 'Treinamento', 'Advertência', 'Férias', 'Afastamento'];
   novoRegistro: Partial<Registro> = { tipo: 'Elogio', observacao: '', data: '' };
@@ -254,5 +283,97 @@ export class ControleColaboradoresComponent {
     }
     const idx = Math.abs(hash) % palette.length;
     return palette[idx];
+  }
+
+  // Métodos para ficha do colaborador
+  abrirFicha(colaborador: Colaborador) {
+    this.colaboradorSelecionado = colaborador;
+    this.modalFichaOpen = true;
+  }
+
+  fecharFicha() {
+    this.modalFichaOpen = false;
+    this.colaboradorSelecionado = null;
+  }
+
+  calcularTempoEmpresa(admissao: string): string {
+    const dataAdmissao = new Date(admissao);
+    const hoje = new Date();
+    const diffTime = Math.abs(hoje.getTime() - dataAdmissao.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    const anos = Math.floor(diffDays / 365);
+    const meses = Math.floor((diffDays % 365) / 30);
+    
+    if (anos > 0) {
+      return meses > 0 ? `${anos} ano${anos > 1 ? 's' : ''} e ${meses} mês${meses > 1 ? 'es' : ''}` : `${anos} ano${anos > 1 ? 's' : ''}`;
+    } else {
+      return `${meses} mês${meses > 1 ? 'es' : ''}`;
+    }
+  }
+
+  formatarData(data: string): string {
+    const date = new Date(data);
+    return date.toLocaleDateString('pt-BR');
+  }
+
+  // Métodos para modal de parabéns
+  abrirParabens(aniversariante: Aniversariante) {
+    this.aniversarianteSelecionado = aniversariante;
+    this.modalParabensOpen = true;
+  }
+
+  fecharParabens() {
+    this.modalParabensOpen = false;
+    this.aniversarianteSelecionado = null;
+  }
+
+  gerarMensagemParabens(): string {
+    if (!this.aniversarianteSelecionado) return '';
+    
+    const nome = this.aniversarianteSelecionado.nome;
+    
+    if (this.aniversarianteSelecionado.tipo === 'empresa') {
+      return `Parabéns, ${nome}, por mais um ano de dedicação e conquistas na nossa equipe! 🏅<br>Agradecemos por sua trajetória e comprometimento.<br><br>Um grande abraço do RH!`;
+    } else {
+      return `Feliz aniversário, ${nome}! 🎉<br>Que seu dia seja repleto de alegrias, conquistas e muito sucesso. Agradecemos por fazer parte da nossa equipe!`;
+    }
+  }
+
+  copiarMensagem() {
+    const mensagem = this.gerarMensagemParabens();
+    navigator.clipboard.writeText(mensagem).then(() => {
+      alert('Mensagem copiada para a área de transferência!');
+    }).catch(() => {
+      alert('Erro ao copiar mensagem. Tente novamente.');
+    });
+  }
+
+  abrirWhatsApp() {
+    if (!this.aniversarianteSelecionado) return;
+    
+    // Buscar o colaborador correspondente para obter o WhatsApp
+    const colaborador = this.colabs.find(c => c.nome === this.aniversarianteSelecionado!.nome);
+    if (!colaborador || !colaborador.whatsapp) {
+      alert('WhatsApp não encontrado para este colaborador.');
+      return;
+    }
+    
+    const mensagem = this.gerarMensagemParabens();
+    const numeroLimpo = colaborador.whatsapp.replace(/\D/g, '');
+    const url = `https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(mensagem)}`;
+    window.open(url, '_blank');
+  }
+
+  abrirEmail() {
+    if (!this.aniversarianteSelecionado) return;
+    
+    const nome = this.aniversarianteSelecionado.nome;
+    const tipo = this.aniversarianteSelecionado.tipo === 'empresa' ? 'Empresa' : 'Vida';
+    const assunto = `Parabéns pelo Aniversário de ${tipo} - ${nome}`;
+    const mensagem = this.gerarMensagemParabens();
+    
+    const url = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(mensagem)}`;
+    window.open(url, '_blank');
   }
 }
