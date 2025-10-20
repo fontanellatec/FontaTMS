@@ -1,0 +1,299 @@
+<div class="frete-terceiro-page">
+  <div class="header">
+    <h3>Frete Terceiro</h3>
+    <span class="muted">Registro de fretes subcontratados para outra transportadora</span>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="novoAberto ? fecharNovoFrete() : abrirNovoFrete()">
+        {{ novoAberto ? 'Fechar' : '+ Frete Terceiro' }}
+      </button>
+      <button class="btn btn-outline" (click)="popularTabelaDemo()">Popular (demo)</button>
+    </div>
+  </div>
+
+  <!-- Novo Frete convertido para modal -->
+
+  <div class="filters">
+    <div class="filters-group">
+      <label><span>Status</span>
+        <select [(ngModel)]="filtroStatus">
+          <option>Todos</option>
+          <option>Rascunho</option>
+          <option>Efetivado</option>
+          <option>Cancelado</option>
+        </select>
+      </label>
+      <label><span>Busca</span>
+        <input type="text" [(ngModel)]="filtroBusca" placeholder="CT-e, contratante, placa..." />
+      </label>
+      <label><span>Postagem de</span>
+        <input type="date" [(ngModel)]="filtroPostagemDe" />
+      </label>
+      <label><span>Postagem até</span>
+        <input type="date" [(ngModel)]="filtroPostagemAte" />
+      </label>
+      <button class="btn btn-outline" (click)="limparFiltros()">Limpar filtros</button>
+    </div>
+  </div>
+
+  <div class="table card list-card">
+    <div class="row header">
+      <div>Contratante</div>
+      <div>CT-e</div>
+      <div>Origem</div>
+      <div>Destino</div>
+      <div>Valor Frete</div>
+      <div>Status</div>
+      <div>Datas</div>
+      <div>Descontos</div>
+      <div>Anexos</div>
+      <div>Veículo/Motorista</div>
+      <div class="col-actions">Ações</div>
+    </div>
+    <div class="table-body">
+      <ng-container *ngFor="let r of getFiltrados(); let i = index">
+        <div class="row">
+          <div>{{ r.contratanteNome }}<br/><span class="muted">CNPJ: {{ r.contratanteCnpj }}</span></div>
+          <div>{{ r.cteNumero || '—' }}</div>
+          <div>{{ r.origemCidade }}/{{ r.origemUf }}</div>
+          <div>{{ r.destinoCidade }}/{{ r.destinoUf }}</div>
+          <div>{{ formatCurrencyBRL(r.valorFrete) }}</div>
+          <div><span [class]="statusClass(r.status || 'Rascunho')">{{ r.status || 'Rascunho' }}</span></div>
+          <div>
+            <div>Postagem: <strong>{{ r.dataPostagem || '—' }}</strong></div>
+            <div>Entrega: <strong>{{ r.dataEntrega || '—' }}</strong></div>
+            <div>Recebimento: <strong>{{ r.dataRecebimento || '—' }}</strong></div>
+          </div>
+          <div>{{ formatCurrencyBRL(descontoTotal(r)) }}</div>
+          <div>{{ (r.anexos?.length || 0) }} arquivo(s)</div>
+          <div>{{ r.veiculoPlaca || '—' }}<br/><span class="muted">{{ r.motorista || '—' }}</span></div>
+          <div class="actions-cell">
+            <button class="btn" (click)="abrirEdicaoModal(r, i, 'datas')">Editar</button>
+            <button class="btn btn-outline" (click)="abrirEdicaoModal(r, i, 'descontos')">Desconto</button>
+            <button class="btn btn-outline" (click)="abrirEdicaoModal(r, i, 'anexos')">Anexos</button>
+            <button class="btn btn-outline" (click)="abrirEdicaoModal(r, i, 'ocorrencias')">Ocorrências</button>
+            <button class="btn btn-outline" (click)="abrirModalDataEspecifica(r, i, 'postagem')">Adicionar postagem</button>
+            <button class="btn btn-outline" (click)="abrirModalDataEspecifica(r, i, 'recebimento')">Adicionar recebimento</button>
+            <button class="btn btn-outline" (click)="abrirModalDataEspecifica(r, i, 'entrega')">Adicionar entrega</button>
+            <button class="btn btn-outline" *ngIf="(r.status || 'Rascunho') === 'Rascunho'" (click)="efetivarRecord(r)">Efetivar</button>
+            <button class="btn btn-ghost" *ngIf="(r.status || 'Rascunho') !== 'Cancelado'" (click)="cancelarRecord(r)">Cancelar</button>
+          </div>
+        </div>
+      </ng-container>
+      <div class="row empty" *ngIf="getFiltrados().length === 0">
+        <div class="muted">Nenhum registro encontrado.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Novo Frete -->
+<ng-container *ngIf="novoAberto">
+  <div class="modal-backdrop" (click)="fecharNovoFrete()"></div>
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Novo Frete Terceiro</h3>
+      <button class="close" (click)="fecharNovoFrete()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <label>
+          Contratante
+          <input type="text" [(ngModel)]="form.contratanteNome" placeholder="Nome da transportadora" />
+        </label>
+        <label>
+          CNPJ
+          <input type="text" [(ngModel)]="form.contratanteCnpj" (input)="onCnpjInput()" [class.invalid]="cnpjInvalido" placeholder="00.000.000/0000-00" />
+          <div class="error" *ngIf="cnpjInvalido">CNPJ inválido</div>
+        </label>
+        <label>
+          Nº Contrato
+          <input type="text" [(ngModel)]="form.contratoNumero" />
+        </label>
+        <label>
+          Nº CT-e
+          <input type="text" [(ngModel)]="form.cteNumero" />
+        </label>
+
+        <label>
+          Origem - UF
+          <select [(ngModel)]="form.origemUf">
+            <option value="">Selecione</option>
+            <option *ngFor="let uf of ufs" [value]="uf">{{ uf }}</option>
+          </select>
+        </label>
+        <label>
+          Origem - Cidade
+          <input type="text" [(ngModel)]="form.origemCidade" />
+        </label>
+        <label>
+          Destino - UF
+          <select [(ngModel)]="form.destinoUf">
+            <option value="">Selecione</option>
+            <option *ngFor="let uf of ufs" [value]="uf">{{ uf }}</option>
+          </select>
+        </label>
+        <label>
+          Destino - Cidade
+          <input type="text" [(ngModel)]="form.destinoCidade" />
+        </label>
+
+        <label>
+          Tipo de Carga
+          <select [(ngModel)]="form.tipoCarga">
+            <option value="">Selecione</option>
+            <option *ngFor="let t of tiposCarga" [value]="t">{{ t }}</option>
+          </select>
+        </label>
+        <label>
+          Peso (kg)
+          <input type="number" [(ngModel)]="form.pesoKg" />
+        </label>
+
+        <label>
+          Data Coleta
+          <input type="date" [(ngModel)]="form.dataColeta" (change)="validarDatasFormulario()" [class.invalid]="datasInvalidas" />
+        </label>
+        <label>
+          Data Entrega
+          <input type="date" [(ngModel)]="form.dataEntrega" (change)="validarDatasFormulario()" [class.invalid]="datasInvalidas" />
+          <div class="error" *ngIf="datasInvalidas">Coleta deve ser anterior ou igual à Entrega</div>
+        </label>
+
+        <label>
+          Valor do Frete
+          <input type="number" [(ngModel)]="form.valorFrete" />
+        </label>
+        <label>
+          Pedágios
+          <input type="number" [(ngModel)]="form.pedagios" />
+        </label>
+        <label>
+          Taxas
+          <input type="number" [(ngModel)]="form.taxas" />
+        </label>
+        <label>
+          Adiantamentos
+          <input type="number" [(ngModel)]="form.adiantamentos" />
+        </label>
+
+        <label>
+          Placa do Veículo
+          <input type="text" [(ngModel)]="form.veiculoPlaca" (input)="onPlacaInput()" [class.invalid]="placaInvalida" placeholder="ABC1D23" />
+          <div class="error" *ngIf="placaInvalida">Placa inválida (ABC1D23 ou ABC-1234)</div>
+        </label>
+        <label>
+          Motorista
+          <input type="text" [(ngModel)]="form.motorista" />
+        </label>
+        <label class="full">
+          Observações
+          <textarea [(ngModel)]="form.observacoes" rows="2"></textarea>
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="outline" (click)="fecharNovoFrete()">Cancelar</button>
+      <button class="outline" (click)="limpar()">Limpar</button>
+      <button class="primary" (click)="salvar()">Salvar</button>
+    </div>
+  </div>
+</ng-container>
+
+<!-- Modal: Editar Frete -->
+<ng-container *ngIf="editModalIndex !== null && modalRegistro as r">
+  <div class="modal-backdrop" (click)="fecharEdicaoModal()"></div>
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Editar Frete</h3>
+      <span class="status" [class]="statusClass(r.status || 'Rascunho')">{{ r.status || 'Rascunho' }}</span>
+      <button class="close" (click)="fecharEdicaoModal()">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <button [class.active]="editModalTab==='datas'" (click)="editModalTab='datas'">Datas</button>
+      <button [class.active]="editModalTab==='descontos'" (click)="editModalTab='descontos'">Descontos</button>
+      <button [class.active]="editModalTab==='anexos'" (click)="editModalTab='anexos'">Anexos</button>
+      <button [class.active]="editModalTab==='ocorrencias'" (click)="editModalTab='ocorrencias'">Ocorrências</button>
+    </div>
+    <div class="modal-body">
+      <div *ngIf="editModalTab==='datas'" class="form-grid">
+        <label>
+          Postagem
+          <input id="edit-data-postagem" type="date" [(ngModel)]="editDatasEdit.dataPostagem" />
+        </label>
+        <label>
+          Entrega
+          <input id="edit-data-entrega" type="date" [(ngModel)]="editDatasEdit.dataEntrega" />
+        </label>
+        <label>
+          Recebimento
+          <input id="edit-data-recebimento" type="date" [(ngModel)]="editDatasEdit.dataRecebimento" />
+        </label>
+        <div class="actions">
+          <button class="primary" (click)="atualizarDatasRecord(r, editModalIndex!, editDatasEdit)">Salvar datas</button>
+        </div>
+      </div>
+
+      <div *ngIf="editModalTab==='descontos'" class="form-grid">
+        <label>
+          Motivo
+          <input id="edit-desconto-motivo" type="text" [(ngModel)]="novoDesconto[editModalIndex!].motivo" />
+        </label>
+        <label>
+          Valor
+          <input type="number" [(ngModel)]="novoDesconto[editModalIndex!].valor" />
+        </label>
+        <label>
+          Data
+          <input type="date" [(ngModel)]="novoDesconto[editModalIndex!].data" />
+        </label>
+        <div class="actions">
+          <button class="primary" (click)="adicionarDescontoRecord(r, editModalIndex!, novoDesconto[editModalIndex!].motivo, +novoDesconto[editModalIndex!].valor, novoDesconto[editModalIndex!].data)">Adicionar desconto</button>
+        </div>
+        <div class="list">
+          <div class="list-item" *ngFor="let d of r.descontos; let j = index">
+            <span>{{ d.data }} - {{ d.motivo }} - {{ formatCurrencyBRL(d.valor) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="editModalTab==='anexos'">
+        <div class="actions">
+          <input id="edit-anexo-input" type="file" (change)="anexarArquivoRecord(r, editModalIndex!, $event)" />
+        </div>
+        <div class="list">
+          <div class="list-item" *ngFor="let a of r.anexos; let j = index">
+            <span>{{ a.nome }} ({{ (a.tamanho/1024) | number:'1.0-0' }} KB)</span>
+            <button class="outline" (click)="removerAnexoRecord(r, j)">Remover</button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="editModalTab==='ocorrencias'" class="form-grid">
+        <label>
+          Tipo
+          <input type="text" [(ngModel)]="novaOcorrencia[editModalIndex!].tipo" />
+        </label>
+        <label>
+          Data
+          <input type="date" [(ngModel)]="novaOcorrencia[editModalIndex!].data" />
+        </label>
+        <label class="full">
+          Descrição
+          <textarea id="edit-ocorrencia-descricao" rows="2" [(ngModel)]="novaOcorrencia[editModalIndex!].descricao"></textarea>
+        </label>
+        <div class="actions">
+          <button class="primary" (click)="adicionarOcorrenciaRecord(r, editModalIndex!, novaOcorrencia[editModalIndex!].descricao, novaOcorrencia[editModalIndex!].tipo, novaOcorrencia[editModalIndex!].data)">Adicionar ocorrência</button>
+        </div>
+        <div class="list">
+          <div class="list-item" *ngFor="let o of r.ocorrencias; let j = index">
+            <span>{{ o.data }} - {{ o.tipo || '—' }} - {{ o.descricao }}</span>
+            <button class="outline" (click)="removerOcorrenciaRecord(r, j)">Remover</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="outline" (click)="fecharEdicaoModal()">Fechar</button>
+    </div>
+  </div>
+</ng-container>

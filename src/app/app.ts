@@ -57,7 +57,9 @@ export class App implements OnInit {
     if (url.includes('/controle-colaboradores')) return 'Controle de Colaboradores';
     if (url.includes('/contratos')) return 'Contratos';
     if (url.includes('/controle-frota')) return 'Controle de Frota';
+    if (url.includes('/precificacao-abastecimento')) return 'Precificação de Abastecimento';
     if (url.includes('/acerto-viagem')) return 'Acerto de Viagem';
+    if (url.includes('/frete-terceiro')) return 'Frete Terceiro';
     return 'Dashboard';
   }
 

@@ -18,6 +18,8 @@ import { ControleColaboradoresComponent } from './pages/controle-colaboradores/c
 import { ControleFrotaComponent } from './pages/controle-frota/controle-frota.component';
 import { AcertoViagemComponent } from './pages/acerto-viagem/acerto-viagem.component';
 import { ProducaoOficinaComponent } from './pages/producao-oficina/producao-oficina.component';
+import { PrecificacaoAbastecimentoComponent } from './pages/precificacao-abastecimento/precificacao-abastecimento.component';
+import { FreteTerceiroComponent } from './pages/frete-terceiro/frete-terceiro.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -38,6 +40,8 @@ const routes: Routes = [
   { path: 'contratos', component: ContratosComponent, canActivate: [authGuard] },
   { path: 'acerto-viagem', component: AcertoViagemComponent, canActivate: [authGuard] },
   { path: 'producao-oficina', component: ProducaoOficinaComponent, canActivate: [authGuard] },
+  { path: 'precificacao-abastecimento', component: PrecificacaoAbastecimentoComponent, canActivate: [authGuard] },
+  { path: 'frete-terceiro', component: FreteTerceiroComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: 'dashboard' }
 ];
 

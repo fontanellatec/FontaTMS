@@ -1,4 +1,4 @@
-<ng-container *ngIf="!isLoginRoute(); else loginOnly">
+@if (!isLoginRoute()) {
 <div class="shell">
   <!-- Sidebar Navigation -->
   <aside class="sidebar">
@@ -72,6 +72,16 @@
           <path d="M7 16h3M11 16h3M15 16h3"/>
         </svg>
         <span>Controle de Frota</span>
+      </a>
+
+      <!-- Precificação de Abastecimento -->
+      <a class="nav-item" routerLink="/precificacao-abastecimento" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 20v-6a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v6"/>
+          <path d="M7 7h10"/>
+          <circle cx="12" cy="12" r="2"/>
+        </svg>
+        <span>Precificação de Abastecimento</span>
       </a>
 
       <!-- Acerto de Viagem -->
@@ -155,6 +165,16 @@
         <span>Embarques</span>
       </a>
 
+      <!-- Frete Terceiro -->
+      <a class="nav-item" routerLink="/frete-terceiro" routerLinkActive="active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 7h16"/>
+          <path d="M4 12h10"/>
+          <path d="M4 17h6"/>
+        </svg>
+        <span>Frete Terceiro</span>
+      </a>
+
       <!-- Controle de Colaboradores -->
       <a class="nav-item" routerLink="/controle-colaboradores" routerLinkActive="active">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -224,13 +244,16 @@
         
         <label class="btn btn-ghost theme-toggle">
           <input type="checkbox" [checked]="isDark()" (change)="toggleTheme()" />
-          <svg *ngIf="!isDark()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="5"/>
-            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-          </svg>
-          <svg *ngIf="isDark()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-          </svg>
+          @if (!isDark()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"/>
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          }
         </label>
         
         <div class="user-menu">
@@ -247,8 +270,6 @@
     </main>
   </div>
 </div>
-</ng-container>
-
-<ng-template #loginOnly>
+} @else {
   <router-outlet></router-outlet>
-</ng-template>
+}
