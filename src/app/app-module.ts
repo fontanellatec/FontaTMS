@@ -28,6 +28,8 @@ import { PrecificacaoAbastecimentoComponent } from './pages/precificacao-abastec
 import { FreteTerceiroComponent } from './pages/frete-terceiro/frete-terceiro.component';
 import { MenuConfigComponent } from './pages/menu-config/menu-config.component';
 import { TorreControleComponent } from './pages/torre-controle/torre-controle.component';
+import { CadastroMotoristaComponent } from './pages/gestao-motoristas/cadastro-motorista.component';
+import { TimelineLogisticaComponent } from './pages/timeline-logistica/timeline-logistica.component';
 
 @NgModule({
   declarations: [
@@ -44,23 +46,24 @@ import { TorreControleComponent } from './pages/torre-controle/torre-controle.co
     VehiclesComponent,
     DriversComponent,
     LoginComponent,
-    JornadaComponent
-    ,MaintenanceComponent
-    ,TrackingComponent
-    ,IntencaoViagemComponent
-    ,ControleIntencaoViagemComponent
-    ,GestaoMotoristasComponent
-    ,CadastroMotoristaComponent
-    ,ProgramacaoComponent
-    ,ContratosComponent
-    ,ControleColaboradoresComponent
-    ,ControleFrotaComponent
-    ,AcertoViagemComponent
-    ,ProducaoOficinaComponent
-    ,PrecificacaoAbastecimentoComponent
-    ,FreteTerceiroComponent
-    ,MenuConfigComponent
-    ,TorreControleComponent
+    JornadaComponent,
+    MaintenanceComponent,
+    TrackingComponent,
+    IntencaoViagemComponent,
+    ControleIntencaoViagemComponent,
+    GestaoMotoristasComponent,
+    CadastroMotoristaComponent,
+    ProgramacaoComponent,
+    ContratosComponent,
+    ControleColaboradoresComponent,
+    ControleFrotaComponent,
+    AcertoViagemComponent,
+    ProducaoOficinaComponent,
+    PrecificacaoAbastecimentoComponent,
+    FreteTerceiroComponent,
+    MenuConfigComponent,
+    TorreControleComponent,
+    TimelineLogisticaComponent
   ],
   providers: [
     provideBrowserGlobalErrorListeners(),
@@ -69,4 +72,3 @@ import { TorreControleComponent } from './pages/torre-controle/torre-controle.co
   bootstrap: [App]
 })
 export class AppModule { }
-import { CadastroMotoristaComponent } from './pages/gestao-motoristas/cadastro-motorista.component';

@@ -1,9 +1,13 @@
 <div class="login-container">
   <div class="login-card card">
-    <!-- Logo and Brand -->
     <div class="login-header">
-      <img src="/assets/brand/phoenix.png" alt="Phoenix" width="64" height="64" class="login-brand-img" />
+      <div class="login-brand">
+        <img src="/brand/fontaTmsIcon.png" alt="FontaTMS" class="brand-icon" />
+        <img src="/brand/FontaTmsText.png" alt="FontaTMS" class="brand-text" />
+      </div>
     </div>
+
+    <p class="login-subtitle" aria-label="Descrição do sistema">Sistema de Gestão de Transporte</p>
 
     <!-- Login Form -->
     <form class="login-form" (ngSubmit)="onLogin()" #f="ngForm" novalidate>
@@ -62,9 +66,8 @@
       </div>
     </form>
 
-    <!-- Footer -->
     <div class="login-footer">
-      <p>&copy; 2024 Phoenix</p>
+      <p>&copy; 2024 FontaTMS</p>
     </div>
   </div>
 </div>

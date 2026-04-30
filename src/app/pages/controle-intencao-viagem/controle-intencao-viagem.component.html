@@ -1,5 +1,5 @@
 <div class="header">
-  <h3>Controle Intenção de Viagem</h3>
+  <h3>Controle de Pré-Carga</h3>
   <span class="muted">Monitoramento e vínculos</span>
 </div>
 
@@ -27,32 +27,54 @@
 
   <ng-container *ngIf="selectedTab === 'criar'">
   <div class="layout-grid">
-    <!-- Sidebar: Intenções disponíveis -->
+    <!-- Sidebar: Pré-Cargas disponíveis -->
     <div class="panel sidebar">
-      <div class="panel-title">Intenções Disponíveis</div>
-      <div class="panel-actions">
-        <button class="btn" (click)="addIntencoesExemplo()">Adicionar intenções de exemplo</button>
+      <div class="sidebar-header">
+        <div class="panel-title">Pré-Cargas Disponíveis</div>
+        <button class="btn" (click)="addIntencoesExemplo()">Adicionar pré-cargas de exemplo</button>
       </div>
-      <div class="list sidebar-list">
-        <button class="list-item" *ngFor="let i of intencoes; let idx = index"
+       <div class="list sidebar-list">
+        <button class="list-item" *ngFor="let i of preCargasDisponiveis; let idx = index"
                 [class.selected]="selecionadaIntencaoIndex === intencoes.indexOf(i)"
                 (click)="onSelecionarOuLockarIntencao(intencoes.indexOf(i))"
                 draggable="true"
                 (dragstart)="onIntencaoDragStart(intencoes.indexOf(i), $event)"
                 (dragend)="onIntencaoDragEnd()"
                 [class.dragging]="dragIntencaoIndex === intencoes.indexOf(i)">
-          <div class="title-row">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <span class="card-icon" aria-hidden="true">📦</span>
-              <div>
-                <div class="title">Intenção {{ (idx + 1) | number:'2.0-0' }}</div>
-                <div class="subtitle">{{ i.origem.uf }}/{{ i.origem.cidade }} → {{ i.destino.uf }}/{{ i.destino.cidade }}</div>
-                <div class="meta">{{ i.pesoKg | number:'1.0-0' }} kg</div>
-              </div>
+          <div class="pc-header">
+            <span class="card-icon" aria-hidden="true">📦</span>
+            <span class="pc-title">
+              Pré-Carga
+              {{
+                i.codigo
+                  ? (i.codigo | slice:-2)
+                  : (idx + 1) | number:'2.0-0'
+              }}
+            </span>
+          </div>
+          <div class="pc-body">
+            <div class="pc-line route">
+              <span class="pc-text-strong">
+                {{ i.origem.cidade }} → {{ i.destino.cidade }}
+              </span>
+            </div>
+            <div class="pc-line">
+              <span class="pc-icon-line">📅</span>
+              <span class="pc-text">
+                Coleta: {{ i.dataColeta || '—' }} → Entrega: {{ i.dataEntrega || '—' }}
+              </span>
+            </div>
+            <div class="pc-line">
+              <span class="pc-icon-line">💰</span>
+              <span class="pc-text">{{ formatValorPreCarga(i.valorPreCarga) }}</span>
+            </div>
+            <div class="pc-line">
+              <span class="pc-icon-line" title="Usuario de Lancamento" data-tooltip="Usuario de Lancamento">👤</span>
+              <span class="pc-text">{{ i.usuarioLancador || '—' }}</span>
             </div>
           </div>
         </button>
-        <div class="empty muted" *ngIf="intencoes.length === 0">Nenhuma intenção cadastrada.</div>
+        <div class="empty muted" *ngIf="intencoes.length === 0">Nenhuma pré-carga cadastrada.</div>
       </div>
     </div>
 
@@ -63,18 +85,54 @@
         <button class="vehicle-card"
                 *ngFor="let v of veiculosDisponiveis"
                 [class.selected]="selecionadoVeiculoIndex === veiculos.indexOf(v)"
-                (click)="selecionadoVeiculoIndex = veiculos.indexOf(v); abrirModalVinculosVeiculo(veiculos.indexOf(v))"
+                (click)="onSelecionarOuLockarVeiculo(veiculos.indexOf(v))"
                 (dragover)="onVeiculoDragOver($event)"
                 (dragenter)="onVeiculoDragEnter(veiculos.indexOf(v))"
                 (dragleave)="onVeiculoDragLeave(veiculos.indexOf(v))"
                 (drop)="onVeiculoDrop(veiculos.indexOf(v))"
                 [class.drag-over]="dragOverVeiculoIndex === veiculos.indexOf(v)">
           <div class="vehicle-info">
-            <div class="vehicle-title">{{ v.placa }} - {{ v.tipo || 'Veículo' }}</div>
-            <div class="vehicle-sub">Localização: {{ v.localizacao }}</div>
-            <div class="vehicle-sub">Pré Vínculos: {{ getPreVinculadosCountForVehicleIndex(veiculos.indexOf(v)) }} - Confirmados: {{ getConfirmadosCountForVehicleIndex(veiculos.indexOf(v)) }}</div>
+            <button
+              class="icon-btn sm filter-btn"
+              [class.active]="lockedVeiculoIndex === veiculos.indexOf(v)"
+              (click)="onToggleFiltroPorVeiculo(veiculos.indexOf(v), $event)"
+              aria-label="Filtrar pré-cargas pelo destino deste veículo"
+              data-tooltip="Filtrar pré-cargas"
+            >
+              🔍
+            </button>
+            <div class="veh-header-line">
+              <span class="veh-header-icon">🚚</span>
+              <span class="veh-header-text">
+                Frota {{ v.frotaNumero || '—' }} • {{ v.tipoConjunto || v.tipo || 'Veículo' }}
+              </span>
+            </div>
+            <div class="veh-line">
+              <span class="veh-icon-line">📍</span>
+              <span class="veh-label-inline">Destino:</span>
+              <span class="veh-value-inline">
+                <ng-container *ngIf="v.destinoCidade; else semDestino">
+                  {{ v.destinoCidade }}<span *ngIf="v.destinoUf"> - {{ v.destinoUf }}</span>
+                </ng-container>
+                <ng-template #semDestino>—</ng-template>
+              </span>
+            </div>
+            <div class="veh-line">
+              <span class="veh-icon-line">📅</span>
+              <span class="veh-label-inline">Previsão Chegada:</span>
+              <span class="veh-value-inline">{{ v.ultimaDescarga || '—' }}</span>
+            </div>
+            <div class="veh-line">
+              <span class="veh-icon-line" title="Coordenador" data-tooltip="Coordenador">👤</span>
+              <span class="veh-value-inline">{{ v.coordenador || '—' }}</span>
+            </div>
+            <div class="veh-line">
+              <span class="veh-label-inline">Pré vínculo:</span>
+              <span class="veh-value-inline">
+                {{ getPreVinculadosCountForVehicleIndex(veiculos.indexOf(v)) }}
+              </span>
+            </div>
           </div>
-          <div class="vehicle-icon" aria-hidden="true">🚚</div>
         </button>
       </div>
     </div>
@@ -89,7 +147,7 @@
       <div class="panel-title">Vínculos Confirmados</div>
       <div class="vehicle-groups">
         <div class="vehicle-group-card" *ngFor="let group of confirmedGroups">
-          <div class="group-header">
+            <div class="group-header">
             <div class="left">
               <div class="vehicle">
                 <span class="icon" aria-hidden="true">🚚</span>
@@ -100,7 +158,7 @@
               </div>
             </div>
             <div class="right">
-              <span class="chip">{{ group.items.length }} intenções</span>
+              <span class="chip">{{ group.items.length }} pré-cargas</span>
               <span class="chip alt">{{ getPesoTotalGrupo(group.items) | number:'1.0-0' }} kg</span>
             </div>
           </div>
@@ -131,7 +189,7 @@
   <div class="modal-header">
     <div class="modal-headings">
       <div class="modal-title">
-        Vinculando intenções ao veículo {{ veiculos[veiculoVinculosModalForIndex!]?.placa }}
+        Vinculando Pré-Carga ao veículo {{ veiculos[veiculoVinculosModalForIndex!]?.placa }}
       </div>
       <div class="modal-subtitle">Selecione, confirme ou remova as intenções vinculadas a este veículo.</div>
     </div>
@@ -139,33 +197,50 @@
   </div>
   <div class="modal-body">
     <div class="vinculos-layout">
-      <div class="vinculos-left">
-        <div class="capacity-block" [class.exceeded]="isCapacidadeExcedidaForVehicleIndex(veiculoVinculosModalForIndex!)">
-          <div class="capacity-header">
-            Capacidade do veículo
-            <span class="capacity-alert" *ngIf="isCapacidadeExcedidaForVehicleIndex(veiculoVinculosModalForIndex!)" aria-hidden="true">⚠️</span>
+        <div class="vinculos-left">
+        <div class="capacity-block resumo-block">
+          <div class="capacity-header">Resumo do vínculo</div>
+          <div class="resumo-line resumo-value">
+            <span class="pc-icon-line">💰</span>
+            <span>{{ formatValorPreCarga(modalResumoValorTotal) }}</span>
           </div>
-          <div class="capacity-meta" [class.exceeded]="isCapacidadeExcedidaForVehicleIndex(veiculoVinculosModalForIndex!)">
-            {{ getPreVinculadosPesoKgForVehicleIndex(veiculoVinculosModalForIndex!) | number:'1.0-0' }} kg
-            de
-            {{ getVehicleCapacityKg(veiculos[veiculoVinculosModalForIndex!]) | number:'1.0-0' }} kg
-            ({{ getCapacidadeUsoPercentForVehicleIndex(veiculoVinculosModalForIndex!) }}%)
+          <div class="resumo-line resumo-route">
+            <span>{{ modalResumoOrigemInicial }} → {{ modalResumoDestinoFinal }}</span>
           </div>
-          <div class="capacity-bar">
-            <div class="capacity-fill" [class.exceeded]="isCapacidadeExcedidaForVehicleIndex(veiculoVinculosModalForIndex!)" [style.width.%]="getCapacidadeUsoPercentForVehicleIndex(veiculoVinculosModalForIndex!)"></div>
+          <div class="resumo-line">
+            <span class="pc-icon-line">📅</span>
+            <span>Coleta: {{ modalResumoDataColetaInicial }} → Entrega: {{ modalResumoDataEntregaFinal }}</span>
           </div>
         </div>
         <div class="vinculos-list list">
           <div class="list-item" *ngFor="let item of modalVinculos">
-            <button class="icon-btn close" (click)="removerVinculo(item.i)" aria-label="Remover intenção">✕</button>
-            <div class="title-row">
-              <div style="display:flex; align-items:center; gap:10px;">
-                <span class="card-icon" aria-hidden="true">📦</span>
-                <div>
-                  <div class="title">Intenção</div>
-                  <div class="subtitle">{{ item.v.intencao.origem.uf }}/{{ item.v.intencao.origem.cidade }} → {{ item.v.intencao.destino.uf }}/{{ item.v.intencao.destino.cidade }}</div>
-                  <div class="meta">{{ item.v.intencao.pesoKg | number:'1.0-0' }} kg</div>
-                </div>
+            <button class="icon-btn close" (click)="removerVinculo(item.i)" aria-label="Remover pré-carga">✕</button>
+            <div class="pc-header">
+              <span class="card-icon" aria-hidden="true">📦</span>
+              <span class="pc-title">
+                Pré-Carga
+                {{
+                  item.v.intencao.codigo
+                    ? (item.v.intencao.codigo | slice:-2)
+                    : '—'
+                }}
+              </span>
+            </div>
+            <div class="pc-body">
+              <div class="pc-line route">
+                <span class="pc-text-strong">
+                  {{ item.v.intencao.origem.cidade }} → {{ item.v.intencao.destino.cidade }}
+                </span>
+              </div>
+              <div class="pc-line">
+                <span class="pc-icon-line">📅</span>
+                <span class="pc-text">
+                  Coleta: {{ item.v.intencao.dataColeta || '—' }} → Entrega: {{ item.v.intencao.dataEntrega || '—' }}
+                </span>
+              </div>
+              <div class="pc-line">
+                <span class="pc-icon-line">💰</span>
+                <span class="pc-text">{{ formatValorPreCarga(item.v.intencao.valorPreCarga) }}</span>
               </div>
             </div>
           </div>
@@ -173,8 +248,28 @@
         </div>
       </div>
       <div class="vinculos-right">
+        <div class="modal-route-summary" *ngIf="modalRouteTotalKm > 0">
+          <div class="summary-item">
+            <span class="label">Distância total:</span>
+            <span class="value">{{ modalRouteTotalKm | number:'1.0-0' }} km</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Tempo estimado:</span>
+            <span class="value">{{ modalRouteEtaHoras | number:'1.1-1' }} h</span>
+          </div>
+        </div>
         <div class="modal-map">
           <div id="modal-map" class="modal-map-element"></div>
+          <div class="modal-map-legend" *ngIf="modalRouteTotalKm > 0">
+            <div class="legend-line">
+              <span class="label">Distância total:</span>
+              <span class="value">{{ modalRouteTotalKm | number:'1.0-0' }} km</span>
+            </div>
+            <div class="legend-line">
+              <span class="label">Tempo estimado:</span>
+              <span class="value">{{ modalRouteEtaHoras | number:'1.1-1' }} h</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

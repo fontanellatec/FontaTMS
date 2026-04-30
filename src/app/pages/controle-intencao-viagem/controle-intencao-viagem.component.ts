@@ -7,8 +7,30 @@ import { FilterSectionComponent, FilterConfig } from '../../shared/components/fi
 import { KpiSectionComponent, KpiConfig } from '../../shared/components/kpi-section/kpi-section.component';
 
 interface EnderecoCompleto { uf: string; cidade: string; rua?: string; numero?: string; bairro?: string; complemento?: string; }
-interface IntencaoViagem { codigo?: string; origem: EnderecoCompleto; destino: EnderecoCompleto; pesoKg: number; tipoCarga?: string; dataColeta?: string; dataEntrega?: string; observacoes?: string; }
-interface Veiculo { placa: string; localizacao: string; tipo?: string; situacao?: string; }
+interface IntencaoViagem {
+  codigo?: string;
+  origem: EnderecoCompleto;
+  destino: EnderecoCompleto;
+  pesoKg: number;
+  tipoCarga?: string;
+  dataColeta?: string;
+  dataEntrega?: string;
+  observacoes?: string;
+  valorPreCarga?: number;
+  usuarioLancador?: string;
+}
+interface Veiculo {
+  placa: string;
+  localizacao: string;
+  tipo?: string;
+  situacao?: string;
+  frotaNumero?: string;
+  tipoConjunto?: string;
+  ultimaDescarga?: string;
+  destinoCidade?: string;
+  destinoUf?: string;
+  coordenador?: string;
+}
 interface Vinculo { intencao: IntencaoViagem; veiculo: Veiculo; status: 'pendente' | 'vinculado' | 'em_rota' | 'concluido'; confirmado?: boolean; viagemId?: string; motorista?: string; }
 
 @Component({
@@ -54,7 +76,7 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
   // KPIs padronizados
   get kpiConfigs(): KpiConfig[] {
     return [
-      { label: 'Intenções', value: this.countIntencoes, icon: 'plus', format: 'number' },
+      { label: 'Pré-Cargas', value: this.countIntencoes, icon: 'plus', format: 'number' },
       { label: 'Vinculados', value: this.countVinculados, icon: 'truck', format: 'number' },
       { label: 'Em rota', value: this.countEmRota, icon: 'route', format: 'number' },
       { label: 'Concluídos', value: this.countConcluidos, icon: 'check-circle', format: 'number' },
@@ -83,6 +105,7 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
   selecionadaIntencaoIndex: number | null = null;
   selecionadoVeiculoIndex: number | null = null;
   lockedIntencaoIndex: number | null = null;
+  lockedVeiculoIndex: number | null = null;
 
   private intencoesKey = 'intencoesViagem';
   private vinculosKey = 'controleVinculos';
@@ -97,6 +120,9 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
   private modalMap?: L.Map;
   private modalMarkersLayer: L.LayerGroup = L.layerGroup();
   private modalRoutesLayer: L.LayerGroup = L.layerGroup();
+  modalRouteTotalKm: number = 0;
+  modalRouteEtaHoras: number = 0;
+  modalRouteOrderedPoints: string[] = [];
 
   private truckIcon: L.DivIcon = L.divIcon({
     className: 'truck-marker-icon',
@@ -171,12 +197,24 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
     if (!veiculo || !intencao || !intencao.origem) return false;
     const origemUF = (intencao.origem.uf || '').toUpperCase();
     const origemCidade = (intencao.origem.cidade || '').toLowerCase();
-    const vCity = veiculo.localizacao || '';
-    const vUFGuess = (this.CITY_TO_UF[vCity] || vCity).toUpperCase();
+    const destCidade = (veiculo.destinoCidade || '').toLowerCase();
+    const destUf = (veiculo.destinoUf || this.CITY_TO_UF[veiculo.destinoCidade || ''] || '').toUpperCase();
 
-    // Considera próximo se está na mesma UF ou mesma cidade
-    if (origemUF && vUFGuess && origemUF === vUFGuess) return true;
-    if (origemCidade && vCity && vCity.toLowerCase() === origemCidade) return true;
+    // Considera compatível se origem da carga bate com destino do veículo (UF ou cidade)
+    if (origemUF && destUf && origemUF === destUf) return true;
+    if (origemCidade && destCidade && origemCidade === destCidade) return true;
+    return false;
+  }
+
+  private isIntencaoProximaDoDestinoVeiculo(intencao: IntencaoViagem, veiculo: Veiculo): boolean {
+    if (!veiculo || !intencao || !intencao.origem) return false;
+    const origemUF = (intencao.origem.uf || '').toUpperCase();
+    const origemCidade = (intencao.origem.cidade || '').toLowerCase();
+    const destCidade = (veiculo.destinoCidade || '').toLowerCase();
+    const destUf = (veiculo.destinoUf || this.CITY_TO_UF[veiculo.destinoCidade || ''] || '').toUpperCase();
+
+    if (origemUF && destUf && origemUF === destUf) return true;
+    if (origemCidade && destCidade && origemCidade === destCidade) return true;
     return false;
   }
 
@@ -203,10 +241,48 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
     'RO': [-8.76, -63.90], 'RR': [2.82, -60.67], 'RS': [-30.03, -51.23], 'SC': [-27.59, -48.54],
     'SE': [-10.91, -37.07], 'SP': [-23.55, -46.63], 'TO': [-10.18, -48.33]
   };
+  private readonly CITY_COORDS: Record<string, [number, number]> = {
+    'Sao Paulo': [-23.5505, -46.6333],
+    'Rio de Janeiro': [-22.9068, -43.1729],
+    'Curitiba': [-25.4284, -49.2733],
+    'Joinville': [-26.3044, -48.8487],
+    'Caxias do Sul': [-29.1678, -51.1794],
+    'Feira de Santana': [-12.2664, -38.9663],
+    'Anapolis': [-16.3281, -48.9534],
+    'Joao Pessoa': [-7.1153, -34.8610],
+    'Uberlandia': [-18.9146, -48.2754],
+    'Itacoatiara': [-3.1431, -58.4449],
+    'Blumenau': [-26.9155, -49.0707],
+    'Sobral': [-3.6891, -40.3480],
+    'Belo Horizonte': [-19.9167, -43.9345],
+    'Brasilia': [-15.7939, -47.8828],
+    'Florianopolis': [-27.5949, -48.5482],
+    'Porto Alegre': [-30.0346, -51.2177],
+    'Salvador': [-12.9777, -38.5016],
+    'Recife': [-8.0476, -34.8770],
+    'Fortaleza': [-3.7319, -38.5267],
+    'Manaus': [-3.1190, -60.0217],
+    'Campinas': [-22.9056, -47.0608],
+    'Goiânia': [-16.6869, -49.2648],
+    'Goiania': [-16.6869, -49.2648],
+    'Sao Luis': [-2.5297, -44.3028],
+    'Vitoria': [-20.3155, -40.3128],
+    'Maceio': [-9.6658, -35.7350],
+    'Aracaju': [-10.9472, -37.0731],
+    'Teresina': [-5.0919, -42.8034],
+    'Palmas': [-10.1840, -48.3336],
+    'Natal': [-5.7945, -35.2110]
+  };
 
   private readonly CITY_TO_UF: Record<string, string> = {
     'São Paulo': 'SP', 'Rio de Janeiro': 'RJ', 'Curitiba': 'PR', 'Porto Alegre': 'RS',
-    'Belo Horizonte': 'MG', 'Salvador': 'BA', 'Brasília': 'DF'
+    'Belo Horizonte': 'MG', 'Salvador': 'BA', 'Brasília': 'DF',
+    'Joinville': 'SC', 'Caxias do Sul': 'RS', 'Feira de Santana': 'BA', 'Anápolis': 'GO',
+    'João Pessoa': 'PB', 'Uberlândia': 'MG', 'Itacoatiara': 'AM', 'Blumenau': 'SC',
+    'Sobral': 'CE', 'Campinas': 'SP', 'Goiânia': 'GO', 'São Luís': 'MA',
+    'Vitória': 'ES', 'Maceió': 'AL', 'Aracaju': 'SE', 'Teresina': 'PI',
+    'Palmas': 'TO', 'Natal': 'RN', 'Florianópolis': 'SC', 'Recife': 'PE', 'Fortaleza': 'CE',
+    'Manaus': 'AM'
   };
 
   constructor(private api: ApiService) {}
@@ -259,7 +335,110 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
   ngOnDestroy(): void { if (this.map) { this.map.remove(); this.map = undefined; } }
 
   getIntencoesFromStorage(): IntencaoViagem[] {
-    try { const raw = localStorage.getItem(this.intencoesKey); return raw ? JSON.parse(raw) as IntencaoViagem[] : []; } catch { return []; }
+    try {
+      const raw = localStorage.getItem(this.intencoesKey);
+      const parsed: IntencaoViagem[] = raw ? JSON.parse(raw) as IntencaoViagem[] : [];
+      const originalLength = parsed.length;
+      if (!parsed.length) return [];
+
+      const usuarios = ['João Silva', 'Maria Souza', 'Carlos Lima', 'Ana Paula', 'Rafael Costa', 'Juliana Alves'];
+      const destinosPermitidos = this.getDestinosPermitidosVeiculos();
+      const cidadesPermitidas = Array.from(destinosPermitidos.keys());
+      const today = new Date();
+      let changed = false;
+
+      for (let i = 0; i < parsed.length; i++) {
+        const item = parsed[i];
+        if (!item) continue;
+
+        // Normaliza cargas antigas: a origem precisa sempre ser uma cidade que exista
+        // como destino de algum veículo disponível.
+        const origemCidadeAtual = item.origem?.cidade || '';
+        if (!destinosPermitidos.has(origemCidadeAtual) && cidadesPermitidas.length > 0) {
+          const cidadeSubstituta = cidadesPermitidas[i % cidadesPermitidas.length];
+          const ufSubstituta = destinosPermitidos.get(cidadeSubstituta) || 'SP';
+          item.origem = { cidade: cidadeSubstituta, uf: ufSubstituta };
+          changed = true;
+        }
+
+        const offset = i % 7;
+        if (!item.dataColeta || !item.dataEntrega) {
+          const coleta = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
+          const entrega = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset + 2);
+          item.dataColeta = item.dataColeta || coleta.toLocaleDateString('pt-BR');
+          item.dataEntrega = item.dataEntrega || entrega.toLocaleDateString('pt-BR');
+          changed = true;
+        }
+        if (item.valorPreCarga == null) {
+          const base = item.pesoKg && item.pesoKg > 0 ? item.pesoKg * 3 : 20000;
+          item.valorPreCarga = Math.round(base / 100) * 100;
+          changed = true;
+        }
+        if (!item.usuarioLancador) {
+          item.usuarioLancador = usuarios[i % usuarios.length];
+          changed = true;
+        }
+      }
+
+      this.ensureCoverageForVehicleDestinations(parsed);
+      if (parsed.length !== originalLength) changed = true;
+
+      if (changed) {
+        localStorage.setItem(this.intencoesKey, JSON.stringify(parsed));
+      }
+      return parsed;
+    } catch {
+      return [];
+    }
+  }
+  private getDestinosPermitidosVeiculos(): Map<string, string> {
+    const destinos = new Map<string, string>();
+    for (const v of this.defaultVeiculos()) {
+      if (v.destinoCidade && v.destinoUf) destinos.set(v.destinoCidade, v.destinoUf);
+    }
+    return destinos;
+  }
+  private getCityCoords(uf: string | undefined, cidade: string | undefined): [number, number] | null {
+    const cityRaw = (cidade || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const key = cityRaw.replace(/\s+/g, ' ').trim();
+    const cityCoords = this.CITY_COORDS[key];
+    if (cityCoords) return cityCoords;
+    return this.getUFCoords(uf);
+  }
+  private ensureCoverageForVehicleDestinations(intencoes: IntencaoViagem[]): void {
+    const destinosPermitidos = this.getDestinosPermitidosVeiculos();
+    const cidadesPermitidas = new Set(Array.from(destinosPermitidos.keys()));
+    for (let i = 0; i < intencoes.length; i++) {
+      const item = intencoes[i];
+      if (!item) continue;
+      const cidadeAtual = item.origem?.cidade || '';
+      if (!cidadesPermitidas.has(cidadeAtual)) {
+        const cidadeSubstituta = Array.from(destinosPermitidos.keys())[i % destinosPermitidos.size];
+        const ufSubstituta = destinosPermitidos.get(cidadeSubstituta) || 'SP';
+        item.origem = { cidade: cidadeSubstituta, uf: ufSubstituta };
+      }
+    }
+    const existentes = new Set(intencoes.map(i => `${i?.origem?.cidade || ''}|${i?.origem?.uf || ''}`));
+    const usuarios = ['João Silva', 'Maria Souza', 'Carlos Lima', 'Ana Paula', 'Rafael Costa', 'Juliana Alves'];
+    let idx = 0;
+    for (const [cidade, uf] of destinosPermitidos.entries()) {
+      const chave = `${cidade}|${uf}`;
+      if (existentes.has(chave)) continue;
+      const destinosAlternativos = Array.from(destinosPermitidos.entries()).filter(([c]) => c !== cidade);
+      const destinoAlt = destinosAlternativos[idx % destinosAlternativos.length] || [cidade, uf];
+      intencoes.push({
+        origem: { cidade, uf },
+        destino: { cidade: destinoAlt[0], uf: destinoAlt[1] },
+        pesoKg: 6000 + ((idx % 6) * 1200),
+        tipoCarga: ['Geral', 'Frigorificada', 'Granel', 'Perigosa', 'Container'][idx % 5],
+        dataColeta: `2${4 + (idx % 5)}/04/2026`,
+        dataEntrega: `2${5 + (idx % 5)}/04/2026`,
+        valorPreCarga: 18000 + (idx * 2200),
+        usuarioLancador: usuarios[idx % usuarios.length]
+      });
+      existentes.add(chave);
+      idx++;
+    }
   }
   getVinculosFromStorage(): Vinculo[] {
     try { const raw = localStorage.getItem(this.vinculosKey); return raw ? JSON.parse(raw) as Vinculo[] : []; } catch { return []; }
@@ -322,6 +501,39 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
 
   getStatusClass(status: Vinculo['status']) { return `status ${status}`; }
 
+  formatValorPreCarga(valor: number | null | undefined): string {
+    if (valor == null) return '—';
+    try {
+      return valor.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    } catch {
+      return `R$ ${valor.toFixed(2)}`;
+    }
+  }
+
+  get preCargasDisponiveis(): IntencaoViagem[] {
+    const base = this.intencoes;
+    const idx = this.lockedVeiculoIndex;
+    if (idx === null || idx === undefined) return base;
+    const veiculo = this.veiculos[idx];
+    if (!veiculo) return base;
+    return base.filter(i => this.isIntencaoProximaDoDestinoVeiculo(i, veiculo));
+  }
+
+  onSelecionarOuLockarVeiculo(index: number): void {
+    this.selecionadoVeiculoIndex = index;
+    this.abrirModalVinculosVeiculo(index);
+  }
+
+  onToggleFiltroPorVeiculo(index: number, ev: MouseEvent): void {
+    ev.stopPropagation();
+    this.lockedVeiculoIndex = this.lockedVeiculoIndex === index ? null : index;
+  }
+
   canVincular(): boolean { return this.selecionadaIntencaoIndex !== null && this.selecionadoVeiculoIndex !== null; }
 
   vincularSelecionados(): void {
@@ -367,29 +579,180 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
 
   private sampleIntencoes(): IntencaoViagem[] {
     return [
-      { origem: { uf: 'SP', cidade: 'São Paulo' }, destino: { uf: 'RJ', cidade: 'Rio de Janeiro' }, pesoKg: 12000, tipoCarga: 'Geral' },
-      { origem: { uf: 'PR', cidade: 'Curitiba' }, destino: { uf: 'RS', cidade: 'Porto Alegre' }, pesoKg: 8000, tipoCarga: 'Frigorificada' },
-      { origem: { uf: 'MG', cidade: 'Belo Horizonte' }, destino: { uf: 'BA', cidade: 'Salvador' }, pesoKg: 16000, tipoCarga: 'Granel' },
-      { origem: { uf: 'DF', cidade: 'Brasília' }, destino: { uf: 'GO', cidade: 'Goiânia' }, pesoKg: 7000, tipoCarga: 'Geral' },
-      { origem: { uf: 'PE', cidade: 'Recife' }, destino: { uf: 'PB', cidade: 'João Pessoa' }, pesoKg: 5000, tipoCarga: 'Perigosa' },
-      { origem: { uf: 'CE', cidade: 'Fortaleza' }, destino: { uf: 'MA', cidade: 'São Luís' }, pesoKg: 9000, tipoCarga: 'Container' },
-      { origem: { uf: 'PA', cidade: 'Belém' }, destino: { uf: 'AM', cidade: 'Manaus' }, pesoKg: 11000, tipoCarga: 'Geral' },
-      { origem: { uf: 'SC', cidade: 'Florianópolis' }, destino: { uf: 'PR', cidade: 'Curitiba' }, pesoKg: 6000, tipoCarga: 'Granel' },
-      { origem: { uf: 'ES', cidade: 'Vitória' }, destino: { uf: 'SP', cidade: 'São Paulo' }, pesoKg: 14000, tipoCarga: 'Frigorificada' },
-      { origem: { uf: 'MS', cidade: 'Campo Grande' }, destino: { uf: 'MT', cidade: 'Cuiabá' }, pesoKg: 10000, tipoCarga: 'Geral' },
-      { origem: { uf: 'RO', cidade: 'Porto Velho' }, destino: { uf: 'AC', cidade: 'Rio Branco' }, pesoKg: 8500, tipoCarga: 'Granel' },
-      { origem: { uf: 'RN', cidade: 'Natal' }, destino: { uf: 'CE', cidade: 'Fortaleza' }, pesoKg: 7200, tipoCarga: 'Perigosa' },
-      { origem: { uf: 'AL', cidade: 'Maceió' }, destino: { uf: 'SE', cidade: 'Aracaju' }, pesoKg: 9500, tipoCarga: 'Container' },
-      { origem: { uf: 'PI', cidade: 'Teresina' }, destino: { uf: 'MA', cidade: 'São Luís' }, pesoKg: 6800, tipoCarga: 'Geral' },
-      { origem: { uf: 'TO', cidade: 'Palmas' }, destino: { uf: 'GO', cidade: 'Goiânia' }, pesoKg: 12300, tipoCarga: 'Granel' },
-      { origem: { uf: 'RS', cidade: 'Porto Alegre' }, destino: { uf: 'SP', cidade: 'Campinas' }, pesoKg: 13200, tipoCarga: 'Frigorificada' }
+      {
+        origem: { uf: 'PR', cidade: 'Curitiba' },
+        destino: { uf: 'SP', cidade: 'São Paulo' },
+        pesoKg: 12000,
+        tipoCarga: 'Geral',
+        dataColeta: '10/04/2026',
+        dataEntrega: '12/04/2026',
+        valorPreCarga: 32000,
+        usuarioLancador: 'João Silva'
+      },
+      {
+        origem: { uf: 'SP', cidade: 'São Paulo' },
+        destino: { uf: 'PR', cidade: 'Curitiba' },
+        pesoKg: 8000,
+        tipoCarga: 'Frigorificada',
+        dataColeta: '11/04/2026',
+        dataEntrega: '13/04/2026',
+        valorPreCarga: 18500,
+        usuarioLancador: 'Maria Souza'
+      },
+      {
+        origem: { uf: 'SC', cidade: 'Joinville' },
+        destino: { uf: 'SC', cidade: 'Florianópolis' },
+        pesoKg: 16000,
+        tipoCarga: 'Granel',
+        dataColeta: '09/04/2026',
+        dataEntrega: '14/04/2026',
+        valorPreCarga: 41000,
+        usuarioLancador: 'Carlos Lima'
+      },
+      {
+        origem: { uf: 'RS', cidade: 'Caxias do Sul' },
+        destino: { uf: 'RS', cidade: 'Porto Alegre' },
+        pesoKg: 7000,
+        tipoCarga: 'Geral',
+        dataColeta: '08/04/2026',
+        dataEntrega: '09/04/2026',
+        valorPreCarga: 15500,
+        usuarioLancador: 'Ana Paula'
+      },
+      {
+        origem: { uf: 'SP', cidade: 'São Paulo' },
+        destino: { uf: 'MG', cidade: 'Belo Horizonte' },
+        pesoKg: 5000,
+        tipoCarga: 'Perigosa',
+        dataColeta: '12/04/2026',
+        dataEntrega: '13/04/2026',
+        valorPreCarga: 27800,
+        usuarioLancador: 'Rafael Costa'
+      },
+      {
+        origem: { uf: 'BA', cidade: 'Feira de Santana' },
+        destino: { uf: 'BA', cidade: 'Salvador' },
+        pesoKg: 9000,
+        tipoCarga: 'Container',
+        dataColeta: '13/04/2026',
+        dataEntrega: '16/04/2026',
+        valorPreCarga: 36500,
+        usuarioLancador: 'Juliana Alves'
+      },
+      {
+        origem: { uf: 'GO', cidade: 'Anápolis' },
+        destino: { uf: 'DF', cidade: 'Brasília' },
+        pesoKg: 11000,
+        tipoCarga: 'Geral',
+        dataColeta: '07/04/2026',
+        dataEntrega: '11/04/2026',
+        valorPreCarga: 43800,
+        usuarioLancador: 'Fernando Rocha'
+      },
+      {
+        origem: { uf: 'PB', cidade: 'João Pessoa' },
+        destino: { uf: 'PE', cidade: 'Recife' },
+        pesoKg: 6000,
+        tipoCarga: 'Granel',
+        dataColeta: '10/04/2026',
+        dataEntrega: '11/04/2026',
+        valorPreCarga: 16200,
+        usuarioLancador: 'Patrícia Mendes'
+      },
+      {
+        origem: { uf: 'MG', cidade: 'Uberlândia' },
+        destino: { uf: 'SP', cidade: 'São Paulo' },
+        pesoKg: 14000,
+        tipoCarga: 'Frigorificada',
+        dataColeta: '09/04/2026',
+        dataEntrega: '12/04/2026',
+        valorPreCarga: 39200,
+        usuarioLancador: 'Rodrigo Nunes'
+      },
+      {
+        origem: { uf: 'AM', cidade: 'Itacoatiara' },
+        destino: { uf: 'AM', cidade: 'Manaus' },
+        pesoKg: 10000,
+        tipoCarga: 'Geral',
+        dataColeta: '11/04/2026',
+        dataEntrega: '14/04/2026',
+        valorPreCarga: 27400,
+        usuarioLancador: 'Mariana Prado'
+      },
+      {
+        origem: { uf: 'SC', cidade: 'Blumenau' },
+        destino: { uf: 'SC', cidade: 'Florianópolis' },
+        pesoKg: 8500,
+        tipoCarga: 'Granel',
+        dataColeta: '08/04/2026',
+        dataEntrega: '12/04/2026',
+        valorPreCarga: 23100,
+        usuarioLancador: 'Gustavo Araujo'
+      },
+      {
+        origem: { uf: 'CE', cidade: 'Sobral' },
+        destino: { uf: 'CE', cidade: 'Fortaleza' },
+        pesoKg: 7200,
+        tipoCarga: 'Perigosa',
+        dataColeta: '13/04/2026',
+        dataEntrega: '15/04/2026',
+        valorPreCarga: 30900,
+        usuarioLancador: 'Letícia Moraes'
+      },
+      {
+        origem: { uf: 'AL', cidade: 'Maceió' },
+        destino: { uf: 'SE', cidade: 'Aracaju' },
+        pesoKg: 9500,
+        tipoCarga: 'Container',
+        dataColeta: '10/04/2026',
+        dataEntrega: '11/04/2026',
+        valorPreCarga: 28800,
+        usuarioLancador: 'Bruno Ferreira'
+      },
+      {
+        origem: { uf: 'PI', cidade: 'Teresina' },
+        destino: { uf: 'MA', cidade: 'São Luís' },
+        pesoKg: 6800,
+        tipoCarga: 'Geral',
+        dataColeta: '09/04/2026',
+        dataEntrega: '11/04/2026',
+        valorPreCarga: 19400,
+        usuarioLancador: 'Renata Lopes'
+      },
+      {
+        origem: { uf: 'TO', cidade: 'Palmas' },
+        destino: { uf: 'GO', cidade: 'Goiânia' },
+        pesoKg: 12300,
+        tipoCarga: 'Granel',
+        dataColeta: '07/04/2026',
+        dataEntrega: '10/04/2026',
+        valorPreCarga: 33600,
+        usuarioLancador: 'Eduardo Vieira'
+      },
+      {
+        origem: { uf: 'RS', cidade: 'Porto Alegre' },
+        destino: { uf: 'SP', cidade: 'Campinas' },
+        pesoKg: 13200,
+        tipoCarga: 'Frigorificada',
+        dataColeta: '12/04/2026',
+        dataEntrega: '15/04/2026',
+        valorPreCarga: 41800,
+        usuarioLancador: 'Camila Santos'
+      }
     ];
   }
 
   // Adiciona mais intenções de carga (mock) à lista de disponíveis
   addIntencoesExemplo(): void {
     const tipos: string[] = ['Geral', 'Frigorificada', 'Granel', 'Perigosa', 'Container'];
-    const cidades = Object.keys(this.CITY_TO_UF);
+    const usuarios = ['João Silva', 'Maria Souza', 'Carlos Lima', 'Ana Paula', 'Rafael Costa', 'Juliana Alves'];
+
+    const baseVeiculos = (this.veiculos && this.veiculos.length > 0) ? this.veiculos : this.defaultVeiculos();
+    const destinosMap = new Map<string, string>();
+    for (const v of baseVeiculos) {
+      if (v.destinoCidade && v.destinoUf) destinosMap.set(v.destinoCidade, v.destinoUf);
+    }
+    const cidades = Array.from(destinosMap.keys());
 
     const existsOrLinked = (i: IntencaoViagem): boolean => {
       const existsInList = this.intencoes.some(x => this.intencaoEquals(x, i));
@@ -400,21 +763,32 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
     const gerarIntencaoAleatoria = (): IntencaoViagem => {
       const origemCidade = cidades[Math.floor(Math.random() * cidades.length)];
       let destinoCidade = cidades[Math.floor(Math.random() * cidades.length)];
-      // evita mesmo origem/destino
       if (destinoCidade === origemCidade) {
         destinoCidade = cidades[(cidades.indexOf(origemCidade) + 1) % cidades.length];
       }
-      const origemUf = this.CITY_TO_UF[origemCidade] || 'SP';
-      const destinoUf = this.CITY_TO_UF[destinoCidade] || 'RJ';
+      const origemUf = destinosMap.get(origemCidade) || 'SP';
+      const destinoUf = destinosMap.get(destinoCidade) || origemUf;
       const tipo = tipos[Math.floor(Math.random() * tipos.length)];
-      // peso entre 5.000 e 18.000, arredondado a 100
       const pesoRaw = 5000 + Math.floor(Math.random() * (18000 - 5000));
       const pesoKg = Math.round(pesoRaw / 100) * 100;
+      const hoje = new Date();
+      const deltaColeta = Math.floor(Math.random() * 5);
+      const deltaEntrega = deltaColeta + 1 + Math.floor(Math.random() * 4);
+      const coleta = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + deltaColeta);
+      const entrega = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + deltaEntrega);
+      const dataColeta = coleta.toLocaleDateString('pt-BR');
+      const dataEntrega = entrega.toLocaleDateString('pt-BR');
+      const valorPreCarga = 15000 + Math.round(Math.random() * 35000);
+      const usuarioLancador = usuarios[Math.floor(Math.random() * usuarios.length)];
       const novo: IntencaoViagem = {
         origem: { uf: origemUf, cidade: origemCidade },
         destino: { uf: destinoUf, cidade: destinoCidade },
         pesoKg,
-        tipoCarga: tipo
+        tipoCarga: tipo,
+        dataColeta,
+        dataEntrega,
+        valorPreCarga,
+        usuarioLancador
       };
       return novo;
     };
@@ -439,7 +813,16 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
       // fallback: altera pesos das sampleIntencoes para garantir unicidade
       for (const s of this.sampleIntencoes()) {
         const pesoVar = Math.round((s.pesoKg + (Math.floor(Math.random() * 2000) + 500)) / 100) * 100;
-        const cand: IntencaoViagem = { origem: s.origem, destino: s.destino, pesoKg: pesoVar, tipoCarga: s.tipoCarga };
+        const cand: IntencaoViagem = {
+          origem: s.origem,
+          destino: s.destino,
+          pesoKg: pesoVar,
+          tipoCarga: s.tipoCarga,
+          dataColeta: s.dataColeta,
+          dataEntrega: s.dataEntrega,
+          valorPreCarga: s.valorPreCarga,
+          usuarioLancador: s.usuarioLancador
+        };
         if (!existsOrLinked(cand)) novas.push(cand);
         if (novas.length >= alvo) break;
       }
@@ -505,7 +888,13 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
     this.saveIntencoes();
   }
   addSampleIntencao(): void { this.intencoes.unshift(this.sampleIntencoes()[Math.floor(Math.random()*3)]); this.saveIntencoes(); }
-  private loadIntencoesMock(): void { const data = this.getIntencoesFromStorage(); this.intencoes = data.length ? data : this.sampleIntencoes(); this.ensureIntencoesHaveCodigo(); }
+  private loadIntencoesMock(): void {
+    const data = this.getIntencoesFromStorage();
+    this.intencoes = data.length ? data : this.sampleIntencoes();
+    // Garante cobertura mesmo quando está começando do zero (sem storage)
+    this.ensureCoverageForVehicleDestinations(this.intencoes);
+    this.ensureIntencoesHaveCodigo();
+  }
   private loadVeiculosMock(): void { this.veiculos = this.defaultVeiculos(); }
 
   private loadIntencoesFromApi(): void {
@@ -521,18 +910,138 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
   }
   private defaultVeiculos(): Veiculo[] {
     return [
-      { placa: 'ABC1D23', localizacao: 'São Paulo', tipo: 'Toco' },
-      { placa: 'DEF4G56', localizacao: 'Rio de Janeiro', tipo: 'Carreta' },
-      { placa: 'JKL7M89', localizacao: 'Curitiba', tipo: 'VUC' },
-      { placa: 'PQR1S23', localizacao: 'Porto Alegre', tipo: 'Leve' },
-      { placa: 'TUV2W34', localizacao: 'Belo Horizonte', tipo: 'Carreta' },
-      { placa: 'XYZ5A67', localizacao: 'Salvador', tipo: 'Toco' },
-      { placa: 'BCD8E90', localizacao: 'Brasília', tipo: 'VUC' },
-      { placa: 'FGH3I45', localizacao: 'Recife', tipo: 'Leve' },
-      { placa: 'JKM6N78', localizacao: 'Goiânia', tipo: 'Carreta' },
-      { placa: 'OPQ9R12', localizacao: 'Manaus', tipo: 'Toco' },
-      { placa: 'STU3V56', localizacao: 'Florianópolis', tipo: 'Leve' },
-      { placa: 'WXY7Z89', localizacao: 'Fortaleza', tipo: 'VUC' }
+      {
+        placa: 'ABC1D23',
+        localizacao: 'São Paulo',
+        tipo: 'Toco',
+        frotaNumero: '1075',
+        tipoConjunto: 'Toco',
+        ultimaDescarga: '24/04/2026',
+        destinoCidade: 'Curitiba',
+        destinoUf: 'PR',
+        coordenador: 'Bruno Ferreira'
+      },
+      {
+        placa: 'DEF4G56',
+        localizacao: 'Rio de Janeiro',
+        tipo: 'Carreta',
+        frotaNumero: '2089',
+        tipoConjunto: 'Carreta LS',
+        ultimaDescarga: '25/04/2026',
+        destinoCidade: 'São Paulo',
+        destinoUf: 'SP',
+        coordenador: 'Mariana Prado'
+      },
+      {
+        placa: 'JKL7M89',
+        localizacao: 'Curitiba',
+        tipo: 'VUC',
+        frotaNumero: '3124',
+        tipoConjunto: 'VUC',
+        ultimaDescarga: '26/04/2026',
+        destinoCidade: 'Joinville',
+        destinoUf: 'SC',
+        coordenador: 'Rafael Costa'
+      },
+      {
+        placa: 'PQR1S23',
+        localizacao: 'Porto Alegre',
+        tipo: 'Leve',
+        frotaNumero: '1542',
+        tipoConjunto: 'HR',
+        ultimaDescarga: '27/04/2026',
+        destinoCidade: 'Caxias do Sul',
+        destinoUf: 'RS',
+        coordenador: 'Ana Paula'
+      },
+      {
+        placa: 'TUV2W34',
+        localizacao: 'Belo Horizonte',
+        tipo: 'Carreta',
+        frotaNumero: '2210',
+        tipoConjunto: 'Carreta LS',
+        ultimaDescarga: '28/04/2026',
+        destinoCidade: 'São Paulo',
+        destinoUf: 'SP',
+        coordenador: 'João Silva'
+      },
+      {
+        placa: 'XYZ5A67',
+        localizacao: 'Salvador',
+        tipo: 'Toco',
+        frotaNumero: '1987',
+        tipoConjunto: 'Toco',
+        ultimaDescarga: '29/04/2026',
+        destinoCidade: 'Feira de Santana',
+        destinoUf: 'BA',
+        coordenador: 'Carlos Lima'
+      },
+      {
+        placa: 'BCD8E90',
+        localizacao: 'Brasília',
+        tipo: 'VUC',
+        frotaNumero: '2451',
+        tipoConjunto: 'VUC',
+        ultimaDescarga: '30/04/2026',
+        destinoCidade: 'Anápolis',
+        destinoUf: 'GO',
+        coordenador: 'Juliana Alves'
+      },
+      {
+        placa: 'FGH3I45',
+        localizacao: 'Recife',
+        tipo: 'Leve',
+        frotaNumero: '1760',
+        tipoConjunto: 'Leve',
+        ultimaDescarga: '01/05/2026',
+        destinoCidade: 'João Pessoa',
+        destinoUf: 'PB',
+        coordenador: 'Gustavo Araujo'
+      },
+      {
+        placa: 'JKM6N78',
+        localizacao: 'Goiânia',
+        tipo: 'Carreta',
+        frotaNumero: '2333',
+        tipoConjunto: 'Carreta LS',
+        ultimaDescarga: '02/05/2026',
+        destinoCidade: 'Uberlândia',
+        destinoUf: 'MG',
+        coordenador: 'Patrícia Mendes'
+      },
+      {
+        placa: 'OPQ9R12',
+        localizacao: 'Manaus',
+        tipo: 'Toco',
+        frotaNumero: '1902',
+        tipoConjunto: 'Toco',
+        ultimaDescarga: '03/05/2026',
+        destinoCidade: 'Itacoatiara',
+        destinoUf: 'AM',
+        coordenador: 'Renata Lopes'
+      },
+      {
+        placa: 'STU3V56',
+        localizacao: 'Florianópolis',
+        tipo: 'Leve',
+        frotaNumero: '1675',
+        tipoConjunto: 'Leve',
+        ultimaDescarga: '04/05/2026',
+        destinoCidade: 'Blumenau',
+        destinoUf: 'SC',
+        coordenador: 'Eduardo Vieira'
+      },
+      {
+        placa: 'WXY7Z89',
+        localizacao: 'Fortaleza',
+        tipo: 'VUC',
+        frotaNumero: '2144',
+        tipoConjunto: 'VUC',
+        ultimaDescarga: '05/05/2026',
+        destinoCidade: 'Sobral',
+        destinoUf: 'CE',
+        coordenador: 'Camila Santos'
+      }
     ];
   }
 
@@ -582,8 +1091,8 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
     if (this.veiculoVinculosModalOpen && this.modalMap) {
       const v = this.vinculos[i];
       if (!v) return;
-      const oc = this.getUFCoords(v.intencao.origem.uf);
-      const dc = this.getUFCoords(v.intencao.destino.uf);
+      const oc = this.getCityCoords(v.intencao.origem.uf, v.intencao.origem.cidade);
+      const dc = this.getCityCoords(v.intencao.destino.uf, v.intencao.destino.cidade);
       const pts: L.LatLngExpression[] = [];
       if (oc) pts.push(oc);
       if (dc) pts.push(dc);
@@ -608,11 +1117,18 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
   }
   private getCoordsForVehicle(v: Veiculo): [number, number] | null {
     const loc = v.localizacao || '';
-    const ufHint = loc.length === 2 ? loc.toUpperCase() : this.CITY_TO_UF[loc] || '';
-    return ufHint ? this.getUFCoords(ufHint) : null;
+    const uf = this.CITY_TO_UF[loc] || v.destinoUf || '';
+    return this.getCityCoords(uf, loc);
+  }
+  private getCoordsForVeiculoDestino(v: Veiculo): [number, number] | null {
+    const destUf = v.destinoUf || this.CITY_TO_UF[v.destinoCidade || ''] || '';
+    return this.getCityCoords(destUf, v.destinoCidade);
   }
   private initModalMap(): void {
     if (!this.veiculoVinculosModalOpen) return;
+    this.modalRouteTotalKm = 0;
+    this.modalRouteEtaHoras = 0;
+    this.modalRouteOrderedPoints = [];
     this.modalMap = L.map('modal-map', { zoomControl: false }).setView([-14.235004, -51.92528], 4);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(this.modalMap);
     this.modalMarkersLayer.addTo(this.modalMap);
@@ -627,25 +1143,47 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
     if (idx === null || idx === undefined) return;
     const veiculo = this.veiculos[idx];
     const vCoords = this.getCoordsForVehicle(veiculo);
+    const vDestCoords = this.getCoordsForVeiculoDestino(veiculo);
     const bounds: L.LatLngExpression[] = [];
-    if (vCoords) { const truck = L.marker(vCoords, { icon: this.truckIcon }).addTo(this.modalMarkersLayer); bounds.push(truck.getLatLng()); }
-    const vincs = this.vinculos.filter(v => this.veiculos.indexOf(v.veiculo) === idx);
-    const originPoints: [number, number][] = [];
+    const startMarkerCoords = vDestCoords || vCoords;
+    if (startMarkerCoords) {
+      const truck = L.marker(startMarkerCoords, { icon: this.truckIcon }).addTo(this.modalMarkersLayer);
+      bounds.push(truck.getLatLng());
+    }
+    // A ordem visual dos vínculos usa unshift (mais novo primeiro). Para a rota,
+    // usamos a ordem real de vinculação: do mais antigo para o mais novo.
+    const vincs = this.getModalVinculosOrdered();
+
     for (const v of vincs) {
-      const oc = this.getUFCoords(v.intencao.origem.uf);
-      const dc = this.getUFCoords(v.intencao.destino.uf);
-      if (oc) { const m = L.marker(oc, { icon: this.originIcon }).addTo(this.modalMarkersLayer); bounds.push(m.getLatLng()); originPoints.push(oc); }
-      if (dc) { const m = L.marker(dc, { icon: this.destIcon }).addTo(this.modalMarkersLayer); bounds.push(m.getLatLng()); }
-      // Removemos as linhas individuais OC->DC na modal para focar numa rota única de coleta
+      const oc = this.getCityCoords(v.intencao.origem.uf, v.intencao.origem.cidade);
+      const dc = this.getCityCoords(v.intencao.destino.uf, v.intencao.destino.cidade);
+      if (oc) {
+        const m = L.marker(oc, { icon: this.originIcon }).addTo(this.modalMarkersLayer);
+        bounds.push(m.getLatLng());
+      }
+      if (dc) {
+        const m = L.marker(dc, { icon: this.destIcon }).addTo(this.modalMarkersLayer);
+        bounds.push(m.getLatLng());
+      }
     }
 
-    // Traçar rota única de coleta iniciando no veículo e passando por todas as origens
-    const routeWaypoints: L.LatLngExpression[] = [];
-    if (originPoints.length) {
-      const start = vCoords || originPoints[0];
-      const ordered = this.orderByNearest(start, originPoints);
-      routeWaypoints.push(start, ...ordered);
-      L.polyline(routeWaypoints, { color: '#2563eb', weight: 4, opacity: 0.9 }).addTo(this.modalRoutesLayer);
+    const firstOrigCoords = vincs.length
+      ? this.getCityCoords(vincs[0].intencao.origem.uf, vincs[0].intencao.origem.cidade)
+      : null;
+    const start = vDestCoords || vCoords || firstOrigCoords;
+    const plan = start ? this.buildGreedyRoutePlan(vincs, start) : [];
+    this.modalRouteOrderedPoints = plan.map(p => p.label);
+    const routeWaypoints = plan.map(p => p.coords);
+
+    let totalKm = 0;
+    for (let i = 0; i < routeWaypoints.length - 1; i++) {
+      totalKm += this.distanceKm(routeWaypoints[i], routeWaypoints[i + 1]);
+    }
+    this.modalRouteTotalKm = Math.round(totalKm);
+    const velocidadeMedia = 60;
+    this.modalRouteEtaHoras = totalKm > 0 ? +(totalKm / velocidadeMedia).toFixed(1) : 0;
+    if (routeWaypoints.length >= 2) {
+      L.polyline(routeWaypoints as L.LatLngExpression[], { color: '#2563eb', weight: 4, opacity: 0.9 }).addTo(this.modalRoutesLayer);
     }
     // Ajuste de zoom: se não há cargas vinculadas, mostrar somente o veículo
     // com um zoom padrão (não máximo). Caso contrário, ajustar aos marcadores.
@@ -655,6 +1193,66 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
       const group = L.featureGroup(bounds.map(p => L.marker(p)));
       this.modalMap.fitBounds(group.getBounds().pad(0.35));
     }
+  }
+
+  private buildGreedyRoutePlan(vincs: Vinculo[], start: [number, number]): Array<{ coords: [number, number]; label: string }> {
+    type RouteLoad = {
+      origemCoords: [number, number] | null;
+      destinoCoords: [number, number] | null;
+      origemLabel: string;
+      destinoLabel: string;
+      origemVisitada: boolean;
+      destinoVisitado: boolean;
+    };
+
+    const loads: RouteLoad[] = vincs.map(v => ({
+      origemCoords: this.getCityCoords(v.intencao.origem.uf, v.intencao.origem.cidade),
+      destinoCoords: this.getCityCoords(v.intencao.destino.uf, v.intencao.destino.cidade),
+      origemLabel: `Origem: ${v.intencao.origem.cidade} - ${v.intencao.origem.uf}`,
+      destinoLabel: `Destino: ${v.intencao.destino.cidade} - ${v.intencao.destino.uf}`,
+      origemVisitada: false,
+      destinoVisitado: false
+    }));
+
+    const ordered: Array<{ coords: [number, number]; label: string }> = [
+      { coords: start, label: 'Inicio do veiculo' }
+    ];
+    let current = start;
+
+    while (loads.some(l => !l.destinoVisitado)) {
+      let best:
+        | { idx: number; tipo: 'origem' | 'destino'; coords: [number, number]; label: string; distance: number }
+        | null = null;
+
+      for (let i = 0; i < loads.length; i++) {
+        const load = loads[i];
+        if (!load.origemVisitada && load.origemCoords) {
+          const d = this.distanceKm(current, load.origemCoords);
+          if (!best || d < best.distance) {
+            best = { idx: i, tipo: 'origem', coords: load.origemCoords, label: load.origemLabel, distance: d };
+          }
+        }
+        if (load.origemVisitada && !load.destinoVisitado && load.destinoCoords) {
+          const d = this.distanceKm(current, load.destinoCoords);
+          if (!best || d < best.distance) {
+            best = { idx: i, tipo: 'destino', coords: load.destinoCoords, label: load.destinoLabel, distance: d };
+          }
+        }
+      }
+
+      if (!best) break;
+
+      const samePoint = best.coords[0] === current[0] && best.coords[1] === current[1];
+      if (!samePoint) {
+        ordered.push({ coords: best.coords, label: best.label });
+        current = best.coords;
+      }
+
+      if (best.tipo === 'origem') loads[best.idx].origemVisitada = true;
+      else loads[best.idx].destinoVisitado = true;
+    }
+
+    return ordered;
   }
 
   // Ordena pontos pelo vizinho mais próximo, iniciando em start
@@ -716,6 +1314,34 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
     return this.vinculos
       .filter(v => this.veiculos.indexOf(v.veiculo) === idx && v.status === 'vinculado')
       .reduce((sum, v) => sum + (v.intencao.pesoKg || 0), 0);
+  }
+  private getModalVinculosOrdered(): Vinculo[] {
+    const idx = this.veiculoVinculosModalForIndex;
+    if (idx === null || idx === undefined) return [];
+    return this.vinculos.filter(v => this.veiculos.indexOf(v.veiculo) === idx).slice().reverse();
+  }
+  get modalResumoValorTotal(): number {
+    return this.getModalVinculosOrdered().reduce((sum, v) => sum + (v.intencao?.valorPreCarga || 0), 0);
+  }
+  get modalResumoOrigemInicial(): string {
+    const first = this.getModalVinculosOrdered()[0];
+    if (!first?.intencao?.origem) return '—';
+    return `${first.intencao.origem.cidade} - ${first.intencao.origem.uf}`;
+  }
+  get modalResumoDestinoFinal(): string {
+    const ordered = this.getModalVinculosOrdered();
+    const last = ordered.length ? ordered[ordered.length - 1] : null;
+    if (!last?.intencao?.destino) return '—';
+    return `${last.intencao.destino.cidade} - ${last.intencao.destino.uf}`;
+  }
+  get modalResumoDataColetaInicial(): string {
+    const first = this.getModalVinculosOrdered()[0];
+    return first?.intencao?.dataColeta || '—';
+  }
+  get modalResumoDataEntregaFinal(): string {
+    const ordered = this.getModalVinculosOrdered();
+    const last = ordered.length ? ordered[ordered.length - 1] : null;
+    return last?.intencao?.dataEntrega || '—';
   }
   getCapacidadeUsoPercentForVehicleIndex(idx: number): number {
     const veiculo = this.veiculos[idx];
@@ -796,10 +1422,10 @@ export class ControleIntencaoViagemComponent implements OnInit, AfterViewInit, O
     if (removidos.length) {
       this.vinculos = manter;
       this.saveVinculos();
-      // Devolve intenções removidas para disponíveis
+      // Devolve pré-cargas removidas para disponíveis
       for (const v of removidos) { this.intencoes.unshift(v.intencao); }
       this.saveIntencoes();
-      this.showSuccess('Grupo removido. Intenções devolvidas.');
+      this.showSuccess('Grupo removido. Pré-cargas devolvidas.');
     }
   }
   private renderMap(): void {

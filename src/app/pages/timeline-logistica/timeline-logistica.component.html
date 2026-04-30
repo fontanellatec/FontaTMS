@@ -1,0 +1,192 @@
+<section class="timeline-logistica-page">
+  <div class="timeline-frame-wrapper">
+    <iframe
+      class="timeline-frame"
+      src="/assets/mockups/timelineLogistica.html?embed=1"
+      [style.height.px]="frameHeight"
+      title="Timeline Logistica"
+      loading="lazy"
+    ></iframe>
+  </div>
+
+  <div class="timeline-overlay" *ngIf="fleetModalData" (click)="closeModal()">
+    <div
+      class="timeline-modal fleet-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="timelineFleetModalTitle"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="timeline-modal-header">
+        <div>
+          <span class="timeline-modal-eyebrow">Detalhamento da Timeline</span>
+          <h3 id="timelineFleetModalTitle">{{ fleetModalData.title }}</h3>
+          <p>{{ fleetModalData.subtitle }}</p>
+        </div>
+        <button class="modal-close" type="button" aria-label="Fechar modal" (click)="closeModal()">×</button>
+      </div>
+
+      <div class="timeline-modal-body">
+        <div class="timeline-summary-grid">
+          <div class="timeline-summary-card" *ngFor="let item of fleetModalData.summaryCards">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+            <small>{{ item.info }}</small>
+          </div>
+        </div>
+
+        <div class="timeline-content-grid">
+          <section class="timeline-panel">
+            <h4>Financeiro</h4>
+
+            <div class="finance-section finance-group finance-group-revenue">
+              <span class="finance-subtitle">Receitas</span>
+              <div class="revenue-list">
+                <div class="revenue-row" *ngFor="let entry of fleetModalData.revenueEntries">
+                  <div class="revenue-row-main">
+                    <span class="revenue-row-title">{{ entry.label }}</span>
+                    <strong class="revenue-row-value">{{ entry.value }}</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="finance-total-row">
+                <span>Receita total</span>
+                <strong>{{ fleetModalData.revenueTotal }}</strong>
+              </div>
+            </div>
+
+            <div class="finance-section finance-group finance-group-expense">
+              <span class="finance-subtitle">Despesas</span>
+              <div class="revenue-list">
+                <div class="revenue-row" *ngFor="let entry of fleetModalData.expenseEntries">
+                  <div class="revenue-row-main">
+                    <span class="revenue-row-title">{{ entry.label }}</span>
+                    <strong class="revenue-row-value">{{ entry.value }}</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="finance-total-row">
+                <span>Despesa total</span>
+                <strong>{{ fleetModalData.expenseTotal }}</strong>
+              </div>
+            </div>
+
+            <div class="profit-box">
+              <span>Lucro</span>
+              <strong>{{ fleetModalData.profit }}</strong>
+            </div>
+          </section>
+
+          <section class="timeline-panel">
+            <h4>Tempo Detalhado</h4>
+            <div class="metric-list">
+              <div class="metric-list-item" *ngFor="let item of fleetModalData.detailedTime">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+                <small>{{ item.info }}</small>
+              </div>
+            </div>
+          </section>
+
+          <section class="timeline-panel">
+            <h4>Indicadores</h4>
+            <div class="metric-list">
+              <div class="metric-list-item" *ngFor="let item of fleetModalData.indicators">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+                <small>{{ item.info }}</small>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="timeline-panel timeline-details-panel">
+          <div class="timeline-details-header">
+            <h4>Eventos Que Montam a Timeline</h4>
+            <span class="month-tag">{{ fleetModalData.monthTag }}</span>
+          </div>
+          <div class="timeline-list">
+            <div class="timeline-item" *ngFor="let item of fleetModalData.timelineItems">
+              <div class="timeline-item-header">
+                <div class="timeline-status">
+                  <span class="timeline-status-dot" [style.background]="item.color"></span>
+                  {{ item.status }}
+                </div>
+                <span>{{ item.period }}</span>
+              </div>
+              <strong>{{ item.title }}</strong>
+              <small>{{ item.detail }}</small>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div class="timeline-overlay" *ngIf="eventModalData" (click)="closeModal()">
+    <div
+      class="timeline-modal event-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="timelineEventModalTitle"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="timeline-modal-header">
+        <div>
+          <span class="timeline-modal-eyebrow">Detalhamento do Evento</span>
+          <h3 id="timelineEventModalTitle">{{ eventModalData.title }}</h3>
+          <p>{{ eventModalData.subtitle }}</p>
+        </div>
+        <button class="modal-close" type="button" aria-label="Fechar modal do evento" (click)="closeModal()">×</button>
+      </div>
+
+      <div class="timeline-modal-body">
+        <div class="event-modal-grid">
+          <div class="metric-list-item event-faturamento-card" *ngIf="eventModalData.faturamento">
+            <span>Faturamento</span>
+            <strong>{{ eventModalData.faturamento }}</strong>
+            <small>{{ eventModalData.faturamentoInfo || 'Receita vinculada a este trecho de viagem' }}</small>
+          </div>
+
+          <section class="timeline-panel event-map-card">
+            <div class="event-map-header">
+              <h4>Mapa</h4>
+              <span>{{ eventMapSummary }}</span>
+            </div>
+            <div id="timeline-event-map" class="event-map-element"></div>
+          </section>
+
+          <div class="event-detail-highlight">
+            <span>Status e Observacao</span>
+            <strong>{{ eventModalData.detailTitle }}</strong>
+            <small>{{ eventModalData.detailText }}</small>
+          </div>
+
+          <div class="metric-list-item">
+            <span>Frota</span>
+            <strong>{{ eventModalData.fleet }}</strong>
+            <small>{{ eventModalData.plate }}</small>
+          </div>
+
+          <div class="metric-list-item">
+            <span>Motorista</span>
+            <strong>{{ eventModalData.driver }}</strong>
+            <small>Responsavel atual</small>
+          </div>
+
+          <div class="metric-list-item">
+            <span>Periodo</span>
+            <strong>{{ eventModalData.period }}</strong>
+            <small>{{ eventModalData.duration }}</small>
+          </div>
+
+          <div class="metric-list-item">
+            <span>Mes de referencia</span>
+            <strong>{{ eventModalData.month }}</strong>
+            <small>{{ eventModalData.statusType }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

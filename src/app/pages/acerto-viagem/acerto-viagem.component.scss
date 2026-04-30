@@ -29,8 +29,8 @@
 }
 
 .btn {
-  border: 1px solid #d1d5db;
-  background: #ffffff;
+  border: 1px solid var(--border);
+  background: var(--surface);
   border-radius: 6px;
   height: 32px;
   padding: 0 10px;
@@ -43,8 +43,8 @@
 }
 
 .btn-primary {
-  background: var(--brand-primary, #0d9488);
-  border-color: var(--brand-primary, #0d9488);
+  background: var(--brand-primary, #086A54);
+  border-color: var(--brand-primary, #086A54);
   color: #fff;
 }
 
@@ -82,7 +82,7 @@
 .card {
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .table.card.list-card {
@@ -138,8 +138,8 @@
 
 .icon-btn {
   appearance: none;
-  border: 1px solid #d1d5db;
-  background: #fff;
+  border: 1px solid var(--border);
+  background: var(--surface);
   width: 28px;
   height: 28px;
   border-radius: 6px;

@@ -23,6 +23,7 @@ import { FreteTerceiroComponent } from './pages/frete-terceiro/frete-terceiro.co
 import { MenuConfigComponent } from './pages/menu-config/menu-config.component';
 import { TorreControleComponent } from './pages/torre-controle/torre-controle.component';
 import { CadastroMotoristaComponent } from './pages/gestao-motoristas/cadastro-motorista.component';
+import { TimelineLogisticaComponent } from './pages/timeline-logistica/timeline-logistica.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'torre-controle', pathMatch: 'full' },
@@ -47,6 +48,7 @@ const routes: Routes = [
   { path: 'producao-oficina', component: ProducaoOficinaComponent, canActivate: [authGuard] },
   { path: 'precificacao-abastecimento', component: PrecificacaoAbastecimentoComponent, canActivate: [authGuard] },
   { path: 'frete-terceiro', component: FreteTerceiroComponent, canActivate: [authGuard] },
+  { path: 'timeline-logistica', component: TimelineLogisticaComponent, canActivate: [authGuard] },
   { path: 'config-menu', component: MenuConfigComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: 'torre-controle' }
 ];

@@ -13,9 +13,11 @@ import { MenuConfigService, MenuKey } from './core/menu-config.service';
 export class App implements OnInit {
   protected readonly title = signal('ERP');
   protected readonly isDark = signal<boolean>(false);
-  protected readonly brandColor = signal<string>('#0d9488');
+  protected readonly brandColor = signal<string>('#086A54');
   protected readonly pageTitle = signal<string>('Torre de Controle');
   protected readonly userMenuOpen = signal<boolean>(false);
+  protected readonly sidebarCollapsed = signal<boolean>(false);
+  protected readonly brandLogo = signal<string>('/brand/FontaTmsLogo.png');
 
   constructor(
     private theme: ThemeService,
@@ -57,13 +59,14 @@ export class App implements OnInit {
     if (url.includes('/torre-controle')) return 'Torre de Controle';
     if (url.includes('/programacao')) return 'Programação';
     if (url.includes('/intencao-viagem')) return 'Intenção de Viagem';
-    if (url.includes('/controle-intencao-viagem')) return 'Controle Intenção de Viagem';
+    if (url.includes('/controle-intencao-viagem')) return 'Controle de Pré-Carga';
     if (url.includes('/controle-colaboradores')) return 'Controle de Colaboradores';
     if (url.includes('/contratos')) return 'Contratos';
     if (url.includes('/controle-frota')) return 'Controle de Frota';
     if (url.includes('/precificacao-abastecimento')) return 'Abastecimento';
     if (url.includes('/acerto-viagem')) return 'Acerto de Viagem';
     if (url.includes('/frete-terceiro')) return 'Frete Terceiro';
+    if (url.includes('/timeline-logistica')) return 'Timeline Logística';
     return 'Torre de Controle';
   }
 
@@ -85,7 +88,7 @@ export class App implements OnInit {
   }
 
   resetBrandColor(): void {
-    const hex = '#0d9488';
+    const hex = '#086A54';
     this.theme.setPrimaryColor(hex);
     this.brandColor.set(hex);
   }
@@ -103,4 +106,6 @@ export class App implements OnInit {
   isMenuEnabled(key: MenuKey): boolean { return this.menu.isEnabled(key); }
   toggleUserMenu(): void { this.userMenuOpen.set(!this.userMenuOpen()); }
   closeUserMenu(): void { this.userMenuOpen.set(false); }
+  toggleSidebar(): void { this.sidebarCollapsed.set(!this.sidebarCollapsed()); }
+  useFallbackLogo(): void { this.brandLogo.set('/brand/FontaTmsLogo.png'); }
 }

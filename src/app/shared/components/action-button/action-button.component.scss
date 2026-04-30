@@ -45,9 +45,9 @@
     align-items: center;
     gap: 8px;
     padding: 8px 16px !important;
-    background: #0d9488 !important;
+    background: #086A54 !important;
     color: white !important;
-    border: 1px solid #0d9488 !important;
+    border: 1px solid #086A54 !important;
     border-radius: 8px !important;
     font-size: 14px !important;
     font-weight: 500;
@@ -60,8 +60,8 @@
     overflow: hidden;
 
     &:hover {
-      background: #0d9488 !important;
-      border-color: #0d9488 !important;
+      background: #086A54 !important;
+      border-color: #086A54 !important;
       transform: translateY(-1px);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
@@ -72,7 +72,7 @@
     }
 
     // Variantes de tipo
-    &.btn-primary { background: #0d9488 !important; border-color: #0d9488 !important; color: #fff !important; }
+    &.btn-primary { background: #086A54 !important; border-color: #086A54 !important; color: #fff !important; }
     &.btn-secondary { background: var(--surface-secondary) !important; border-color: var(--border) !important; color: var(--text) !important; }
     &.btn-success { background: #16a34a !important; border-color: #16a34a !important; color: #fff !important; }
     &.btn-danger { background: #dc2626 !important; border-color: #dc2626 !important; color: #fff !important; }

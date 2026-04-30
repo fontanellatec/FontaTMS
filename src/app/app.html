@@ -1,17 +1,55 @@
 @if (!isLoginRoute()) {
-<div class="shell">
+<!-- Header global unificado -->
+<header class="global-header">
+  <div class="gh-left">
+    <img class="logo" [src]="brandLogo()" (error)="useFallbackLogo()" alt="Logo" />
+    <span class="divider"></span>
+    <h1 class="page-title">{{ getPageTitle() }}</h1>
+  </div>
+  <div class="gh-right">
+    <button class="btn btn-ghost icon-btn" title="Pesquisar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="m21 21-4.35-4.35"/>
+      </svg>
+    </button>
+    <button class="btn btn-ghost icon-btn" title="Notificações">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+      </svg>
+    </button>
+    <label class="btn btn-ghost theme-toggle" title="Tema">
+      <input type="checkbox" [checked]="isDark()" (change)="toggleTheme()" />
+      @if (!isDark()) {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"/>
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+      } @else {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      }
+    </label>
+    <div class="user-menu" (click)="toggleUserMenu()" tabindex="0">
+      <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face" 
+           alt="User" class="user-avatar">
+      <span class="user-name">André</span>
+      <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      @if (userMenuOpen()) {
+        <div class="user-dropdown" (click)="$event.stopPropagation()">
+          <a class="dropdown-item" routerLink="/config-menu">Configuração de Menu</a>
+          <a class="dropdown-item" (click)="logout()">Sair</a>
+        </div>
+      }
+    </div>
+  </div>
+</header>
+
+<div class="shell" [class.sidebar-collapsed]="sidebarCollapsed()">
   <!-- Sidebar Navigation -->
   <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="brand">
-        <img class="logo" src="/assets/brand/logoPhoenix.png" alt="Phoenix" width="32" height="32" />
-        <div>
-          <div class="brand-name">Phoenix</div>
-          <div class="brand-subtitle">ERP</div>
-        </div>
-      </div>
-    </div>
-    
     <nav class="sidebar-nav">
       <!-- Torre de Controle (primeiro item) -->
       <a class="nav-item" routerLink="/torre-controle" routerLinkActive="active" *ngIf="isMenuEnabled('torre-controle')">
@@ -155,7 +193,7 @@
         <span>Intenção de Viagem</span>
       </a>
 
-      <!-- Controle Intenção de Viagem -->
+      <!-- Controle de Pré-Carga -->
       <a class="nav-item" routerLink="/controle-intencao-viagem" routerLinkActive="active" *ngIf="isMenuEnabled('controle-intencao-viagem')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="7" height="7" rx="1"/>
@@ -163,7 +201,7 @@
           <rect x="3" y="14" width="7" height="7" rx="1"/>
           <path d="M15 15h6M15 18h6M15 21h6"/>
         </svg>
-        <span>Controle Intenção de Viagem</span>
+        <span>Controle de Pré-Carga</span>
       </a>
 
       <!-- Intenção de Viagem (Lista) -->
@@ -185,6 +223,20 @@
           <path d="M4 17h6"/>
         </svg>
         <span>Frete Terceiro</span>
+      </a>
+
+      <!-- Timeline Logística -->
+      <a class="nav-item" routerLink="/timeline-logistica" routerLinkActive="active" *ngIf="isMenuEnabled('timeline-logistica')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 6h4v4H4z"/>
+          <path d="M10 8h10"/>
+          <path d="M16 6h4v4h-4z"/>
+          <path d="M4 14h4v4H4z"/>
+          <path d="M10 16h10"/>
+          <path d="M9 8h6"/>
+          <path d="M9 16h6"/>
+        </svg>
+        <span>Timeline Logística</span>
       </a>
 
       <!-- Controle de Colaboradores -->
@@ -232,59 +284,20 @@
   </aside>
 
   <!-- Main Content Area -->
+  <button class="floating-toggle-btn" (click)="toggleSidebar()" aria-label="Alternar menu">
+    @if (!sidebarCollapsed()) {
+      <!-- Menu aberto: seta para fechar (esquerda) -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15,6 9,12 15,18"/>
+      </svg>
+    } @else {
+      <!-- Menu fechado: seta para abrir (direita) -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9,6 15,12 9,18"/>
+      </svg>
+    }
+  </button>
   <div class="main-content">
-    <!-- Top Header -->
-    <header class="topbar">
-      <div class="topbar-left">
-        <h1 class="page-title">{{ getPageTitle() }}</h1>
-      </div>
-      
-      <div class="topbar-right">
-        <button class="btn btn-ghost icon-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35"/>
-          </svg>
-        </button>
-        
-        <button class="btn btn-ghost icon-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-          </svg>
-        </button>
-
-        <button class="btn btn-ghost" (click)="logout()" title="Sair" aria-label="Sair">Sair</button>
-        
-        <label class="btn btn-ghost theme-toggle">
-          <input type="checkbox" [checked]="isDark()" (change)="toggleTheme()" />
-          @if (!isDark()) {
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="5"/>
-              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-            </svg>
-          } @else {
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-            </svg>
-          }
-        </label>
-        
-        <div class="user-menu" (click)="toggleUserMenu()" tabindex="0">
-          <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face" 
-               alt="User" class="user-avatar">
-          <span class="user-name">André</span>
-          <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-          @if (userMenuOpen()) {
-            <div class="user-dropdown" (click)="$event.stopPropagation()">
-              <a class="dropdown-item" routerLink="/config-menu">Configuração de Menu</a>
-              <a class="dropdown-item" (click)="logout()">Sair</a>
-            </div>
-          }
-        </div>
-      </div>
-    </header>
-
     <!-- Page Content -->
     <main class="content">
       <router-outlet></router-outlet>

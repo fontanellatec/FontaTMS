@@ -924,7 +924,7 @@ export class PrecificacaoAbastecimentoComponent implements OnInit {
   }
 
   colorRankingBar(i: number): string {
-    return i === 0 ? '#22c55e' : '#0d9488';
+    return i === 0 ? '#22c55e' : '#086a54';
   }
 
   rankingTooltip(r: {nome: string; media: number}): string {
@@ -932,14 +932,14 @@ export class PrecificacaoAbastecimentoComponent implements OnInit {
   }
 
   colorParticipationBar(i: number): string {
-    return i === 0 ? '#22c55e' : '#0d9488';
+    return i === 0 ? '#22c55e' : '#086a54';
   }
   participationTooltip(p: {nome: string; percent: number}): string {
     return `${p.nome} · ${p.percent}% de participação`;
   }
 
   colorKmLBar(i: number): string {
-    return i === 0 ? '#22c55e' : '#0d9488';
+    return i === 0 ? '#22c55e' : '#086a54';
   }
   kmLTooltip(v: {placa: string; kmL: number}): string {
     return `${v.placa} · ${v.kmL} km/L`;
@@ -963,7 +963,7 @@ export class PrecificacaoAbastecimentoComponent implements OnInit {
   }
   colorCombustivel(c: Combustivel): string {
     switch(c){
-      case 'Diesel S10': return '#0d9488';
+      case 'Diesel S10': return '#086a54';
       case 'Diesel S500': return '#14b8a6';
       case 'Gasolina': return '#ef4444';
       case 'Etanol': return '#22c55e';

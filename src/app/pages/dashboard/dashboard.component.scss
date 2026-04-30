@@ -143,8 +143,9 @@
 }
 
 .chart-controls .btn.active {
-  background: var(--brand-primary);
-  color: white;
+  background: var(--brand-accent);
+  color: var(--brand-primary);
+  border: 1px solid var(--brand-soft-border);
 }
 
 .chart-container {
@@ -241,7 +242,7 @@
 .transactions-table td {
   padding: 12px 16px;
   text-align: left;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(var(--text-rgb), 0.12);
 }
 
 .transactions-table th {

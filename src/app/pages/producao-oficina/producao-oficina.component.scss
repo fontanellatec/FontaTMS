@@ -17,7 +17,7 @@
 /* Campo de data com máscara + datepicker */
 .filters .date-field { display: flex; align-items: center; gap: 8px; }
 .filters .date-field .native-date { position: absolute; left: -9999px; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
-.filters .date-field .calendar { height: 28px; width: 28px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #374151; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.filters .date-field .calendar { height: 28px; width: 28px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text, #374151); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .filters .actions { display: flex; justify-content: flex-start; justify-self: start; align-self: end; gap: 8px; }
 .status { cursor: pointer; }
 
@@ -86,7 +86,7 @@
   width: 24px;
   height: 24px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface);
   color: var(--text);
   border-radius: 4px;
 }
@@ -145,7 +145,7 @@
   width: 28px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface);
   color: var(--text);
   cursor: pointer;
   display: inline-flex;
@@ -295,7 +295,7 @@
   width: 24px;
   height: 24px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface);
   color: var(--text);
   border-radius: 4px;
 }
@@ -354,7 +354,7 @@
   width: 28px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface);
   color: var(--text);
   cursor: pointer;
   display: inline-flex;

@@ -315,7 +315,7 @@ select.pv-input { color-scheme: dark; background: rgba(var(--text-rgb), 0.06); c
   .available-plates.drag-over { border-color: #93c5fd; background: #eff6ff; }
   .available-plates .search { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
   .available-plates .search span { font-size: 12px; color: var(--text-secondary, #6b7280); }
-  .available-plates .search input { background: #fff; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 8px; }
+  .available-plates .search input { background: var(--surface); border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 8px; }
 
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .plate-chip:hover { background: #eef2f7; }
@@ -435,7 +435,7 @@ select.pv-input { color-scheme: dark; background: rgba(var(--text-rgb), 0.06); c
   .available-plates.drag-over { border-color: #93c5fd; background: #eff6ff; }
   .available-plates .search { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
   .available-plates .search span { font-size: 12px; color: var(--text-secondary, #6b7280); }
-  .available-plates .search input { background: #fff; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 8px; }
+  .available-plates .search input { background: var(--surface); border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 8px; }
 
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .plate-chip:hover { background: #eef2f7; }
@@ -631,7 +631,7 @@ select.pv-input { color-scheme: dark; background: rgba(var(--text-rgb), 0.06); c
   .available-plates.drag-over { border-color: #93c5fd; background: #eff6ff; }
   .available-plates .search { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
   .available-plates .search span { font-size: 12px; color: var(--text-secondary, #6b7280); }
-  .available-plates .search input { background: #fff; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 8px; }
+  .available-plates .search input { background: var(--surface); border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 8px; }
 
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .plate-chip:hover { background: #eef2f7; }

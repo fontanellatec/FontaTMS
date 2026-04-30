@@ -21,23 +21,26 @@ body {
 
 /* Tema base com CSS variables - FontaTec Design System */
 :root {
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --surface-secondary: #f8fafc; /* slate-50 */
+  --bg: #F4F7F6;
+  --surface: #EFF4F3;
+  --surface-secondary: #F9FAF3;
   --text: #1e293b;
   --text-secondary: #64748b;
   --text-rgb: 30, 41, 59; /* slate-800 RGB */
   --muted: #94a3b8;
-  --border: #e2e8f0;
-  --border-hover: #cbd5e1; /* slate-300 */
+  --border: #cfd8d6; /* mais visível em superfícies claras */
+  --border-hover: #b9c9c6;
+  --panel: #EFF4F3; /* painéis/cards no mesmo tom dos cards */
+  --brand-soft-bg: #AFE4F7;
+  --brand-soft-border: rgba(175, 228, 247, 0.6);
 
   /* FontaTec Brand Colors - Teal/Green Palette */
-  --brand-primary: #0d9488; /* teal-600 */
+  --brand-primary: #086A54; /* teal/green custom */
   --brand-primary-hover: #0f766e; /* teal-700 */
   --brand-primary-dark: #134e4a; /* teal-900 */
-  --brand-primary-rgb: 13, 148, 136; /* teal-600 RGB */
+  --brand-primary-rgb: 8, 106, 84; /* custom RGB */
   --brand-secondary: #14b8a6; /* teal-500 */
-  --brand-accent: #5eead4; /* teal-300 */
+  --brand-accent: #086A54; /* accent customizado no modo claro */
   
   /* Status Colors */
   --success: #059669; /* emerald-600 */
@@ -57,11 +60,11 @@ body {
   
   --info: #0284c7; /* sky-600 */
 
-  /* Sidebar Colors (revert to solid) */
-  --sidebar-bg: #1e293b; /* slate-800 */
-  --sidebar-surface: #334155; /* slate-700 */
-  --sidebar-text: #f1f5f9; /* slate-100 */
-  --sidebar-text-muted: #94a3b8; /* slate-400 */
+  /* Sidebar Colors - modo claro pedido: bg #F9FAF3 */
+  --sidebar-bg: var(--surface-secondary); /* #F9FAF3 */
+  --sidebar-surface: var(--surface);      /* #EFF4F3 (seções internas) */
+  --sidebar-text: var(--text);
+  --sidebar-text-muted: var(--text-secondary);
   --sidebar-active: var(--brand-primary);
 
   --radius: 8px;
@@ -75,19 +78,22 @@ body {
   --bg: #0f172a; /* slate-900 */
   --surface: #1e293b; /* slate-800 */
   --surface-secondary: #334155; /* slate-700 */
+  --panel: #1f2a3a;
   --text: #f1f5f9; /* slate-100 */
   --text-secondary: #cbd5e1; /* slate-300 */
   --text-rgb: 241, 245, 249; /* slate-100 RGB */
   --muted: #64748b; /* slate-500 */
   --border: #475569; /* slate-600 */
   --border-hover: #64748b; /* slate-500 */
+  --brand-soft-bg: rgba(var(--brand-primary-rgb), 0.16);
+  --brand-soft-border: rgba(var(--brand-primary-rgb), 0.35);
   
   /* Brand colors for dark theme */
-  --brand-primary: #14b8a6; /* teal-500 - brighter for dark */
+  --brand-primary: #086A54;
   --brand-primary-hover: #0d9488; /* teal-600 */
   --brand-primary-dark: #0f766e; /* teal-700 */
-  --brand-primary-rgb: 20, 184, 166; /* teal-500 RGB */
-  --brand-accent: #5eead4; /* teal-300 */
+  --brand-primary-rgb: 8, 106, 84;
+  --brand-accent: #086A54;
   
   /* Status colors for dark theme */
   --success: #10b981; /* emerald-500 - brighter */
@@ -110,7 +116,11 @@ body {
   --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.4);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-card: 0 4px 6px rgba(0, 0, 0, 0.2);
-  /* no sidebar override; keep original solid color */
+  /* Sidebar segue o tema escuro */
+  --sidebar-bg: var(--surface);
+  --sidebar-surface: var(--surface-secondary);
+  --sidebar-text: var(--text);
+  --sidebar-text-muted: var(--text-secondary);
 }
 
 /* Utilidades rápidas */
@@ -257,3 +267,5 @@ body {
 
 /* Utilitário: coluna de ações fixa */
 .col-actions { width: 120px; white-space: nowrap; }
+
+.tab-btn.active { color: #fff !important; }

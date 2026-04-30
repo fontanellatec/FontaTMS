@@ -20,6 +20,7 @@ export type MenuKey =
   | 'controle-colaboradores'
   | 'contratos'
   | 'financeiro'
+  | 'timeline-logistica'
   | 'torre-controle';
 
 export interface MenuItem {
@@ -29,6 +30,8 @@ export interface MenuItem {
 }
 
 const STORAGE_KEY = 'menuEnabledKeys';
+const STORAGE_VERSION_KEY = 'menuEnabledKeysVersion';
+const CURRENT_MENU_VERSION = 2;
 const LEGACY_KEYS_MAP: Record<string, MenuKey> = {
   // migração de chaves antigas para novas
   'embarque': 'intencao-viagem',
@@ -37,6 +40,15 @@ const LEGACY_KEYS_MAP: Record<string, MenuKey> = {
 
 @Injectable({ providedIn: 'root' })
 export class MenuConfigService {
+  private readonly defaultEnabled: MenuKey[] = [
+    'torre-controle',
+    'gestao-motoristas',
+    'controle-frota',
+    'rastreamento',
+    'programacao',
+    'controle-intencao-viagem',
+    'timeline-logistica'
+  ];
   private readonly allItems: MenuItem[] = [
     { key: 'dashboard', label: 'Dashboard', path: '/dashboard' },
     { key: 'drivers', label: 'Motoristas', path: '/drivers' },
@@ -52,12 +64,13 @@ export class MenuConfigService {
     { key: 'manutencao', label: 'Manutenção', path: '/manutencao' },
     { key: 'producao-oficina', label: 'Produção Oficina', path: '/producao-oficina' },
     { key: 'intencao-viagem', label: 'Intenção de Viagem', path: '/intencao-viagem' },
-    { key: 'controle-intencao-viagem', label: 'Controle Intenção de Viagem', path: '/controle-intencao-viagem' },
+    { key: 'controle-intencao-viagem', label: 'Controle de Pré-Carga', path: '/controle-intencao-viagem' },
     { key: 'shipments', label: 'Intenção de Viagem', path: '/shipments' },
     { key: 'frete-terceiro', label: 'Frete Terceiro', path: '/frete-terceiro' },
     { key: 'controle-colaboradores', label: 'Controle de Colaboradores', path: '/controle-colaboradores' },
     { key: 'contratos', label: 'Contratos', path: '/contratos' },
     { key: 'financeiro', label: 'Financeiro', path: '/financeiro' },
+    { key: 'timeline-logistica', label: 'Timeline Logística', path: '/timeline-logistica' },
   ];
 
   getAllMenuItems(): MenuItem[] {
@@ -84,21 +97,28 @@ export class MenuConfigService {
         changed = true;
       }
     }
+    const storedVersion = Number(localStorage.getItem(STORAGE_VERSION_KEY) ?? '1');
+    if (storedVersion < CURRENT_MENU_VERSION && !set.has('timeline-logistica')) {
+      set.add('timeline-logistica');
+      changed = true;
+    }
     const next = Array.from(set) as MenuKey[];
+    localStorage.setItem(STORAGE_VERSION_KEY, String(CURRENT_MENU_VERSION));
     if (changed) this.storeKeys(next);
     return next;
   }
 
   private storeKeys(keys: MenuKey[]): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(keys));
+    localStorage.setItem(STORAGE_VERSION_KEY, String(CURRENT_MENU_VERSION));
   }
 
   getEnabledMap(): Record<MenuKey, boolean> {
     const stored = this.migrateStoredKeys(this.getStoredKeys());
-    // Padrão: tudo visível se não houver configuração salva
     if (!stored) {
+      const set = new Set<MenuKey>(this.defaultEnabled);
       return this.allItems.reduce((acc, item) => {
-        acc[item.key] = true;
+        acc[item.key] = set.has(item.key);
         return acc;
       }, {} as Record<MenuKey, boolean>);
     }

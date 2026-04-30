@@ -458,7 +458,7 @@ export class TorreControleComponent implements AfterViewInit, OnDestroy {
 
     const fatLabel = hasCustom
       ? `Faturamento (${this.formatDateLabel(inicio)} - ${this.formatDateLabel(fim)})`
-      : `Faturamento (30 dias)`;
+      : `Faturamento (Entregue)`;
 
     return [
       { label: 'Total de Veículos', value: totalVeiculos, icon: 'truck', format: 'number', color: 'var(--info)' },

@@ -1,6 +1,6 @@
 // Seção de Filtros - Visual da Gestão de Motoristas
 .filters-section {
-  background: var(--surface);
+  background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 12px;
   margin: 16px 0 20px 0;
@@ -19,7 +19,7 @@
     justify-content: space-between;
     padding: 10px 16px;
     border-bottom: 1px solid var(--border);
-    background: var(--surface-secondary);
+    background: rgba(var(--text-rgb), 0.02);
     margin: -1px -1px 0 -1px;
     border-radius: 12px 12px 0 0;
 

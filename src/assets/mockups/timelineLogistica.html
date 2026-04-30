@@ -1,0 +1,3300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timeline Logístisca</title>
+  <style>
+    :root {
+      --bg: #08111f;
+      --bg-soft: #101b2d;
+      --panel: rgba(16, 27, 45, 0.92);
+      --panel-strong: rgba(8, 17, 31, 0.96);
+      --line: rgba(148, 163, 184, 0.16);
+      --line-strong: rgba(148, 163, 184, 0.28);
+      --text: #e5eefc;
+      --muted: #93a4be;
+      --accent: #4f8cff;
+      --accent-soft: rgba(79, 140, 255, 0.14);
+      --stopped: #ef4444;
+      --empty-displacement: #eab308;
+      --scheduled-displacement: #f97316;
+      --unloading: #1e3a8a;
+      --maintenance: #a855f7;
+      --travel: #22c55e;
+      --loading: #38bdf8;
+      --shadow: 0 24px 70px rgba(2, 6, 23, 0.45);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --vehicle-col: 146px;
+      --day-col: 0px;
+      --header-height: 64px;
+      --row-height: 70px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(79, 140, 255, 0.14), transparent 34%),
+        radial-gradient(circle at right, rgba(6, 182, 212, 0.12), transparent 28%),
+        linear-gradient(145deg, #040a14 0%, #08111f 40%, #091423 100%);
+    }
+
+    .shell {
+      width: 100%;
+      min-height: 100vh;
+      margin: 0;
+      padding: 26px;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 0;
+      background: rgba(4, 10, 20, 0.72);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .title-wrap h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .title-wrap p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .chip,
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 46px;
+      padding: 0 16px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .action-btn.primary {
+      background: linear-gradient(135deg, rgba(79, 140, 255, 0.95), rgba(43, 99, 255, 0.85));
+      border-color: rgba(96, 165, 250, 0.3);
+      box-shadow: 0 10px 30px rgba(37, 99, 235, 0.28);
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .metric {
+      padding: 18px 20px;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(180deg, rgba(16, 27, 45, 0.92), rgba(8, 17, 31, 0.92));
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .metric-top {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .metric-share {
+      position: absolute;
+      top: 0;
+      right: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 54px;
+      height: 28px;
+      padding: 0 10px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.5);
+      color: #dbeafe;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .metric-title {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .metric-value {
+      display: block;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+
+    .metric-value-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .metric-trend {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 14px;
+      font-size: 14px;
+      line-height: 1;
+      cursor: help;
+      flex: 0 0 auto;
+    }
+
+    .metric-trend.up-positive,
+    .metric-trend.down-positive {
+      color: #4ade80;
+    }
+
+    .metric-trend.up-negative,
+    .metric-trend.down-negative {
+      color: #f87171;
+    }
+
+    .metric-trend.neutral {
+      color: #cbd5e1;
+    }
+
+    .metric-caption {
+      display: block;
+      color: #b7cae8;
+      font-size: 12px;
+    }
+
+    .metric-inline-card {
+      margin-top: auto;
+      padding: 14px 16px;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 18px;
+      background: rgba(8, 17, 31, 0.58);
+    }
+
+    .metric-inline-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 8px;
+    }
+
+    .metric-inline-card strong {
+      display: block;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+
+    .metric-inline-card small {
+      display: block;
+      margin-top: 6px;
+      color: #9dd6ff;
+      font-size: 12px;
+    }
+
+    .metric-travel .metric-inline-card {
+      box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.12);
+    }
+
+    .metric-empty .metric-inline-card {
+      box-shadow: inset 0 0 0 1px rgba(234, 179, 8, 0.12);
+    }
+
+    .metric-stopped .metric-inline-card {
+      box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.12);
+    }
+
+    .metric-maintenance .metric-inline-card {
+      box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.12);
+    }
+
+    .panel-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .panel {
+      padding: 18px 20px;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: var(--radius-lg);
+      background: var(--panel);
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .filters-panel {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .filters-section {
+      margin-bottom: 0;
+    }
+
+    .filters-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      background: rgba(8, 17, 31, 0.76);
+    }
+
+    .filters-header h2 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .filters-header svg {
+      flex: 0 0 auto;
+    }
+
+    .toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 10px;
+      background: rgba(17, 24, 39, 0.88);
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .toggle-btn:hover {
+      border-color: rgba(96, 165, 250, 0.34);
+      background: rgba(22, 32, 52, 0.96);
+    }
+
+    .toggle-btn svg {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.15s ease;
+      display: block;
+    }
+
+    .toggle-btn[aria-expanded="true"] svg {
+      transform: rotate(180deg);
+    }
+
+    .toggle-btn::after {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .toggle-btn[aria-expanded="false"]::after {
+      content: "Mostrar";
+    }
+
+    .toggle-btn[aria-expanded="true"]::after {
+      content: "Ocultar";
+    }
+
+    .filters-container {
+      padding: 16px;
+    }
+
+    .filters-container.hidden {
+      display: none;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(140px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .filter-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .filter-field label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .filter-value {
+      display: flex;
+      align-items: center;
+      min-height: 42px;
+      padding: 0 14px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.74);
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .filter-select {
+      width: 100%;
+      min-height: 42px;
+      padding: 0 14px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.74);
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+      appearance: none;
+    }
+
+    .filter-input {
+      width: 100%;
+      min-height: 42px;
+      padding: 0 14px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.74);
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+
+    .filter-range {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .filters-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .filters-caption {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .legend-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .legend-title {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(8, 17, 31, 0.84);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.02);
+    }
+
+    .timeline-card {
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(10, 18, 33, 0.96), rgba(7, 14, 26, 0.96));
+    }
+
+    .timeline-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .toolbar-copy h3 {
+      margin: 0 0 4px;
+      font-size: 16px;
+    }
+
+    .toolbar-copy p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .month-switcher {
+      display: inline-flex;
+      align-items: center;
+      gap: 0;
+      padding: 8px;
+      border-radius: 16px;
+      border: 1px solid rgba(96, 165, 250, 0.18);
+      background: rgba(79, 140, 255, 0.08);
+    }
+
+    .month-select {
+      min-width: 190px;
+      height: 34px;
+      padding: 0 12px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 10px;
+      background: rgba(8, 17, 31, 0.9);
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+
+    .timeline-wrap {
+      overflow: auto;
+      padding: 8px 8px 14px;
+    }
+
+    .timeline-grid {
+      position: relative;
+      width: 100%;
+      min-width: 0;
+      margin: 0;
+      display: grid;
+      grid-template-columns: var(--vehicle-col) repeat(30, minmax(var(--day-col), 1fr));
+      grid-template-rows: var(--header-height);
+      background:
+        linear-gradient(to right, transparent 0, transparent var(--vehicle-col), rgba(255, 255, 255, 0.02) var(--vehicle-col), rgba(255, 255, 255, 0.02) 100%);
+    }
+
+    .cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(10, 18, 33, 0.98);
+      font-weight: 600;
+      color: #bfd3f5;
+    }
+
+    .vehicle-cell {
+      justify-content: flex-start;
+      padding: 0 8px;
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      background: rgba(9, 17, 30, 0.98);
+      border-right: 1px solid var(--line-strong);
+    }
+
+    .vehicle-meta strong,
+    .vehicle-meta span {
+      display: block;
+    }
+
+    .vehicle-meta strong {
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .vehicle-meta span {
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .today-band {
+      grid-row: 1 / -1;
+      background: linear-gradient(180deg, rgba(79, 140, 255, 0.16), rgba(79, 140, 255, 0.04));
+      border-left: 1px solid rgba(96, 165, 250, 0.36);
+      border-right: 1px solid rgba(96, 165, 250, 0.36);
+      pointer-events: none;
+    }
+
+    .event {
+      position: relative;
+      z-index: 4;
+      align-self: center;
+      height: 50px;
+      margin: 0 2px;
+      padding: 6px 9px;
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 6px 16px rgba(2, 6, 23, 0.18);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .event:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(2, 6, 23, 0.24);
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+
+    .event.has-progress {
+      justify-content: flex-start;
+      padding-bottom: 11px;
+    }
+
+    .event::after {
+      content: none;
+    }
+
+    .event strong {
+      display: block;
+      font-size: 10px;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .event span {
+      display: block;
+      font-size: 9px;
+      line-height: 1.1;
+      color: rgba(255, 255, 255, 0.72);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .event-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .event-detail {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .event-progress {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      bottom: 4px;
+      height: 4px;
+    }
+
+    .event-progress-track {
+      width: 100%;
+      height: 100%;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      overflow: hidden;
+    }
+
+    .event-progress-fill {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    .event-progress-value {
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .loading {
+      background: #1d9bd1;
+    }
+
+    .travel {
+      background: #1f9d55;
+    }
+
+    .stopped {
+      background: #c53b3b;
+    }
+
+    .maintenance {
+      background: #7e3bbd;
+    }
+
+    .empty-displacement {
+      background: #b98a10;
+    }
+
+    .scheduled-displacement {
+      background: #c96a1a;
+    }
+
+    .unloading {
+      background: #223f82;
+    }
+
+    .note-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(96, 165, 250, 0.18);
+      background: rgba(79, 140, 255, 0.1);
+      color: #c8dcff;
+    }
+
+    .vehicle-cell.clickable {
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .vehicle-cell.clickable:hover {
+      background: rgba(14, 24, 42, 0.98);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 20px 28px 28px;
+      background: rgba(2, 6, 23, 0.72);
+      backdrop-filter: blur(8px);
+      overflow: auto;
+    }
+
+    .modal-overlay.hidden {
+      display: none;
+    }
+
+    .fleet-modal {
+      width: min(1120px, 100%);
+      max-height: calc(100vh - 56px);
+      overflow: auto;
+      margin-top: 36px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(11, 19, 35, 0.98), rgba(7, 14, 26, 0.98));
+      box-shadow: 0 28px 80px rgba(2, 6, 23, 0.5);
+    }
+
+    .fleet-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px 20px 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .fleet-modal-eyebrow {
+      display: inline-block;
+      margin-bottom: 8px;
+      color: #9db8df;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .fleet-modal-header h3 {
+      margin: 0 0 4px;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+    }
+
+    .fleet-modal-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .modal-close {
+      width: 38px;
+      height: 38px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .fleet-modal-body {
+      padding: 18px 20px 20px;
+    }
+
+    .modal-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .modal-summary-card,
+    .modal-panel {
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 20px;
+      background: rgba(15, 23, 42, 0.64);
+    }
+
+    .modal-summary-card {
+      padding: 14px 16px;
+    }
+
+    .modal-summary-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .modal-summary-card strong {
+      display: block;
+      font-size: 24px;
+      letter-spacing: -0.03em;
+    }
+
+    .modal-summary-card small {
+      display: block;
+      margin-top: 6px;
+      color: #b8cae7;
+      font-size: 12px;
+    }
+
+    .modal-content-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .modal-panel {
+      padding: 14px 16px;
+    }
+
+    .modal-panel h4 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      letter-spacing: -0.01em;
+    }
+
+    .finance-subtitle,
+    .metric-list-item span,
+    .timeline-item span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .finance-section {
+      margin-bottom: 12px;
+    }
+
+    .finance-group {
+      padding: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 18px;
+      background: rgba(10, 19, 34, 0.72);
+    }
+
+    .finance-group-revenue {
+      box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.08);
+    }
+
+    .finance-group-expense {
+      box-shadow: inset 0 0 0 1px rgba(234, 179, 8, 0.08);
+    }
+
+    .finance-subtitle {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .revenue-list {
+      display: grid;
+      gap: 0;
+      margin-bottom: 10px;
+    }
+
+    .revenue-row {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      background: transparent;
+    }
+
+    .revenue-list .revenue-row:last-child {
+      border-bottom: 0;
+      padding-bottom: 2px;
+    }
+
+    .revenue-row-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .revenue-row-title {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 400;
+      min-width: 0;
+    }
+
+    .revenue-row-value {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+
+    .finance-total-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .finance-total-row strong,
+    .metric-list-item strong,
+    .timeline-item strong {
+      display: block;
+      font-size: 16px;
+      color: var(--text);
+    }
+
+    .metric-list,
+    .timeline-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .metric-list-item,
+    .timeline-item {
+      padding: 10px 12px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      background: rgba(8, 17, 31, 0.6);
+    }
+
+    .metric-list-item small,
+    .timeline-item small {
+      display: block;
+      margin-top: 4px;
+      color: #8ca0bf;
+      font-size: 11px;
+    }
+
+    .expenses-list {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .expense-row,
+    .info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .expense-row strong,
+    .info-row strong {
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .profit-box {
+      padding-top: 14px;
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .profit-box span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .profit-box strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 26px;
+      letter-spacing: -0.02em;
+    }
+
+    .timeline-details-panel {
+      padding: 18px;
+    }
+
+    .timeline-details-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .timeline-details-header h4 {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .month-tag {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(79, 140, 255, 0.1);
+      border: 1px solid rgba(96, 165, 250, 0.18);
+      color: #c8dcff;
+      font-size: 11px;
+    }
+
+    .timeline-item-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .timeline-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .event-modal {
+      width: min(760px, 100%);
+      margin-top: 72px;
+    }
+
+    .event-modal-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .event-detail-highlight {
+      grid-column: 1 / -1;
+      padding: 16px 18px;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 18px;
+      background: rgba(10, 19, 34, 0.72);
+      box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.06);
+    }
+
+    .event-detail-highlight span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .event-detail-highlight strong {
+      display: block;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .event-detail-highlight small {
+      display: block;
+      margin-top: 8px;
+      color: #b8cae7;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .timeline-status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 1200px) {
+      .modal-content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .event-modal-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 1200px) {
+      .metrics,
+      .panel-row {
+        grid-template-columns: repeat(2, minmax(220px, 1fr));
+      }
+
+      .filters {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+      }
+
+      .topbar {
+        flex-direction: column;
+      }
+
+      .actions {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 780px) {
+      .shell {
+        padding: 16px;
+      }
+
+      .metrics,
+      .panel-row {
+        grid-template-columns: 1fr;
+      }
+
+      .title-wrap h1 {
+        font-size: 26px;
+      }
+
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      .filters-footer,
+      .timeline-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .month-switcher {
+        justify-content: space-between;
+      }
+
+      .modal-overlay {
+        padding: 12px;
+      }
+
+      .fleet-modal-header,
+      .fleet-modal-body {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <div class="title-wrap">
+        <h1>Vida da Frota</h1>
+        <p>Painel mensal de monitoramento logístico com timeline de eventos por veículo.</p>
+      </div>
+    </div>
+
+    <section class="metrics">
+      <article class="metric metric-travel">
+        <div class="metric-top">
+          <span class="metric-share" id="metricTravelShare">0%</span>
+          <span class="metric-title">Em Viagem</span>
+          <div class="metric-value-row">
+            <strong class="metric-value" id="metricTravelValue">R$ 0,00</strong>
+            <span class="metric-trend neutral" id="metricTravelTrend" title="Meta de faturamento ainda não definida">•</span>
+          </div>
+          <small class="metric-caption">Faturamento</small>
+        </div>
+      </article>
+      <article class="metric metric-empty">
+        <div class="metric-top">
+          <span class="metric-share" id="metricEmptyShare">0%</span>
+          <span class="metric-title">Vazio</span>
+          <div class="metric-value-row">
+            <strong class="metric-value" id="metricEmptyValue">R$ 0,00</strong>
+            <span class="metric-trend neutral" id="metricEmptyTrend" title="Comparativo com o mês anterior indisponível">•</span>
+          </div>
+          <small class="metric-caption">Despesas</small>
+        </div>
+      </article>
+      <article class="metric metric-stopped">
+        <div class="metric-top">
+          <span class="metric-share" id="metricStoppedShare">0%</span>
+          <span class="metric-title">Parado</span>
+          <div class="metric-value-row">
+            <strong class="metric-value" id="metricStoppedDays">0 dias</strong>
+            <span class="metric-trend neutral" id="metricStoppedTrend" title="Comparativo com o mês anterior indisponível">•</span>
+          </div>
+          <small class="metric-caption">Dias no período</small>
+        </div>
+      </article>
+      <article class="metric metric-maintenance">
+        <div class="metric-top">
+          <span class="metric-share" id="metricMaintenanceShare">0%</span>
+          <span class="metric-title">Manutenção</span>
+          <div class="metric-value-row">
+            <strong class="metric-value" id="metricMaintenanceDays">0 dias</strong>
+            <span class="metric-trend neutral" id="metricMaintenanceTrend" title="Comparativo com o mês anterior indisponível">•</span>
+          </div>
+          <small class="metric-caption">Dias no período</small>
+        </div>
+      </article>
+    </section>
+
+    <div class="panel-row">
+      <section class="panel filters-panel">
+        <div class="filters-section">
+          <div class="filters-header">
+            <h2>
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="22 3 2 3 10 12 10 19 14 21 14 12 22 3"></polygon>
+              </svg>
+              Filtros
+            </h2>
+            <button class="toggle-btn" id="filtersToggleBtn" type="button" aria-expanded="false" aria-controls="filtersContainer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6,9 12,15 18,9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <div class="filters-container hidden" id="filtersContainer">
+            <div class="filters">
+              <div class="filter-field">
+                <label>Período</label>
+                <div class="filter-range">
+                  <input class="filter-input" id="startDateFilter" type="date" aria-label="Data inicio do periodo">
+                  <input class="filter-input" id="endDateFilter" type="date" aria-label="Data fim do periodo">
+                </div>
+              </div>
+              <div class="filter-field">
+                <label>Frota</label>
+                <input class="filter-input" id="fleetFilter" type="text" placeholder="Todos os numeros" aria-label="Filtrar por frota">
+              </div>
+              <div class="filter-field">
+                <label>Placa</label>
+                <input class="filter-input" id="plateFilter" type="text" placeholder="Todas as placas" aria-label="Filtrar por placa">
+              </div>
+              <div class="filter-field">
+                <label>Gestor</label>
+                <div class="filter-value">Todos os gestores</div>
+              </div>
+              <div class="filter-field">
+                <label>Coordenador</label>
+                <div class="filter-value">Todos os coordenadores</div>
+              </div>
+              <div class="filter-field">
+                <label>Status</label>
+                <select class="filter-select" id="statusFilter">
+                  <option value="all">Todos os status</option>
+                  <option value="travel">Viajando</option>
+                  <option value="empty-displacement">Deslocando Vazio</option>
+                  <option value="scheduled-displacement">Deslocando com Agendamento</option>
+                  <option value="stopped">Parado</option>
+                  <option value="loading">Carregando</option>
+                  <option value="unloading">Descarregando</option>
+                  <option value="maintenance">Manutenção</option>
+                </select>
+              </div>
+              <div class="filter-field">
+                <label>Ordenação</label>
+                <select class="filter-select" id="sortFilter">
+                  <option value="fleet-asc">Frota (crescente)</option>
+                  <option value="stopped-days-desc" selected>Mais dias parados</option>
+                  <option value="stopped-days-asc">Menos dias parados</option>
+                  <option value="revenue-desc">Maior receita</option>
+                  <option value="revenue-asc">Menor receita</option>
+                  <option value="travel-days-desc">Mais dias viajando</option>
+                  <option value="travel-days-asc">Menos dias viajando</option>
+                  <option value="maintenance-days-desc">Mais dias em manutenção</option>
+                </select>
+              </div>
+            </div>
+            <div class="filters-footer">
+              <div class="legend-wrap">
+                <p class="legend-title">Legenda Operacional</p>
+                <div class="legend">
+                  <div class="legend-item"><span class="dot" style="background: var(--travel);"></span>Viajando</div>
+                  <div class="legend-item"><span class="dot" style="background: var(--empty-displacement);"></span>Deslocando Vazio</div>
+                  <div class="legend-item"><span class="dot" style="background: var(--scheduled-displacement);"></span>Deslocando com Agendamento</div>
+                  <div class="legend-item"><span class="dot" style="background: var(--stopped);"></span>Parado</div>
+                  <div class="legend-item"><span class="dot" style="background: var(--loading);"></span>Carregando</div>
+                  <div class="legend-item"><span class="dot" style="background: var(--unloading);"></span>Descarregando</div>
+                  <div class="legend-item"><span class="dot" style="background: var(--maintenance);"></span>Manutenção</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="timeline-card">
+      <div class="timeline-toolbar">
+        <div class="toolbar-copy">
+          <h3>Timeline Logística da Frota</h3>
+        </div>
+        <div class="month-switcher">
+          <select class="month-select" id="monthSelect" aria-label="Selecionar mês">
+            <option value="Janeiro 2026">Janeiro 2026</option>
+            <option value="Fevereiro 2026">Fevereiro 2026</option>
+            <option value="Março 2026">Março 2026</option>
+            <option value="Abril 2026" selected>Abril 2026</option>
+            <option value="Maio 2026">Maio 2026</option>
+            <option value="Junho 2026">Junho 2026</option>
+            <option value="Julho 2026">Julho 2026</option>
+            <option value="Agosto 2026">Agosto 2026</option>
+            <option value="Setembro 2026">Setembro 2026</option>
+            <option value="Outubro 2026">Outubro 2026</option>
+            <option value="Novembro 2026">Novembro 2026</option>
+            <option value="Dezembro 2026">Dezembro 2026</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="timeline-wrap">
+        <div class="timeline-grid" id="timelineGrid"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-overlay hidden" id="fleetModalOverlay">
+    <div class="fleet-modal" role="dialog" aria-modal="true" aria-labelledby="fleetModalTitle">
+      <div class="fleet-modal-header">
+        <div>
+          <span class="fleet-modal-eyebrow">Detalhamento da Timeline</span>
+          <h3 id="fleetModalTitle">FROTA 1075</h3>
+          <p id="fleetModalSubtitle">RYF-5E63 · Marcos Silva</p>
+        </div>
+        <button class="modal-close" id="fleetModalCloseBtn" type="button" aria-label="Fechar modal">×</button>
+      </div>
+      <div class="fleet-modal-body">
+        <div class="modal-summary-grid">
+          <div class="modal-summary-card">
+            <span>Utilização</span>
+            <strong id="modalUtilizacao">78%</strong>
+            <small id="modalUtilizacaoInfo">23 dias em atividade operacional</small>
+          </div>
+          <div class="modal-summary-card">
+            <span>Parado</span>
+            <strong id="modalParado">12%</strong>
+            <small id="modalParadoInfo">4 dias em status vazio</small>
+          </div>
+          <div class="modal-summary-card">
+            <span>Manutenção</span>
+            <strong id="modalManutencao">10%</strong>
+            <small id="modalManutencaoInfo">3 dias em oficina</small>
+          </div>
+        </div>
+
+        <div class="modal-content-grid">
+          <section class="modal-panel">
+            <h4>Financeiro</h4>
+            <div class="finance-section finance-group finance-group-revenue">
+              <span class="finance-subtitle">Receitas</span>
+              <div class="revenue-list" id="modalRevenueList"></div>
+              <div class="finance-total-row">
+                <span>Receita total</span>
+                <strong id="modalReceitaTotal">R$ 0,00</strong>
+              </div>
+            </div>
+            <div class="finance-section finance-group finance-group-expense">
+              <span class="finance-subtitle">Despesas</span>
+              <div class="revenue-list" id="modalExpenseList"></div>
+              <div class="finance-total-row">
+                <span>Despesa total</span>
+                <strong id="modalDespesaTotal">R$ 0,00</strong>
+              </div>
+            </div>
+            <div class="profit-box">
+              <span>Lucro</span>
+              <strong id="modalLucro">R$ 0,00</strong>
+            </div>
+          </section>
+
+          <section class="modal-panel">
+            <h4>Tempo Detalhado</h4>
+            <div class="metric-list">
+              <div class="metric-list-item">
+                <span>Dias em viagem</span>
+                <strong id="modalDiasViagem">0 dias</strong>
+                <small>Status Viajando</small>
+              </div>
+              <div class="metric-list-item">
+                <span>Dias carregando</span>
+                <strong id="modalDiasCarregando">0 dias</strong>
+                <small>Status Carregando</small>
+              </div>
+              <div class="metric-list-item">
+                <span>Dias descarregando</span>
+                <strong id="modalDiasDescarregando">0 dias</strong>
+                <small>Status Descarregando</small>
+              </div>
+              <div class="metric-list-item">
+                <span>Deslocando Vazio</span>
+                <strong id="modalDiasVazio">0 dias</strong>
+                <small>Status Deslocando Vazio</small>
+              </div>
+              <div class="metric-list-item">
+                <span>Deslocando com Agenda</span>
+                <strong id="modalDiasAgenda">0 dias</strong>
+                <small>Status Deslocando com Agenda</small>
+              </div>
+            </div>
+          </section>
+
+          <section class="modal-panel">
+            <h4>Indicadores</h4>
+            <div class="metric-list">
+              <div class="metric-list-item">
+                <span>Pontuação</span>
+                <strong id="modalPontuacao">0,0</strong>
+                <small>Soma dos dias ponderados por status</small>
+              </div>
+              <div class="metric-list-item">
+                <span>Dias disponíveis</span>
+                <strong id="modalDiasDisponiveis">0 dias</strong>
+                <small>Dias do período menos manutenção</small>
+              </div>
+              <div class="metric-list-item">
+                <span>Eficiência da frota</span>
+                <strong id="modalEficiencia">0%</strong>
+                <small>Pontuação dividida pelos dias disponíveis</small>
+              </div>
+              <div class="metric-list-item">
+                <span>Receita por dia</span>
+                <strong id="modalReceitaDia">R$ 0,00</strong>
+                <small>Receita total dividida pelo período</small>
+              </div>
+              <div class="metric-list-item">
+                <span>Custo por km</span>
+                <strong id="modalCustoKm">R$ 0,00</strong>
+                <small>Pedágio + combustível + manutenção</small>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="modal-panel timeline-details-panel">
+          <div class="timeline-details-header">
+            <h4>Eventos Que Montam a Timeline</h4>
+            <span class="month-tag" id="modalMonthTag">Abril 2026</span>
+          </div>
+          <div class="timeline-list" id="modalTimelineList"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="eventModalOverlay">
+    <div class="fleet-modal event-modal" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle">
+      <div class="fleet-modal-header">
+        <div>
+          <span class="fleet-modal-eyebrow">Detalhamento do Evento</span>
+          <h3 id="eventModalTitle">Viajando</h3>
+          <p id="eventModalSubtitle">FROTA 1075 · Abril 2026</p>
+        </div>
+        <button class="modal-close" id="eventModalCloseBtn" type="button" aria-label="Fechar modal do evento">×</button>
+      </div>
+      <div class="fleet-modal-body">
+        <div class="event-modal-grid">
+          <div class="event-detail-highlight">
+            <span>Status e Observação</span>
+            <strong id="eventModalDetailTitle">Viajando</strong>
+            <small id="eventModalDetailText">GO > BA</small>
+          </div>
+          <div class="metric-list-item">
+            <span>Frota</span>
+            <strong id="eventModalFleet">1075</strong>
+            <small id="eventModalPlate">RYF-5E63</small>
+          </div>
+          <div class="metric-list-item">
+            <span>Motorista</span>
+            <strong id="eventModalDriver">Marcos Silva</strong>
+            <small>Responsável atual</small>
+          </div>
+          <div class="metric-list-item">
+            <span>Período</span>
+            <strong id="eventModalPeriod">03 a 08</strong>
+            <small id="eventModalDuration">6 dias</small>
+          </div>
+          <div class="metric-list-item">
+            <span>Mês de referência</span>
+            <strong id="eventModalMonth">Abril 2026</strong>
+            <small id="eventModalStatusType">Status operacional</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const isEmbedded = new URLSearchParams(window.location.search).get("embed") === "1";
+    const totalDays = 30;
+    const browserNow = new Date();
+    const currentCalendarDay = browserNow.getDate();
+    const currentSystemMonthIndex = browserNow.getMonth() + 1;
+    const currentSystemYear = browserNow.getFullYear();
+
+    const fleet = [
+      {
+        fleetNumber: "1075",
+        plate: "RYF-5E63",
+        driver: "Marcos Silva",
+        finance: { revenueTotal: 158400, toll: 5820, fuel: 41960, maintenanceCost: 4200, distanceKm: 6980 },
+        events: [
+          { start: 1, end: 2, type: "loading", title: "Carregando", detail: "CD Anapolis" },
+          { start: 3, end: 8, type: "travel", title: "Viajando", detail: "GO > BA" },
+          { start: 9, end: 10, type: "unloading", title: "Descarregando", detail: "Fila de descarga" },
+          { start: 11, end: 13, type: "scheduled-displacement", title: "Deslocando com Agendamento", detail: "BA > GO agendado" },
+          { start: 14, end: 16, type: "stopped", title: "Parado", detail: "Base Goiania" },
+          { start: 17, end: 18, type: "loading", title: "Carregando", detail: "Nova coleta" },
+          { start: 19, end: 30, type: "travel", title: "Viajando", detail: "GO > SP" }
+        ]
+      },
+      {
+        fleetNumber: "1118",
+        plate: "HJK-9D87",
+        driver: "Rafael Souza",
+        finance: { revenueTotal: 149800, toll: 5480, fuel: 40250, maintenanceCost: 6100, distanceKm: 6620 },
+        events: [
+          { start: 1, end: 4, type: "travel", title: "Viajando", detail: "SP > MT" },
+          { start: 5, end: 6, type: "unloading", title: "Descarregando", detail: "Janela cliente" },
+          { start: 7, end: 8, type: "loading", title: "Carregando", detail: "Rondonopolis" },
+          { start: 9, end: 14, type: "travel", title: "Viajando", detail: "MT > MG" },
+          { start: 15, end: 18, type: "maintenance", title: "Manutenção", detail: "Revisao freio" },
+          { start: 19, end: 30, type: "stopped", title: "Parado", detail: "Patio oficina" }
+        ]
+      },
+      {
+        fleetNumber: "1142",
+        plate: "RTY-2M44",
+        driver: "Felipe Costa",
+        finance: { revenueTotal: 152600, toll: 5660, fuel: 39780, maintenanceCost: 3300, distanceKm: 6710 },
+        events: [
+          { start: 2, end: 3, type: "empty-displacement", title: "Deslocando Vazio", detail: "Posicionamento MG" },
+          { start: 4, end: 5, type: "loading", title: "Carregando", detail: "Uberlandia" },
+          { start: 6, end: 12, type: "travel", title: "Viajando", detail: "MG > PR" },
+          { start: 13, end: 13, type: "stopped", title: "Parado", detail: "Pernoite" },
+          { start: 14, end: 17, type: "travel", title: "Viajando", detail: "PR > RS" },
+          { start: 18, end: 20, type: "unloading", title: "Descarregando", detail: "Aguardando doca" },
+          { start: 21, end: 30, type: "scheduled-displacement", title: "Deslocando com Agendamento", detail: "RS > MG agendado" }
+        ]
+      },
+      {
+        fleetNumber: "1186",
+        plate: "BNM-7X10",
+        driver: "Joao Lima",
+        finance: { revenueTotal: 161900, toll: 6240, fuel: 43890, maintenanceCost: 5900, distanceKm: 7240 },
+        events: [
+          { start: 1, end: 5, type: "maintenance", title: "Manutenção", detail: "Preventiva" },
+          { start: 6, end: 8, type: "empty-displacement", title: "Deslocando Vazio", detail: "Posicionamento DF" },
+          { start: 9, end: 10, type: "loading", title: "Carregando", detail: "CD Brasilia" },
+          { start: 11, end: 18, type: "travel", title: "Viajando", detail: "DF > CE" },
+          { start: 19, end: 20, type: "unloading", title: "Descarregando", detail: "Descarga parcial" },
+          { start: 21, end: 30, type: "travel", title: "Viajando", detail: "CE > PE" }
+        ]
+      },
+      {
+        fleetNumber: "1203",
+        plate: "PLM-3N55",
+        driver: "Daniel Rocha",
+        finance: { revenueTotal: 143700, toll: 4920, fuel: 38160, maintenanceCost: 4700, distanceKm: 6190 },
+        events: [
+          { start: 1, end: 3, type: "stopped", title: "Parado", detail: "Sem carga" },
+          { start: 4, end: 4, type: "stopped", title: "Parado", detail: "Checklist" },
+          { start: 5, end: 7, type: "loading", title: "Carregando", detail: "Campinas" },
+          { start: 8, end: 15, type: "travel", title: "Viajando", detail: "SP > RJ > ES" },
+          { start: 16, end: 18, type: "unloading", title: "Descarregando", detail: "Aguardando NF" },
+          { start: 19, end: 21, type: "maintenance", title: "Manutenção", detail: "Pneu e alinhamento" },
+          { start: 22, end: 30, type: "stopped", title: "Parado", detail: "Reserva operacional" }
+        ]
+      },
+      {
+        fleetNumber: "1239",
+        plate: "VCB-1K72",
+        driver: "Tiago Alves",
+        finance: { revenueTotal: 136400, toll: 4560, fuel: 35240, maintenanceCost: 6800, distanceKm: 5840 },
+        events: [
+          { start: 1, end: 2, type: "loading", title: "Carregando", detail: "Goiania" },
+          { start: 3, end: 6, type: "travel", title: "Viajando", detail: "GO > TO" },
+          { start: 7, end: 9, type: "maintenance", title: "Manutenção", detail: "Avaria na rota" },
+          { start: 10, end: 13, type: "maintenance", title: "Manutenção", detail: "Suporte externo" },
+          { start: 14, end: 16, type: "stopped", title: "Parado", detail: "Patio Palmas" },
+          { start: 17, end: 30, type: "scheduled-displacement", title: "Deslocando com Agendamento", detail: "TO > GO agendado" }
+        ]
+      },
+      {
+        fleetNumber: "1291",
+        plate: "MNB-8Y91",
+        driver: "Andre Pinto",
+        finance: { revenueTotal: 147200, toll: 5140, fuel: 38940, maintenanceCost: 3600, distanceKm: 6430 },
+        events: [
+          { start: 2, end: 4, type: "stopped", title: "Parado", detail: "Sem motorista" },
+          { start: 5, end: 7, type: "stopped", title: "Parado", detail: "Escala liberada" },
+          { start: 8, end: 9, type: "loading", title: "Carregando", detail: "Patio externo" },
+          { start: 10, end: 19, type: "travel", title: "Viajando", detail: "GO > MA" },
+          { start: 20, end: 22, type: "stopped", title: "Parado", detail: "Aguardando retorno" },
+          { start: 23, end: 30, type: "scheduled-displacement", title: "Deslocando com Agendamento", detail: "MA > GO agendado" }
+        ]
+      },
+      {
+        fleetNumber: "1324",
+        plate: "LKJ-5P63",
+        driver: "Paulo Mendes",
+        finance: { revenueTotal: 145600, toll: 4980, fuel: 37620, maintenanceCost: 2900, distanceKm: 6080 },
+        events: [
+          { start: 1, end: 6, type: "travel", title: "Viajando", detail: "Triangulo Mineiro" },
+          { start: 7, end: 8, type: "unloading", title: "Descarregando", detail: "Cross docking" },
+          { start: 9, end: 11, type: "travel", title: "Viajando", detail: "MG > GO" },
+          { start: 12, end: 16, type: "stopped", title: "Parado", detail: "Baixa demanda" },
+          { start: 17, end: 19, type: "stopped", title: "Parado", detail: "Base Goiania" },
+          { start: 20, end: 30, type: "travel", title: "Viajando", detail: "GO > MS" }
+        ]
+      },
+      {
+        fleetNumber: "1368",
+        plate: "QWE-4T18",
+        driver: "Lucas Martins",
+        finance: { revenueTotal: 154200, toll: 5710, fuel: 40880, maintenanceCost: 3500, distanceKm: 6890 },
+        events: [
+          { start: 1, end: 3, type: "loading", title: "Carregando", detail: "Anapolis" },
+          { start: 4, end: 10, type: "travel", title: "Viajando", detail: "GO > RJ" },
+          { start: 11, end: 13, type: "unloading", title: "Descarregando", detail: "Fila cliente" },
+          { start: 14, end: 17, type: "scheduled-displacement", title: "Deslocando com Agendamento", detail: "RJ > MG agendado" },
+          { start: 18, end: 20, type: "loading", title: "Carregando", detail: "Betim" },
+          { start: 21, end: 30, type: "travel", title: "Viajando", detail: "MG > GO" }
+        ]
+      },
+      {
+        fleetNumber: "1395",
+        plate: "ASD-8C24",
+        driver: "Bruno Nascimento",
+        finance: { revenueTotal: 141300, toll: 4630, fuel: 36920, maintenanceCost: 5400, distanceKm: 6010 },
+        events: [
+          { start: 1, end: 4, type: "stopped", title: "Parado", detail: "Janela operacional" },
+          { start: 5, end: 7, type: "empty-displacement", title: "Deslocando Vazio", detail: "SP > Campinas" },
+          { start: 8, end: 9, type: "loading", title: "Carregando", detail: "Campinas" },
+          { start: 10, end: 16, type: "travel", title: "Viajando", detail: "SP > PR" },
+          { start: 17, end: 19, type: "maintenance", title: "Manutenção", detail: "Sistema de freio" },
+          { start: 20, end: 30, type: "stopped", title: "Parado", detail: "Aguardando escala" }
+        ]
+      },
+      {
+        fleetNumber: "1427",
+        plate: "ZXC-6V39",
+        driver: "Gustavo Reis",
+        finance: { revenueTotal: 166500, toll: 6320, fuel: 44790, maintenanceCost: 3100, distanceKm: 7380 },
+        events: [
+          { start: 1, end: 6, type: "travel", title: "Viajando", detail: "DF > BA" },
+          { start: 7, end: 8, type: "unloading", title: "Descarregando", detail: "Camaçari" },
+          { start: 9, end: 11, type: "loading", title: "Carregando", detail: "Salvador" },
+          { start: 12, end: 20, type: "travel", title: "Viajando", detail: "BA > PE" },
+          { start: 21, end: 23, type: "unloading", title: "Descarregando", detail: "Recife" },
+          { start: 24, end: 30, type: "scheduled-displacement", title: "Deslocando com Agendamento", detail: "PE > CE agendado" }
+        ]
+      },
+      {
+        fleetNumber: "1451",
+        plate: "UIO-2B47",
+        driver: "Cesar Farias",
+        finance: { revenueTotal: 138900, toll: 4380, fuel: 34450, maintenanceCost: 7200, distanceKm: 5620 },
+        events: [
+          { start: 1, end: 2, type: "maintenance", title: "Manutenção", detail: "Corretiva leve" },
+          { start: 3, end: 5, type: "stopped", title: "Parado", detail: "Sem programação" },
+          { start: 6, end: 7, type: "loading", title: "Carregando", detail: "Goiania" },
+          { start: 8, end: 14, type: "travel", title: "Viajando", detail: "GO > MS" },
+          { start: 15, end: 17, type: "unloading", title: "Descarregando", detail: "Campo Grande" },
+          { start: 18, end: 30, type: "empty-displacement", title: "Deslocando Vazio", detail: "MS > GO" }
+        ]
+      },
+      {
+        fleetNumber: "1483",
+        plate: "JKL-7N58",
+        driver: "Henrique Moraes",
+        finance: { revenueTotal: 159700, toll: 5890, fuel: 42110, maintenanceCost: 2800, distanceKm: 7010 },
+        events: [
+          { start: 1, end: 3, type: "empty-displacement", title: "Deslocando Vazio", detail: "Base > CD" },
+          { start: 4, end: 5, type: "loading", title: "Carregando", detail: "Ribeirao Preto" },
+          { start: 6, end: 13, type: "travel", title: "Viajando", detail: "SP > MG > GO" },
+          { start: 14, end: 15, type: "unloading", title: "Descarregando", detail: "Goiania" },
+          { start: 16, end: 20, type: "travel", title: "Viajando", detail: "GO > TO" },
+          { start: 21, end: 30, type: "scheduled-displacement", title: "Deslocando com Agendamento", detail: "TO > GO agendado" }
+        ]
+      },
+      {
+        fleetNumber: "1510",
+        plate: "MKO-1R62",
+        driver: "Renato Araujo",
+        finance: { revenueTotal: 144800, toll: 4810, fuel: 37340, maintenanceCost: 4600, distanceKm: 6150 },
+        events: [
+          { start: 1, end: 4, type: "stopped", title: "Parado", detail: "Aguardando motorista" },
+          { start: 5, end: 6, type: "loading", title: "Carregando", detail: "Uberaba" },
+          { start: 7, end: 12, type: "travel", title: "Viajando", detail: "MG > SP" },
+          { start: 13, end: 14, type: "unloading", title: "Descarregando", detail: "Jundiai" },
+          { start: 15, end: 18, type: "maintenance", title: "Manutenção", detail: "Pneus e alinhamento" },
+          { start: 19, end: 30, type: "travel", title: "Viajando", detail: "SP > GO" }
+        ]
+      }
+    ];
+
+    const extraFleetEventProfiles = {
+      norte: [
+        { start: 1, end: 2, type: "loading", title: "Carregando", detail: "Aparecida de Goiania" },
+        { start: 3, end: 9, type: "travel", title: "Viajando", detail: "GO > PA" },
+        { start: 10, end: 11, type: "unloading", title: "Descarregando", detail: "Maraba" },
+        { start: 12, end: 14, type: "scheduled-displacement", title: "Deslocando com Agendamento", detail: "PA > TO agendado" },
+        { start: 15, end: 16, type: "loading", title: "Carregando", detail: "Araguaina" },
+        { start: 17, end: 30, type: "travel", title: "Viajando", detail: "TO > GO" }
+      ],
+      corredorSul: [
+        { start: 1, end: 4, type: "travel", title: "Viajando", detail: "SP > PR" },
+        { start: 5, end: 6, type: "unloading", title: "Descarregando", detail: "Curitiba" },
+        { start: 7, end: 8, type: "loading", title: "Carregando", detail: "Sao Jose dos Pinhais" },
+        { start: 9, end: 15, type: "travel", title: "Viajando", detail: "PR > SC" },
+        { start: 16, end: 18, type: "stopped", title: "Parado", detail: "Janela cliente" },
+        { start: 19, end: 30, type: "travel", title: "Viajando", detail: "SC > RS" }
+      ],
+      agro: [
+        { start: 1, end: 3, type: "empty-displacement", title: "Deslocando Vazio", detail: "Base > Sorriso" },
+        { start: 4, end: 5, type: "loading", title: "Carregando", detail: "Sorriso" },
+        { start: 6, end: 13, type: "travel", title: "Viajando", detail: "MT > GO" },
+        { start: 14, end: 15, type: "unloading", title: "Descarregando", detail: "Rio Verde" },
+        { start: 16, end: 18, type: "scheduled-displacement", title: "Deslocando com Agendamento", detail: "GO > MT agendado" },
+        { start: 19, end: 30, type: "travel", title: "Viajando", detail: "MT > RO" }
+      ],
+      oficina: [
+        { start: 1, end: 4, type: "maintenance", title: "Manutenção", detail: "Revisao programada" },
+        { start: 5, end: 7, type: "stopped", title: "Parado", detail: "Liberado" },
+        { start: 8, end: 9, type: "loading", title: "Carregando", detail: "Patio central" },
+        { start: 10, end: 17, type: "travel", title: "Viajando", detail: "GO > BA" },
+        { start: 18, end: 19, type: "unloading", title: "Descarregando", detail: "Feira de Santana" },
+        { start: 20, end: 30, type: "travel", title: "Viajando", detail: "BA > PE" }
+      ],
+      retorno: [
+        { start: 1, end: 3, type: "stopped", title: "Parado", detail: "Aguardando escala" },
+        { start: 4, end: 5, type: "loading", title: "Carregando", detail: "Uberlandia" },
+        { start: 6, end: 12, type: "travel", title: "Viajando", detail: "MG > SP" },
+        { start: 13, end: 14, type: "unloading", title: "Descarregando", detail: "Barueri" },
+        { start: 15, end: 18, type: "empty-displacement", title: "Deslocando Vazio", detail: "SP > MG" },
+        { start: 19, end: 30, type: "travel", title: "Viajando", detail: "MG > GO" }
+      ],
+      longoCurso: [
+        { start: 1, end: 6, type: "travel", title: "Viajando", detail: "GO > MA" },
+        { start: 7, end: 8, type: "unloading", title: "Descarregando", detail: "Imperatriz" },
+        { start: 9, end: 10, type: "loading", title: "Carregando", detail: "Acailandia" },
+        { start: 11, end: 18, type: "travel", title: "Viajando", detail: "MA > PI" },
+        { start: 19, end: 20, type: "unloading", title: "Descarregando", detail: "Teresina" },
+        { start: 21, end: 30, type: "scheduled-displacement", title: "Deslocando com Agendamento", detail: "PI > GO agendado" }
+      ],
+      reserva: [
+        { start: 1, end: 4, type: "stopped", title: "Parado", detail: "Reserva operacional" },
+        { start: 5, end: 7, type: "maintenance", title: "Manutenção", detail: "Lubrificacao" },
+        { start: 8, end: 9, type: "loading", title: "Carregando", detail: "Patio Goiania" },
+        { start: 10, end: 16, type: "travel", title: "Viajando", detail: "GO > DF" },
+        { start: 17, end: 18, type: "stopped", title: "Parado", detail: "Aguardando janela" },
+        { start: 19, end: 30, type: "scheduled-displacement", title: "Deslocando com Agendamento", detail: "DF > GO agendado" }
+      ],
+      interior: [
+        { start: 1, end: 2, type: "loading", title: "Carregando", detail: "Ribeirao Preto" },
+        { start: 3, end: 9, type: "travel", title: "Viajando", detail: "SP > MG" },
+        { start: 10, end: 11, type: "unloading", title: "Descarregando", detail: "Uberaba" },
+        { start: 12, end: 14, type: "empty-displacement", title: "Deslocando Vazio", detail: "MG > SP" },
+        { start: 15, end: 24, type: "travel", title: "Viajando", detail: "SP > GO" },
+        { start: 25, end: 30, type: "maintenance", title: "Manutenção", detail: "Inspecao final" }
+      ]
+    };
+
+    const extraFleetConfigs = [
+      { fleetNumber: "1546", plate: "POI-4S73", driver: "Carlos Brito", finance: { revenueTotal: 151900, toll: 5590, fuel: 40560, maintenanceCost: 3900, distanceKm: 6760 }, profile: "norte" },
+      { fleetNumber: "1572", plate: "TRE-8L41", driver: "Felipe Moura", finance: { revenueTotal: 148700, toll: 5210, fuel: 39240, maintenanceCost: 4200, distanceKm: 6480 }, profile: "corredorSul" },
+      { fleetNumber: "1598", plate: "YUI-6F25", driver: "Diego Ramos", finance: { revenueTotal: 160300, toll: 6030, fuel: 43110, maintenanceCost: 3400, distanceKm: 7160 }, profile: "agro" },
+      { fleetNumber: "1625", plate: "GHJ-3K86", driver: "Vitor Cunha", finance: { revenueTotal: 146100, toll: 4870, fuel: 38180, maintenanceCost: 5600, distanceKm: 6240 }, profile: "oficina" },
+      { fleetNumber: "1654", plate: "BNH-9T52", driver: "Sergio Pires", finance: { revenueTotal: 143400, toll: 4720, fuel: 36890, maintenanceCost: 3700, distanceKm: 6020 }, profile: "retorno" },
+      { fleetNumber: "1681", plate: "QAZ-5W14", driver: "Alan Teixeira", finance: { revenueTotal: 164800, toll: 6210, fuel: 44620, maintenanceCost: 3300, distanceKm: 7340 }, profile: "longoCurso" },
+      { fleetNumber: "1703", plate: "WSX-2E68", driver: "Marcelo Prado", finance: { revenueTotal: 139600, toll: 4510, fuel: 35780, maintenanceCost: 4800, distanceKm: 5860 }, profile: "reserva" },
+      { fleetNumber: "1736", plate: "EDC-7R49", driver: "Eduardo Melo", finance: { revenueTotal: 150500, toll: 5380, fuel: 39960, maintenanceCost: 3100, distanceKm: 6640 }, profile: "interior" },
+      { fleetNumber: "1762", plate: "RFV-1T93", driver: "Jonas Batista", finance: { revenueTotal: 152800, toll: 5660, fuel: 40720, maintenanceCost: 3600, distanceKm: 6820 }, profile: "norte" },
+      { fleetNumber: "1789", plate: "TGB-4Y27", driver: "Leandro Rosa", finance: { revenueTotal: 147900, toll: 5160, fuel: 38970, maintenanceCost: 4100, distanceKm: 6430 }, profile: "corredorSul" },
+      { fleetNumber: "1814", plate: "YHN-8U35", driver: "Igor Campos", finance: { revenueTotal: 161100, toll: 6120, fuel: 43480, maintenanceCost: 3500, distanceKm: 7210 }, profile: "agro" },
+      { fleetNumber: "1840", plate: "UJM-3I74", driver: "Mateus Vieira", finance: { revenueTotal: 145200, toll: 4930, fuel: 37840, maintenanceCost: 5900, distanceKm: 6180 }, profile: "oficina" },
+      { fleetNumber: "1867", plate: "IKO-6O48", driver: "Fabio Duarte", finance: { revenueTotal: 144900, toll: 4780, fuel: 37210, maintenanceCost: 3800, distanceKm: 6090 }, profile: "retorno" },
+      { fleetNumber: "1893", plate: "OLP-9P61", driver: "Otavio Sales", finance: { revenueTotal: 165400, toll: 6280, fuel: 44890, maintenanceCost: 3200, distanceKm: 7410 }, profile: "longoCurso" },
+      { fleetNumber: "1921", plate: "PAS-2A84", driver: "Pedro Goulart", finance: { revenueTotal: 140800, toll: 4580, fuel: 36120, maintenanceCost: 5000, distanceKm: 5920 }, profile: "reserva" },
+      { fleetNumber: "1954", plate: "DFG-7H29", driver: "Wesley Barreto", finance: { revenueTotal: 149600, toll: 5320, fuel: 39670, maintenanceCost: 3000, distanceKm: 6580 }, profile: "interior" }
+    ];
+
+    fleet.push(...extraFleetConfigs.map((config) => ({
+      fleetNumber: config.fleetNumber,
+      plate: config.plate,
+      driver: config.driver,
+      finance: config.finance,
+      events: extraFleetEventProfiles[config.profile].map((event) => ({ ...event }))
+    })));
+
+    const monthScenarios = {
+      "Janeiro 2026": { shift: -4, financeFactor: 0.9, currentDay: totalDays, showTodayBand: false, partialCurrentMonth: false },
+      "Fevereiro 2026": { shift: -2, financeFactor: 0.95, currentDay: totalDays, showTodayBand: false, partialCurrentMonth: false },
+      "Março 2026": { shift: 0, financeFactor: 1, currentDay: totalDays, showTodayBand: false, partialCurrentMonth: false },
+      "Abril 2026": { shift: 0, financeFactor: 0.84, currentDay: currentCalendarDay, showTodayBand: true, partialCurrentMonth: true },
+      "Maio 2026": { shift: 2, financeFactor: 1.03, currentDay: totalDays, showTodayBand: false, partialCurrentMonth: false },
+      "Junho 2026": { shift: 4, financeFactor: 1.06, currentDay: totalDays, showTodayBand: false, partialCurrentMonth: false },
+      "Julho 2026": { shift: -1, financeFactor: 0.98, currentDay: totalDays, showTodayBand: false, partialCurrentMonth: false },
+      "Agosto 2026": { shift: 3, financeFactor: 1.02, currentDay: totalDays, showTodayBand: false, partialCurrentMonth: false },
+      "Setembro 2026": { shift: -3, financeFactor: 0.93, currentDay: totalDays, showTodayBand: false, partialCurrentMonth: false },
+      "Outubro 2026": { shift: 1, financeFactor: 1.01, currentDay: totalDays, showTodayBand: false, partialCurrentMonth: false },
+      "Novembro 2026": { shift: -2, financeFactor: 0.96, currentDay: totalDays, showTodayBand: false, partialCurrentMonth: false },
+      "Dezembro 2026": { shift: 2, financeFactor: 1.08, currentDay: totalDays, showTodayBand: false, partialCurrentMonth: false }
+    };
+
+    const revenueGoalByMonth = {
+      "Janeiro 2026": 3920000,
+      "Fevereiro 2026": 4050000,
+      "Março 2026": 4180000,
+      "Abril 2026": 4040000,
+      "Maio 2026": 4260000,
+      "Junho 2026": 4320000,
+      "Julho 2026": 4210000,
+      "Agosto 2026": 4290000,
+      "Setembro 2026": 4090000,
+      "Outubro 2026": 4230000,
+      "Novembro 2026": 4160000,
+      "Dezembro 2026": 4410000
+    };
+
+    let activeFleet = [];
+    let activeMonthDays = totalDays;
+    let activeReferenceDay = totalDays;
+    let activeTodayBand = null;
+
+    const timelineGrid = document.getElementById("timelineGrid");
+    const metricTravelValue = document.getElementById("metricTravelValue");
+    const metricTravelTrend = document.getElementById("metricTravelTrend");
+    const metricTravelDays = document.getElementById("metricTravelDays");
+    const metricTravelShare = document.getElementById("metricTravelShare");
+    const metricEmptyValue = document.getElementById("metricEmptyValue");
+    const metricEmptyTrend = document.getElementById("metricEmptyTrend");
+    const metricEmptyDays = document.getElementById("metricEmptyDays");
+    const metricEmptyShare = document.getElementById("metricEmptyShare");
+    const metricStoppedDays = document.getElementById("metricStoppedDays");
+    const metricStoppedTrend = document.getElementById("metricStoppedTrend");
+    const metricStoppedVehicles = document.getElementById("metricStoppedVehicles");
+    const metricStoppedVehiclesInfo = document.getElementById("metricStoppedVehiclesInfo");
+    const metricStoppedShare = document.getElementById("metricStoppedShare");
+    const metricMaintenanceDays = document.getElementById("metricMaintenanceDays");
+    const metricMaintenanceTrend = document.getElementById("metricMaintenanceTrend");
+    const metricMaintenanceVehicles = document.getElementById("metricMaintenanceVehicles");
+    const metricMaintenanceVehiclesInfo = document.getElementById("metricMaintenanceVehiclesInfo");
+    const metricMaintenanceShare = document.getElementById("metricMaintenanceShare");
+    const filtersToggleBtn = document.getElementById("filtersToggleBtn");
+    const filtersContainer = document.getElementById("filtersContainer");
+    const startDateFilter = document.getElementById("startDateFilter");
+    const endDateFilter = document.getElementById("endDateFilter");
+    const fleetFilter = document.getElementById("fleetFilter");
+    const plateFilter = document.getElementById("plateFilter");
+    const statusFilter = document.getElementById("statusFilter");
+    const sortFilter = document.getElementById("sortFilter");
+    const monthSelect = document.getElementById("monthSelect");
+    const selectedMonthChip = document.getElementById("selectedMonthChip");
+    const currentMonthLabel = document.getElementById("currentMonthLabel");
+    const fleetModalOverlay = document.getElementById("fleetModalOverlay");
+    const fleetModalCloseBtn = document.getElementById("fleetModalCloseBtn");
+    const fleetModalTitle = document.getElementById("fleetModalTitle");
+    const fleetModalSubtitle = document.getElementById("fleetModalSubtitle");
+    const modalUtilizacao = document.getElementById("modalUtilizacao");
+    const modalUtilizacaoInfo = document.getElementById("modalUtilizacaoInfo");
+    const modalParado = document.getElementById("modalParado");
+    const modalParadoInfo = document.getElementById("modalParadoInfo");
+    const modalManutencao = document.getElementById("modalManutencao");
+    const modalManutencaoInfo = document.getElementById("modalManutencaoInfo");
+    const modalReceitaTotal = document.getElementById("modalReceitaTotal");
+    const modalPedagio = document.getElementById("modalPedagio");
+    const modalCombustivel = document.getElementById("modalCombustivel");
+    const modalDespesaManutencao = document.getElementById("modalDespesaManutencao");
+    const modalDespesaTotal = document.getElementById("modalDespesaTotal");
+    const modalLucro = document.getElementById("modalLucro");
+    const modalRevenueList = document.getElementById("modalRevenueList");
+    const modalExpenseList = document.getElementById("modalExpenseList");
+    const modalDiasViagem = document.getElementById("modalDiasViagem");
+    const modalDiasCarregando = document.getElementById("modalDiasCarregando");
+    const modalDiasDescarregando = document.getElementById("modalDiasDescarregando");
+    const modalDiasVazio = document.getElementById("modalDiasVazio");
+    const modalDiasAgenda = document.getElementById("modalDiasAgenda");
+    const modalDiasDisponiveis = document.getElementById("modalDiasDisponiveis");
+    const modalReceitaDia = document.getElementById("modalReceitaDia");
+    const modalCustoKm = document.getElementById("modalCustoKm");
+    const modalPontuacao = document.getElementById("modalPontuacao");
+    const modalEficiencia = document.getElementById("modalEficiencia");
+    const modalTimelineList = document.getElementById("modalTimelineList");
+    const modalMonthTag = document.getElementById("modalMonthTag");
+    const eventModalOverlay = document.getElementById("eventModalOverlay");
+    const eventModalCloseBtn = document.getElementById("eventModalCloseBtn");
+    const eventModalTitle = document.getElementById("eventModalTitle");
+    const eventModalSubtitle = document.getElementById("eventModalSubtitle");
+    const eventModalDetailTitle = document.getElementById("eventModalDetailTitle");
+    const eventModalDetailText = document.getElementById("eventModalDetailText");
+    const eventModalFleet = document.getElementById("eventModalFleet");
+    const eventModalPlate = document.getElementById("eventModalPlate");
+    const eventModalDriver = document.getElementById("eventModalDriver");
+    const eventModalPeriod = document.getElementById("eventModalPeriod");
+    const eventModalDuration = document.getElementById("eventModalDuration");
+    const eventModalMonth = document.getElementById("eventModalMonth");
+    const eventModalStatusType = document.getElementById("eventModalStatusType");
+
+    const statusColors = {
+      stopped: "var(--stopped)",
+      "empty-displacement": "var(--empty-displacement)",
+      "scheduled-displacement": "var(--scheduled-displacement)",
+      loading: "var(--loading)",
+      travel: "var(--travel)",
+      unloading: "var(--unloading)",
+      maintenance: "var(--maintenance)"
+    };
+
+    const stoppedLocations = [
+      "Criciuma - SC",
+      "Goiania - GO",
+      "Campinas - SP",
+      "Uberlandia - MG",
+      "Rondonopolis - MT",
+      "Feira de Santana - BA",
+      "Jundiai - SP",
+      "Contagem - MG",
+      "Palmas - TO",
+      "Joinville - SC",
+      "Dourados - MS",
+      "Londrina - PR"
+    ];
+
+    const monthNameToIndex = {
+      Janeiro: 1,
+      Fevereiro: 2,
+      Março: 3,
+      Abril: 4,
+      Maio: 5,
+      Junho: 6,
+      Julho: 7,
+      Agosto: 8,
+      Setembro: 9,
+      Outubro: 10,
+      Novembro: 11,
+      Dezembro: 12
+    };
+
+    const monthIndexToName = Object.fromEntries(
+      Object.entries(monthNameToIndex).map(([name, index]) => [index, name])
+    );
+
+    const statusScoreWeights = {
+      "empty-displacement": 0.2,
+      "scheduled-displacement": 0.3,
+      loading: 0.5,
+      travel: 1,
+      unloading: 0.5
+    };
+
+    function createCell(className, column, row, text = "") {
+      const cell = document.createElement("div");
+      cell.className = `cell ${className}`;
+      cell.style.gridColumn = column;
+      cell.style.gridRow = row;
+      cell.textContent = text;
+      return cell;
+    }
+
+    function getStoppedLocation(vehicle, event) {
+      const seed = Number(vehicle.fleetNumber) + event.start + event.end;
+      return stoppedLocations[seed % stoppedLocations.length];
+    }
+
+    function getSelectedMonthInfo() {
+      const selectedMonth = monthSelect ? monthSelect.value : "Abril 2026";
+      const [monthName, yearValue] = selectedMonth.split(" ");
+
+      return {
+        monthName,
+        monthIndex: monthNameToIndex[monthName] || 4,
+        year: Number(yearValue) || 2026
+      };
+    }
+
+    function getMonthInfoFromLabel(monthLabel) {
+      const [monthName, yearValue] = monthLabel.split(" ");
+
+      return {
+        monthName,
+        monthIndex: monthNameToIndex[monthName] || 4,
+        year: Number(yearValue) || 2026
+      };
+    }
+
+    function getMonthScenario(monthLabel) {
+      const directScenario = monthScenarios[monthLabel];
+      const { monthName, monthIndex, year } = getMonthInfoFromLabel(monthLabel);
+      const fallbackScenario = monthScenarios[`${monthName} 2026`] || monthScenarios["Abril 2026"];
+      const baseScenario = directScenario || fallbackScenario;
+      const isCurrentSystemMonth = monthIndex === currentSystemMonthIndex && year === currentSystemYear;
+
+      return {
+        ...baseScenario,
+        currentDay: isCurrentSystemMonth ? currentCalendarDay : getMonthDaysForLabel(monthLabel),
+        showTodayBand: isCurrentSystemMonth,
+        partialCurrentMonth: isCurrentSystemMonth
+      };
+    }
+
+    function getPreviousMonthLabel(monthLabel) {
+      const { monthIndex, year } = getMonthInfoFromLabel(monthLabel);
+      const previousMonthIndex = monthIndex === 1 ? 12 : monthIndex - 1;
+      const previousYear = monthIndex === 1 ? year - 1 : year;
+
+      return `${monthIndexToName[previousMonthIndex]} ${previousYear}`;
+    }
+
+    function getDaysInMonth(year, monthIndex) {
+      return new Date(year, monthIndex, 0).getDate();
+    }
+
+    function getMonthDaysForLabel(monthLabel) {
+      const { year, monthIndex } = getMonthInfoFromLabel(monthLabel);
+      return getDaysInMonth(year, monthIndex);
+    }
+
+    function formatInputDate(year, monthIndex, day) {
+      return `${year}-${String(monthIndex).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    }
+
+    function getDayFromDateInput(value) {
+      if (!value) {
+        return null;
+      }
+
+      const [, , dayValue] = value.split("-");
+      return Number(dayValue) || null;
+    }
+
+    function syncPeriodFilters(resetValues = false) {
+      if (!startDateFilter || !endDateFilter) {
+        return;
+      }
+
+      const { year, monthIndex } = getSelectedMonthInfo();
+      const selectedMonthDays = getDaysInMonth(year, monthIndex);
+      const minDate = formatInputDate(year, monthIndex, 1);
+      const maxDate = formatInputDate(year, monthIndex, selectedMonthDays);
+
+      startDateFilter.min = minDate;
+      startDateFilter.max = maxDate;
+      endDateFilter.min = minDate;
+      endDateFilter.max = maxDate;
+
+      let startDay = resetValues ? 1 : getDayFromDateInput(startDateFilter.value);
+      let endDay = resetValues ? selectedMonthDays : getDayFromDateInput(endDateFilter.value);
+
+      if (!startDay || startDay < 1 || startDay > selectedMonthDays) {
+        startDay = 1;
+      }
+
+      if (!endDay || endDay < 1 || endDay > selectedMonthDays) {
+        endDay = selectedMonthDays;
+      }
+
+      if (startDay > endDay) {
+        if (resetValues) {
+          startDay = 1;
+          endDay = selectedMonthDays;
+        } else {
+          endDay = startDay;
+        }
+      }
+
+      startDateFilter.value = formatInputDate(year, monthIndex, startDay);
+      endDateFilter.value = formatInputDate(year, monthIndex, endDay);
+    }
+
+    function getSelectedDayRange() {
+      const selectedMonthDays = getMonthDaysForLabel(monthSelect ? monthSelect.value : "Abril 2026");
+      const startDay = getDayFromDateInput(startDateFilter ? startDateFilter.value : "") || 1;
+      const endDay = getDayFromDateInput(endDateFilter ? endDateFilter.value : "") || selectedMonthDays;
+
+      return {
+        startDay: Math.max(1, Math.min(startDay, endDay)),
+        endDay: Math.min(selectedMonthDays, Math.max(startDay, endDay))
+      };
+    }
+
+    function getRevenueGoalForPeriod(monthLabel, startDay, endDay) {
+      const monthlyGoal = revenueGoalByMonth[monthLabel] || revenueGoalByMonth[`${getMonthInfoFromLabel(monthLabel).monthName} 2026`] || 0;
+      const monthDays = getMonthDaysForLabel(monthLabel);
+      const selectedDays = Math.max(0, endDay - startDay + 1);
+
+      return Math.round(monthlyGoal * (selectedDays / monthDays));
+    }
+
+    function getActiveFilterState() {
+      return {
+        startDay: getSelectedDayRange().startDay,
+        endDay: getSelectedDayRange().endDay,
+        selectedStatus: statusFilter ? statusFilter.value : "all",
+        selectedSort: sortFilter ? sortFilter.value : "stopped-days-desc",
+        fleetQuery: fleetFilter ? fleetFilter.value.trim().toLowerCase() : "",
+        plateQuery: plateFilter ? plateFilter.value.trim().toLowerCase() : ""
+      };
+    }
+
+    function scaleFinance(finance, factor) {
+      return {
+        revenueTotal: Math.round(finance.revenueTotal * factor),
+        toll: Math.round(finance.toll * factor),
+        fuel: Math.round(finance.fuel * factor),
+        maintenanceCost: Math.round(finance.maintenanceCost * factor),
+        distanceKm: Math.round(finance.distanceKm * factor)
+      };
+    }
+
+    function transformEventsForMonth(events, scenario, monthDays) {
+      return events.reduce((result, event) => {
+        let start = event.start + scenario.shift;
+        let end = event.end + scenario.shift;
+
+        if (end < 1 || start > monthDays) {
+          return result;
+        }
+
+        start = Math.max(1, start);
+        end = Math.min(monthDays, end);
+
+        if (scenario.partialCurrentMonth) {
+          if (event.type === "travel") {
+            if (start > scenario.currentDay) {
+              return result;
+            }
+          } else {
+            if (start > scenario.currentDay) {
+              return result;
+            }
+
+            end = Math.min(end, scenario.currentDay);
+          }
+        }
+
+        if (end < start) {
+          return result;
+        }
+
+        result.push({ ...event, start, end });
+        return result;
+      }, []);
+    }
+
+    function ensureFullStatusCoverage(events, monthDays, coverageEndDay = monthDays) {
+      const sortedEvents = [...events].sort((left, right) => left.start - right.start || left.end - right.end);
+      const normalizedEvents = [];
+      let cursor = 1;
+
+      sortedEvents.forEach((event) => {
+        if (event.start > cursor && cursor <= coverageEndDay) {
+          normalizedEvents.push({
+            start: cursor,
+            end: Math.min(event.start - 1, coverageEndDay),
+            type: "stopped",
+            title: "Parado",
+            detail: "Preenchimento automatico"
+          });
+        }
+
+        normalizedEvents.push(event);
+        cursor = Math.max(cursor, event.end + 1);
+      });
+
+      if (cursor <= coverageEndDay) {
+        normalizedEvents.push({
+          start: cursor,
+          end: coverageEndDay,
+          type: "stopped",
+          title: "Parado",
+          detail: "Preenchimento automatico"
+        });
+      }
+
+      return normalizedEvents;
+    }
+
+    function buildFleetForMonth(monthLabel, updateActiveState = true) {
+      const scenario = getMonthScenario(monthLabel);
+      const monthDays = getMonthDaysForLabel(monthLabel);
+      const effectiveCurrentDay = scenario.partialCurrentMonth ? Math.min(scenario.currentDay || monthDays, monthDays) : monthDays;
+      const coverageEndDay = scenario.partialCurrentMonth ? effectiveCurrentDay : monthDays;
+
+      if (updateActiveState) {
+        activeMonthDays = monthDays;
+        activeReferenceDay = effectiveCurrentDay;
+        activeTodayBand = scenario.showTodayBand ? effectiveCurrentDay : null;
+      }
+
+      return fleet.map((vehicle) => ({
+        fleetNumber: vehicle.fleetNumber,
+        plate: vehicle.plate,
+        driver: vehicle.driver,
+        finance: scaleFinance(vehicle.finance, scenario.financeFactor),
+        events: ensureFullStatusCoverage(transformEventsForMonth(vehicle.events, scenario, monthDays), monthDays, coverageEndDay)
+      }));
+    }
+
+    function clipEventsToRange(events, startDay, endDay) {
+      return events.reduce((result, event) => {
+        const clippedStart = Math.max(event.start, startDay);
+        const clippedEnd = Math.min(event.end, endDay);
+
+        if (clippedEnd < clippedStart) {
+          return result;
+        }
+
+        result.push({
+          ...event,
+          start: clippedStart,
+          end: clippedEnd
+        });
+        return result;
+      }, []);
+    }
+
+    function buildHeader() {
+      timelineGrid.appendChild(createCell("header vehicle-cell", 1, 1, "Frota"));
+
+      for (let day = 1; day <= activeMonthDays; day += 1) {
+        timelineGrid.appendChild(createCell("header", day + 1, 1, String(day)));
+      }
+    }
+
+    function buildRows(fleetEntries) {
+      fleetEntries.forEach(({ vehicle, originalIndex }, index) => {
+        const row = index + 2;
+        const vehicleCell = document.createElement("div");
+        vehicleCell.className = "cell vehicle-cell clickable";
+        vehicleCell.style.gridColumn = "1";
+        vehicleCell.style.gridRow = String(row);
+        vehicleCell.dataset.vehicleIndex = String(originalIndex);
+        vehicleCell.innerHTML = `
+          <div class="vehicle-meta">
+            <strong>FROTA ${vehicle.fleetNumber}</strong>
+            <span>${vehicle.plate} · ${vehicle.driver}</span>
+          </div>
+        `;
+        vehicleCell.addEventListener("click", () => openFleetModal(vehicle));
+        timelineGrid.appendChild(vehicleCell);
+
+        for (let day = 1; day <= activeMonthDays; day += 1) {
+          timelineGrid.appendChild(createCell("", day + 1, row));
+        }
+
+        vehicle.events.forEach((event) => {
+          const duration = event.end - event.start + 1;
+          const durationLabel = duration === 1 ? "1 dia" : `${duration} dias`;
+          const isTravelEvent = event.type === "travel";
+          const isOpenTravel = isTravelEvent && event.start <= activeReferenceDay && event.end > activeReferenceDay;
+          const progressPercent = Math.max(0, Math.min(100, Math.round(((activeReferenceDay - event.start + 1) / duration) * 100)));
+          const badgeDetail = event.type === "stopped" ? getStoppedLocation(vehicle, event) : event.detail;
+          const badge = document.createElement("div");
+          badge.className = `event ${event.type}`;
+          if (isOpenTravel) {
+            badge.classList.add("has-progress");
+          }
+          badge.style.gridColumn = `${event.start + 1} / ${event.end + 2}`;
+          badge.style.gridRow = String(row);
+          badge.innerHTML = isOpenTravel
+            ? `<strong>${event.title} (${durationLabel})</strong>
+              <div class="event-meta-row">
+                <span class="event-detail">${badgeDetail}</span>
+                <span class="event-progress-value">${progressPercent}%</span>
+              </div>
+              <div class="event-progress" aria-label="Progresso da viagem">
+                <div class="event-progress-track"><span class="event-progress-fill" style="width:${progressPercent}%;"></span></div>
+              </div>`
+            : `<strong>${event.title} (${durationLabel})</strong><span>${badgeDetail}</span>`;
+          badge.addEventListener("click", () => openEventModal(vehicle, event));
+          timelineGrid.appendChild(badge);
+        });
+      });
+    }
+
+    function getFleetMetricValue(vehicle, metric) {
+      switch (metric) {
+        case "stopped-days":
+          return getDaysByTypes(vehicle.events, ["stopped"]);
+        case "revenue":
+          return vehicle.finance.revenueTotal;
+        case "travel-days":
+          return getDaysByTypes(vehicle.events, ["travel"]);
+        case "maintenance-days":
+          return getDaysByTypes(vehicle.events, ["maintenance"]);
+        default:
+          return Number(vehicle.fleetNumber);
+      }
+    }
+
+    function getFleetEntriesForSource(sourceFleet, options = {}) {
+      const {
+        startDay,
+        endDay,
+        selectedStatus,
+        selectedSort,
+        fleetQuery,
+        plateQuery
+      } = {
+        ...getActiveFilterState(),
+        ...options
+      };
+      const monthDays = options.monthDays || activeMonthDays;
+      const normalizedStartDay = Math.max(1, Math.min(startDay, monthDays));
+      const normalizedEndDay = Math.max(normalizedStartDay, Math.min(endDay, monthDays));
+      const periodFactor = (normalizedEndDay - normalizedStartDay + 1) / monthDays;
+      const fleetEntries = sourceFleet
+        .map((vehicle, originalIndex) => {
+          const clippedEvents = clipEventsToRange(vehicle.events, normalizedStartDay, normalizedEndDay);
+
+          return {
+            originalIndex,
+            vehicle: {
+              ...vehicle,
+              finance: scaleFinance(vehicle.finance, periodFactor),
+              events: clippedEvents
+            }
+          };
+        })
+        .filter(({ vehicle }) => (
+          vehicle.events.length > 0
+          && (!fleetQuery || vehicle.fleetNumber.toLowerCase().includes(fleetQuery))
+          && (!plateQuery || vehicle.plate.toLowerCase().includes(plateQuery))
+          && (
+            selectedStatus === "all" || vehicle.events.some((event) => event.type === selectedStatus)
+          )
+        ));
+
+      const direction = selectedSort.endsWith("-desc") ? "desc" : "asc";
+      const normalizedMetric = selectedSort.replace(/-(asc|desc)$/, "");
+
+      fleetEntries.sort((leftEntry, rightEntry) => {
+        const a = getFleetMetricValue(leftEntry.vehicle, normalizedMetric);
+        const b = getFleetMetricValue(rightEntry.vehicle, normalizedMetric);
+
+        if (a === b) {
+          return Number(leftEntry.vehicle.fleetNumber) - Number(rightEntry.vehicle.fleetNumber);
+        }
+
+        return direction === "desc" ? b - a : a - b;
+      });
+
+      return fleetEntries;
+    }
+
+    function getVisibleFleetEntries() {
+      return getFleetEntriesForSource(activeFleet);
+    }
+
+    function renderTimeline() {
+      if (!timelineGrid) {
+        return;
+      }
+
+      activeFleet = buildFleetForMonth(monthSelect ? monthSelect.value : "Abril 2026");
+      const { startDay, endDay } = getSelectedDayRange();
+      const fleetEntries = getVisibleFleetEntries();
+      timelineGrid.innerHTML = "";
+      timelineGrid.style.gridTemplateColumns = `var(--vehicle-col) repeat(${activeMonthDays}, minmax(var(--day-col), 1fr))`;
+      timelineGrid.style.gridTemplateRows = `var(--header-height) repeat(${fleetEntries.length}, var(--row-height))`;
+      buildHeader();
+      buildRows(fleetEntries);
+      highlightToday(activeTodayBand && activeTodayBand >= startDay && activeTodayBand <= endDay ? activeTodayBand : null);
+      updateTopMetrics(fleetEntries);
+      queueEmbedResize();
+    }
+
+    function highlightToday(day) {
+      if (!day) {
+        return;
+      }
+
+      const band = document.createElement("div");
+      band.className = "today-band";
+      band.style.gridColumn = `${day + 1}`;
+      timelineGrid.appendChild(band);
+    }
+
+    function setupFiltersPanel() {
+      if (!filtersToggleBtn || !filtersContainer) {
+        return;
+      }
+
+      filtersToggleBtn.addEventListener("click", () => {
+        const isExpanded = filtersToggleBtn.getAttribute("aria-expanded") === "true";
+        filtersToggleBtn.setAttribute("aria-expanded", String(!isExpanded));
+        filtersContainer.classList.toggle("hidden", isExpanded);
+        queueEmbedResize();
+      });
+    }
+
+    function syncMonthLabels() {
+      if (!monthSelect || !selectedMonthChip || !currentMonthLabel) {
+        return;
+      }
+
+      const selectedMonth = monthSelect.value;
+      selectedMonthChip.textContent = selectedMonth;
+      currentMonthLabel.textContent = `Visão consolidada de ${selectedMonth}`;
+    }
+
+    function setupMonthSwitcher() {
+      if (!monthSelect) {
+        return;
+      }
+
+      monthSelect.addEventListener("change", () => {
+        syncMonthLabels();
+        syncPeriodFilters(true);
+        renderTimeline();
+      });
+      syncMonthLabels();
+    }
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        maximumFractionDigits: 0
+      }).format(value);
+    }
+
+    function getDaysByTypes(events, types) {
+      return events.reduce((total, event) => {
+        if (!types.includes(event.type)) {
+          return total;
+        }
+
+        return total + (event.end - event.start + 1);
+      }, 0);
+    }
+
+    function formatDays(value) {
+      return value === 1 ? "1 dia" : `${value} dias`;
+    }
+
+    function formatVehicles(value) {
+      return value === 1 ? "1 veículo" : `${value} veículos`;
+    }
+
+    function formatPercent(value) {
+      return `${Math.round(value)}%`;
+    }
+
+    function formatScore(value) {
+      return value.toFixed(1).replace(".", ",");
+    }
+
+    function formatDayInterval(startDay, endDay) {
+      return `${String(startDay).padStart(2, "0")} a ${String(endDay).padStart(2, "0")}`;
+    }
+
+    function calculateVehicleScore(events) {
+      return Object.entries(statusScoreWeights).reduce((totalScore, [status, weight]) => {
+        const statusDays = getDaysByTypes(events, [status]);
+        return totalScore + (statusDays * weight);
+      }, 0);
+    }
+
+    function getElapsedPeriodDays(startDay, endDay) {
+      if (endDay < startDay) {
+        return 0;
+      }
+
+      return endDay - startDay + 1;
+    }
+
+    function updateTrendIndicator(element, config) {
+      if (!element) {
+        return;
+      }
+
+      element.className = `metric-trend ${config.className}`;
+      element.textContent = config.symbol;
+      element.title = config.tooltip;
+      element.setAttribute("aria-label", config.tooltip);
+    }
+
+    function openEventModal(vehicle, event) {
+      if (!vehicle || !event || !eventModalOverlay) {
+        return;
+      }
+
+      const duration = event.end - event.start + 1;
+      const monthLabel = monthSelect ? monthSelect.value : "Abril 2026";
+      const eventDetail = event.type === "stopped" ? getStoppedLocation(vehicle, event) : event.detail;
+      const revenueEntry = getRevenueEntryForEvent(vehicle, event);
+      const mapPayload = buildEventMapPayload(vehicle, event);
+      const payload = {
+        title: event.title,
+        subtitle: `FROTA ${vehicle.fleetNumber} · ${monthLabel}`,
+        detailTitle: `${event.title} (${formatDays(duration)})`,
+        detailText: eventDetail,
+        fleet: `FROTA ${vehicle.fleetNumber}`,
+        plate: vehicle.plate,
+        driver: vehicle.driver,
+        period: formatDayInterval(event.start, event.end),
+        duration: formatDays(duration),
+        month: monthLabel,
+        statusType: `Status ${event.title}`,
+        faturamento: revenueEntry ? formatCurrency(revenueEntry.value) : undefined,
+        faturamentoInfo: revenueEntry ? revenueEntry.label : undefined,
+        ...mapPayload
+      };
+
+      if (isEmbedded) {
+        sendEmbedMessage("open-event-modal", payload);
+        return;
+      }
+
+      eventModalTitle.textContent = event.title;
+      eventModalSubtitle.textContent = `FROTA ${vehicle.fleetNumber} · ${monthLabel}`;
+      eventModalDetailTitle.textContent = `${event.title} (${formatDays(duration)})`;
+      eventModalDetailText.textContent = eventDetail;
+      eventModalFleet.textContent = `FROTA ${vehicle.fleetNumber}`;
+      eventModalPlate.textContent = vehicle.plate;
+      eventModalDriver.textContent = vehicle.driver;
+      eventModalPeriod.textContent = formatDayInterval(event.start, event.end);
+      eventModalDuration.textContent = formatDays(duration);
+      eventModalMonth.textContent = monthLabel;
+      eventModalStatusType.textContent = `Status ${event.title}`;
+      eventModalOverlay.classList.remove("hidden");
+      queueEmbedResize();
+    }
+
+    function closeEventModal() {
+      if (!eventModalOverlay) {
+        return;
+      }
+
+      eventModalOverlay.classList.add("hidden");
+      queueEmbedResize();
+    }
+
+    function reportEmbedHeight() {
+      if (!isEmbedded) {
+        return;
+      }
+
+      const doc = document.documentElement;
+      const body = document.body;
+      const height = Math.max(
+        body ? body.scrollHeight : 0,
+        body ? body.offsetHeight : 0,
+        doc ? doc.scrollHeight : 0,
+        doc ? doc.offsetHeight : 0
+      );
+
+      window.parent.postMessage({
+        source: "timeline-logistica",
+        height
+      }, "*");
+    }
+
+    function sendEmbedMessage(type, payload) {
+      if (!isEmbedded) {
+        return;
+      }
+
+      window.parent.postMessage({
+        source: "timeline-logistica",
+        type,
+        payload
+      }, "*");
+    }
+
+    function queueEmbedResize() {
+      if (!isEmbedded) {
+        return;
+      }
+
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(reportEmbedHeight);
+      });
+    }
+
+    if (isEmbedded && "ResizeObserver" in window) {
+      const resizeObserver = new ResizeObserver(() => {
+        queueEmbedResize();
+      });
+
+      resizeObserver.observe(document.documentElement);
+      resizeObserver.observe(document.body);
+    }
+
+    window.addEventListener("load", queueEmbedResize);
+    window.addEventListener("resize", queueEmbedResize);
+
+    function calculateGroupedShares(groupedDays) {
+      const entries = Object.entries(groupedDays);
+      const totalTrackedDays = entries.reduce((total, [, value]) => total + value, 0);
+
+      if (totalTrackedDays === 0) {
+        return Object.fromEntries(entries.map(([key]) => [key, 0]));
+      }
+
+      const shares = entries.map(([key, value]) => {
+        const raw = (value / totalTrackedDays) * 100;
+        const floored = Math.floor(raw);
+
+        return {
+          key,
+          raw,
+          floored,
+          remainder: raw - floored
+        };
+      });
+
+      let remainingPoints = 100 - shares.reduce((total, item) => total + item.floored, 0);
+
+      shares
+        .sort((left, right) => right.remainder - left.remainder)
+        .forEach((item, index) => {
+          item.finalValue = item.floored + (index < remainingPoints ? 1 : 0);
+        });
+
+      return Object.fromEntries(shares.map((item) => [item.key, item.finalValue]));
+    }
+
+    function distributeIntegerByWeight(totalValue, items) {
+      const safeTotal = Math.max(0, Math.round(totalValue));
+      const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+
+      if (!items.length || safeTotal === 0 || totalWeight === 0) {
+        return items.map((item) => ({ ...item, allocatedValue: 0 }));
+      }
+
+      const allocations = items.map((item, index) => {
+        const raw = (safeTotal * item.weight) / totalWeight;
+        const floored = Math.floor(raw);
+
+        return {
+          ...item,
+          index,
+          allocatedValue: floored,
+          remainder: raw - floored
+        };
+      });
+
+      let remainingValue = safeTotal - allocations.reduce((sum, item) => sum + item.allocatedValue, 0);
+
+      allocations
+        .slice()
+        .sort((left, right) => right.remainder - left.remainder)
+        .forEach((item) => {
+          if (remainingValue <= 0) {
+            return;
+          }
+
+          item.allocatedValue += 1;
+          remainingValue -= 1;
+        });
+
+      return allocations.sort((left, right) => left.index - right.index);
+    }
+
+    function buildRevenueEntries(vehicle) {
+      const travelEvents = vehicle.events.filter((event) => event.type === "travel");
+
+      if (!travelEvents.length) {
+        return vehicle.finance.revenueTotal > 0
+          ? [{
+            label: "OR 0000 - Sem viagem visivel",
+            value: Math.round(vehicle.finance.revenueTotal)
+          }]
+          : [];
+      }
+
+      const weightedEvents = travelEvents.map((event, index) => {
+        const duration = event.end - event.start + 1;
+
+        return {
+          event,
+          weight: duration * (1 + (index * 0.08))
+        };
+      });
+
+      return distributeIntegerByWeight(vehicle.finance.revenueTotal, weightedEvents).map((item, index) => {
+        const duration = item.event.end - item.event.start + 1;
+        const revenueType = index % 2 === 0 ? "PV" : "OR";
+        const referenceBase = (Number(vehicle.fleetNumber) * 37) + (item.event.start * 211) + (item.event.end * 97) + (index * 503);
+        const reference = revenueType === "PV"
+          ? String(10000 + (referenceBase % 90000))
+          : String(1000 + (referenceBase % 9000));
+
+        return {
+          label: `${revenueType} ${reference} - ${item.event.start} a ${item.event.end} · ${formatDays(duration)}`,
+          value: item.allocatedValue
+        };
+      });
+    }
+
+    function getRevenueEntryForEvent(vehicle, event) {
+      if (!vehicle || !event || event.type !== "travel") {
+        return null;
+      }
+
+      const travelEvents = vehicle.events.filter((item) => item.type === "travel");
+      const travelIndex = travelEvents.findIndex((item) => (
+        item.start === event.start
+        && item.end === event.end
+        && item.type === event.type
+        && item.title === event.title
+        && item.detail === event.detail
+      ));
+
+      if (travelIndex < 0) {
+        return null;
+      }
+
+      const revenueEntries = buildRevenueEntries(vehicle);
+      return revenueEntries[travelIndex] || null;
+    }
+
+    function normalizeLocationLabel(value) {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\bagendado\b/gi, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function sanitizeLocationToken(value) {
+      const normalized = normalizeLocationLabel(value);
+      return normalized
+        .replace(/^(Base|CD|Patio)\s+/i, "")
+        .trim();
+    }
+
+    function extractRouteEndpoints(detail) {
+      if (!detail || !String(detail).includes(">")) {
+        return null;
+      }
+
+      const tokens = String(detail)
+        .split(">")
+        .map((item) => sanitizeLocationToken(item))
+        .filter(Boolean);
+
+      if (tokens.length < 2) {
+        return null;
+      }
+
+      return {
+        origin: tokens[0],
+        destination: tokens[tokens.length - 1]
+      };
+    }
+
+    function extractLocationFromDetail(detail) {
+      const normalized = sanitizeLocationToken(detail);
+
+      if (!normalized || normalized.includes(">")) {
+        return null;
+      }
+
+      const nonLocationHints = [
+        "Sem carga", "Checklist", "Pernoite", "Nova coleta", "Fila de descarga",
+        "Janela cliente", "Aguardando doca", "Descarga parcial", "Preventiva",
+        "Revisao freio", "Avaria na rota", "Suporte externo", "Sem motorista",
+        "Escala liberada", "Janela operacional", "Aguardando retorno", "Cross docking",
+        "Aguardando NF", "Sistema de freio", "Reserva operacional", "Corretiva leve",
+        "Sem programacao", "Aguardando motorista", "Lubrificacao", "Inspecao final",
+        "Liberado", "Fila cliente"
+      ].map((item) => normalizeLocationLabel(item));
+
+      return nonLocationHints.includes(normalized) ? null : normalized;
+    }
+
+    function findEventIndex(vehicle, event) {
+      return vehicle.events.findIndex((item) => (
+        item.start === event.start
+        && item.end === event.end
+        && item.type === event.type
+        && item.title === event.title
+        && item.detail === event.detail
+      ));
+    }
+
+    function resolveCurrentLocation(vehicle, event) {
+      const directLocation = extractLocationFromDetail(event.detail);
+      if (directLocation) {
+        return directLocation;
+      }
+
+      const eventIndex = findEventIndex(vehicle, event);
+      if (eventIndex < 0) {
+        return "Goiania";
+      }
+
+      for (let i = eventIndex - 1; i >= 0; i -= 1) {
+        const previousEvent = vehicle.events[i];
+        const previousRoute = extractRouteEndpoints(previousEvent.detail);
+        if (previousRoute) {
+          return previousRoute.destination;
+        }
+
+        const previousLocation = extractLocationFromDetail(previousEvent.detail);
+        if (previousLocation) {
+          return previousLocation;
+        }
+      }
+
+      for (let i = eventIndex + 1; i < vehicle.events.length; i += 1) {
+        const nextEvent = vehicle.events[i];
+        const nextRoute = extractRouteEndpoints(nextEvent.detail);
+        if (nextRoute) {
+          return nextRoute.origin;
+        }
+
+        const nextLocation = extractLocationFromDetail(nextEvent.detail);
+        if (nextLocation) {
+          return nextLocation;
+        }
+      }
+
+      return "Goiania";
+    }
+
+    function buildEventMapPayload(vehicle, event) {
+      const routeStatuses = ["travel", "empty-displacement", "scheduled-displacement"];
+      const route = extractRouteEndpoints(event.detail);
+
+      if (routeStatuses.includes(event.type) && route) {
+        return {
+          mapMode: "route",
+          mapOriginLabel: route.origin,
+          mapDestinationLabel: route.destination
+        };
+      }
+
+      return {
+        mapMode: "location",
+        mapLocationLabel: resolveCurrentLocation(vehicle, event)
+      };
+    }
+
+    function getVehiclesByStatus(fleetEntries, status, day) {
+      return fleetEntries.filter(({ vehicle }) => (
+        vehicle.events.some((event) => event.type === status && day >= event.start && day <= event.end)
+      )).length;
+    }
+
+    function updateTopMetrics(fleetEntries = activeFleet.map((vehicle, originalIndex) => ({ vehicle, originalIndex }))) {
+      const selectedMonthLabel = monthSelect ? monthSelect.value : "Abril 2026";
+      const { startDay, endDay } = getSelectedDayRange();
+      const vehicles = fleetEntries.map(({ vehicle }) => vehicle);
+      const totalRevenue = vehicles.reduce((total, vehicle) => total + vehicle.finance.revenueTotal, 0);
+      const totalExpense = vehicles.reduce((total, vehicle) => (
+        total + vehicle.finance.toll + vehicle.finance.fuel + vehicle.finance.maintenanceCost
+      ), 0);
+      const travelDays = vehicles.reduce((total, vehicle) => total + getDaysByTypes(vehicle.events, ["travel"]), 0);
+      const loadingDays = vehicles.reduce((total, vehicle) => total + getDaysByTypes(vehicle.events, ["loading"]), 0);
+      const unloadingDays = vehicles.reduce((total, vehicle) => total + getDaysByTypes(vehicle.events, ["unloading"]), 0);
+      const emptyDays = vehicles.reduce((total, vehicle) => (
+        total + getDaysByTypes(vehicle.events, ["empty-displacement", "scheduled-displacement"])
+      ), 0);
+      const stoppedDays = vehicles.reduce((total, vehicle) => total + getDaysByTypes(vehicle.events, ["stopped"]), 0);
+      const maintenanceDays = vehicles.reduce((total, vehicle) => total + getDaysByTypes(vehicle.events, ["maintenance"]), 0);
+      const stoppedVehicles = getVehiclesByStatus(fleetEntries, "stopped", activeReferenceDay);
+      const maintenanceVehicles = getVehiclesByStatus(fleetEntries, "maintenance", activeReferenceDay);
+      const groupedTravelDays = travelDays + loadingDays + unloadingDays;
+      const revenueGoal = getRevenueGoalForPeriod(selectedMonthLabel, startDay, endDay);
+      const previousMonthLabel = getPreviousMonthLabel(selectedMonthLabel);
+      const previousMonthDays = getMonthDaysForLabel(previousMonthLabel);
+      const previousMonthFleet = buildFleetForMonth(previousMonthLabel, false);
+      const previousMonthEntries = getFleetEntriesForSource(previousMonthFleet, { startDay, endDay, monthDays: previousMonthDays });
+      const previousExpense = previousMonthEntries.reduce((total, entry) => (
+        total + entry.vehicle.finance.toll + entry.vehicle.finance.fuel + entry.vehicle.finance.maintenanceCost
+      ), 0);
+      const previousStoppedDays = previousMonthEntries.reduce((total, entry) => (
+        total + getDaysByTypes(entry.vehicle.events, ["stopped"])
+      ), 0);
+      const previousMaintenanceDays = previousMonthEntries.reduce((total, entry) => (
+        total + getDaysByTypes(entry.vehicle.events, ["maintenance"])
+      ), 0);
+      const groupedShares = calculateGroupedShares({
+        travel: groupedTravelDays,
+        empty: emptyDays,
+        stopped: stoppedDays,
+        maintenance: maintenanceDays
+      });
+
+      if (metricTravelValue) {
+        metricTravelValue.textContent = formatCurrency(totalRevenue);
+      }
+
+      if (metricTravelTrend) {
+        const isAboveGoal = totalRevenue >= revenueGoal;
+        updateTrendIndicator(metricTravelTrend, {
+          className: isAboveGoal ? "up-positive" : "down-negative",
+          symbol: isAboveGoal ? "▲" : "▼",
+          tooltip: `Meta de faturamento do período: ${formatCurrency(revenueGoal)}`
+        });
+      }
+
+      if (metricTravelDays) {
+        metricTravelDays.textContent = formatDays(travelDays);
+      }
+
+      if (metricTravelShare) {
+        metricTravelShare.textContent = formatPercent(groupedShares.travel);
+      }
+
+      if (metricEmptyValue) {
+        metricEmptyValue.textContent = formatCurrency(totalExpense);
+      }
+
+      if (metricEmptyTrend) {
+        const expenseDiff = totalExpense - previousExpense;
+        const isIncrease = expenseDiff > 0;
+        const isDecrease = expenseDiff < 0;
+        const comparisonText = isIncrease
+          ? `Despesa aumentou em relação ao mesmo período de ${previousMonthLabel}: ${formatCurrency(previousExpense)}`
+          : isDecrease
+            ? `Despesa diminuiu em relação ao mesmo período de ${previousMonthLabel}: ${formatCurrency(previousExpense)}`
+            : `Despesa igual ao mesmo período de ${previousMonthLabel}: ${formatCurrency(previousExpense)}`;
+
+        updateTrendIndicator(metricEmptyTrend, {
+          className: isIncrease ? "up-negative" : isDecrease ? "down-positive" : "neutral",
+          symbol: isIncrease ? "▲" : isDecrease ? "▼" : "•",
+          tooltip: comparisonText
+        });
+      }
+
+      if (metricEmptyDays) {
+        metricEmptyDays.textContent = formatDays(emptyDays);
+      }
+
+      if (metricEmptyShare) {
+        metricEmptyShare.textContent = formatPercent(groupedShares.empty);
+      }
+
+      if (metricStoppedDays) {
+        metricStoppedDays.textContent = formatDays(stoppedDays);
+      }
+
+      if (metricStoppedTrend) {
+        const stoppedDiff = stoppedDays - previousStoppedDays;
+        const isIncrease = stoppedDiff > 0;
+        const isDecrease = stoppedDiff < 0;
+        const comparisonText = isIncrease
+          ? `Dias parados aumentaram em relação ao mesmo período de ${previousMonthLabel}: ${formatDays(previousStoppedDays)}`
+          : isDecrease
+            ? `Dias parados diminuíram em relação ao mesmo período de ${previousMonthLabel}: ${formatDays(previousStoppedDays)}`
+            : `Dias parados iguais ao mesmo período de ${previousMonthLabel}: ${formatDays(previousStoppedDays)}`;
+
+        updateTrendIndicator(metricStoppedTrend, {
+          className: isIncrease ? "up-negative" : isDecrease ? "down-positive" : "neutral",
+          symbol: isIncrease ? "▲" : isDecrease ? "▼" : "•",
+          tooltip: comparisonText
+        });
+      }
+
+      if (metricStoppedVehicles) {
+        metricStoppedVehicles.textContent = formatVehicles(stoppedVehicles);
+      }
+
+      if (metricStoppedShare) {
+        metricStoppedShare.textContent = formatPercent(groupedShares.stopped);
+      }
+
+      if (metricStoppedVehiclesInfo) {
+        metricStoppedVehiclesInfo.textContent = activeTodayBand ? `Status no dia ${activeReferenceDay}` : "Status no fechamento do mês";
+      }
+
+      if (metricMaintenanceDays) {
+        metricMaintenanceDays.textContent = formatDays(maintenanceDays);
+      }
+
+      if (metricMaintenanceTrend) {
+        const maintenanceDiff = maintenanceDays - previousMaintenanceDays;
+        const isIncrease = maintenanceDiff > 0;
+        const isDecrease = maintenanceDiff < 0;
+        const comparisonText = isIncrease
+          ? `Dias em manutenção aumentaram em relação ao mesmo período de ${previousMonthLabel}: ${formatDays(previousMaintenanceDays)}`
+          : isDecrease
+            ? `Dias em manutenção diminuíram em relação ao mesmo período de ${previousMonthLabel}: ${formatDays(previousMaintenanceDays)}`
+            : `Dias em manutenção iguais ao mesmo período de ${previousMonthLabel}: ${formatDays(previousMaintenanceDays)}`;
+
+        updateTrendIndicator(metricMaintenanceTrend, {
+          className: isIncrease ? "up-negative" : isDecrease ? "down-positive" : "neutral",
+          symbol: isIncrease ? "▲" : isDecrease ? "▼" : "•",
+          tooltip: comparisonText
+        });
+      }
+
+      if (metricMaintenanceVehicles) {
+        metricMaintenanceVehicles.textContent = formatVehicles(maintenanceVehicles);
+      }
+
+      if (metricMaintenanceShare) {
+        metricMaintenanceShare.textContent = formatPercent(groupedShares.maintenance);
+      }
+
+      if (metricMaintenanceVehiclesInfo) {
+        metricMaintenanceVehiclesInfo.textContent = activeTodayBand ? `Status no dia ${activeReferenceDay}` : "Status no fechamento do mês";
+      }
+    }
+
+    function openFleetModal(vehicleIndex) {
+      const vehicle = typeof vehicleIndex === "object" ? vehicleIndex : activeFleet[vehicleIndex];
+
+      if (!vehicle || !fleetModalOverlay) {
+        return;
+      }
+
+      const travelDays = getDaysByTypes(vehicle.events, ["travel"]);
+      const stoppedDays = getDaysByTypes(vehicle.events, ["stopped"]);
+      const maintenanceDays = getDaysByTypes(vehicle.events, ["maintenance"]);
+      const loadingDays = getDaysByTypes(vehicle.events, ["loading"]);
+      const unloadingDays = getDaysByTypes(vehicle.events, ["unloading"]);
+      const emptyDisplacementDays = getDaysByTypes(vehicle.events, ["empty-displacement"]);
+      const scheduledDisplacementDays = getDaysByTypes(vehicle.events, ["scheduled-displacement"]);
+      const operationalTravelDays = travelDays + emptyDisplacementDays + scheduledDisplacementDays;
+      const { startDay, endDay } = getSelectedDayRange();
+      const periodDays = getElapsedPeriodDays(startDay, endDay);
+      const utilizationDays = operationalTravelDays + loadingDays + unloadingDays;
+      const utilizationPct = Math.round((utilizationDays / activeMonthDays) * 100);
+      const stoppedPct = Math.round((stoppedDays / activeMonthDays) * 100);
+      const maintenancePct = Math.round((maintenanceDays / activeMonthDays) * 100);
+
+      const finance = vehicle.finance;
+      const revenueEntries = buildRevenueEntries(vehicle);
+      const revenueTotal = revenueEntries.reduce((sum, entry) => sum + entry.value, 0);
+      const totalCost = finance.toll + finance.fuel + finance.maintenanceCost;
+      const profit = revenueTotal - totalCost;
+      const revenuePerDay = revenueTotal / activeMonthDays;
+      const costPerKm = totalCost / finance.distanceKm;
+      const score = calculateVehicleScore(vehicle.events);
+      const availableDays = Math.max(0, periodDays - maintenanceDays);
+      const efficiency = availableDays > 0 ? Math.round((score / availableDays) * 100) : 0;
+      const payload = {
+        title: `FROTA ${vehicle.fleetNumber}`,
+        subtitle: `${vehicle.plate} · ${vehicle.driver}`,
+        monthTag: monthSelect ? monthSelect.value : "Abril 2026",
+        summaryCards: [
+          { label: "Utilização", value: `${utilizationPct}%`, info: `${formatDays(utilizationDays)} em operação` },
+          { label: "Parado", value: `${stoppedPct}%`, info: `${formatDays(stoppedDays)} em status parado` },
+          { label: "Manutenção", value: `${maintenancePct}%`, info: `${formatDays(maintenanceDays)} em oficina` }
+        ],
+        revenueEntries: revenueEntries.length
+          ? revenueEntries.map((entry) => ({ label: entry.label, value: formatCurrency(entry.value) }))
+          : [{ label: "Sem receitas no periodo", value: formatCurrency(0) }],
+        expenseEntries: [
+          { label: "Pedagio", value: formatCurrency(finance.toll) },
+          { label: "Combustivel", value: formatCurrency(finance.fuel) },
+          { label: "Manutencao", value: formatCurrency(finance.maintenanceCost) }
+        ],
+        revenueTotal: formatCurrency(revenueTotal),
+        expenseTotal: formatCurrency(totalCost),
+        profit: formatCurrency(profit),
+        detailedTime: [
+          { label: "Dias em viagem", value: formatDays(travelDays), info: "Status Viajando" },
+          { label: "Dias carregando", value: formatDays(loadingDays), info: "Status Carregando" },
+          { label: "Dias descarregando", value: formatDays(unloadingDays), info: "Status Descarregando" },
+          { label: "Deslocando Vazio", value: formatDays(emptyDisplacementDays), info: "Status Deslocando Vazio" },
+          { label: "Deslocando com Agenda", value: formatDays(scheduledDisplacementDays), info: "Status Deslocando com Agenda" }
+        ],
+        indicators: [
+          { label: "Pontuação", value: formatScore(score), info: "Soma dos dias ponderados por status" },
+          { label: "Dias disponíveis", value: formatDays(availableDays), info: "Dias do período menos manutenção" },
+          { label: "Eficiência da frota", value: `${efficiency}%`, info: "Pontuação dividida pelos dias disponíveis" },
+          { label: "Receita por dia", value: formatCurrency(revenuePerDay), info: "Receita total dividida pelo período" },
+          { label: "Custo por km", value: `R$ ${costPerKm.toFixed(2).replace(".", ",")}`, info: "Pedágio + combustível + manutenção" }
+        ],
+        timelineItems: vehicle.events.map((event) => {
+          const duration = event.end - event.start + 1;
+          const color = statusColors[event.type] || "var(--accent)";
+
+          return {
+            status: event.title,
+            period: `${event.start} a ${event.end}`,
+            title: `${event.title} (${formatDays(duration)})`,
+            detail: event.detail,
+            color
+          };
+        })
+      };
+
+      if (isEmbedded) {
+        sendEmbedMessage("open-fleet-modal", payload);
+        return;
+      }
+
+      fleetModalTitle.textContent = `FROTA ${vehicle.fleetNumber}`;
+      fleetModalSubtitle.textContent = `${vehicle.plate} · ${vehicle.driver}`;
+      modalUtilizacao.textContent = `${utilizationPct}%`;
+      modalUtilizacaoInfo.textContent = `${formatDays(utilizationDays)} em operação`;
+      modalParado.textContent = `${stoppedPct}%`;
+      modalParadoInfo.textContent = `${formatDays(stoppedDays)} em status parado`;
+      modalManutencao.textContent = `${maintenancePct}%`;
+      modalManutencaoInfo.textContent = `${formatDays(maintenanceDays)} em oficina`;
+      modalReceitaTotal.textContent = formatCurrency(revenueTotal);
+      modalDespesaTotal.textContent = formatCurrency(totalCost);
+      modalLucro.textContent = formatCurrency(profit);
+      modalDiasViagem.textContent = formatDays(travelDays);
+      modalDiasCarregando.textContent = formatDays(loadingDays);
+      modalDiasDescarregando.textContent = formatDays(unloadingDays);
+      modalDiasVazio.textContent = formatDays(emptyDisplacementDays);
+      modalDiasAgenda.textContent = formatDays(scheduledDisplacementDays);
+      modalDiasDisponiveis.textContent = formatDays(availableDays);
+      modalReceitaDia.textContent = formatCurrency(revenuePerDay);
+      modalCustoKm.textContent = `R$ ${costPerKm.toFixed(2).replace(".", ",")}`;
+      modalPontuacao.textContent = formatScore(score);
+      modalEficiencia.textContent = `${efficiency}%`;
+      modalMonthTag.textContent = monthSelect ? monthSelect.value : "Abril 2026";
+      modalRevenueList.innerHTML = revenueEntries.length
+        ? revenueEntries.map((entry) => `
+          <div class="revenue-row">
+            <div class="revenue-row-main">
+              <span class="revenue-row-title">${entry.label}</span>
+              <strong class="revenue-row-value">${formatCurrency(entry.value)}</strong>
+            </div>
+          </div>
+        `).join("")
+        : `
+          <div class="revenue-row">
+            <div class="revenue-row-main">
+              <span class="revenue-row-title">Sem receitas no periodo</span>
+              <strong class="revenue-row-value">${formatCurrency(0)}</strong>
+            </div>
+          </div>
+        `;
+      modalExpenseList.innerHTML = [
+        { label: "Pedagio", value: finance.toll },
+        { label: "Combustivel", value: finance.fuel },
+        { label: "Manutencao", value: finance.maintenanceCost }
+      ].map((entry) => `
+        <div class="revenue-row">
+          <div class="revenue-row-main">
+            <span class="revenue-row-title">${entry.label}</span>
+            <strong class="revenue-row-value">${formatCurrency(entry.value)}</strong>
+          </div>
+        </div>
+      `).join("");
+
+      modalTimelineList.innerHTML = vehicle.events.map((event) => {
+        const duration = event.end - event.start + 1;
+        const color = statusColors[event.type] || "var(--accent)";
+
+        return `
+          <div class="timeline-item">
+            <div class="timeline-item-header">
+              <div class="timeline-status">
+                <span class="timeline-status-dot" style="background:${color};"></span>
+                ${event.title}
+              </div>
+              <span>${event.start} a ${event.end}</span>
+            </div>
+            <strong>${event.title} (${formatDays(duration)})</strong>
+            <small>${event.detail}</small>
+          </div>
+        `;
+      }).join("");
+
+      fleetModalOverlay.classList.remove("hidden");
+      queueEmbedResize();
+    }
+
+    function closeFleetModal() {
+      if (!fleetModalOverlay) {
+        return;
+      }
+
+      fleetModalOverlay.classList.add("hidden");
+      queueEmbedResize();
+    }
+
+    function setupFleetModal() {
+      if (!fleetModalOverlay || !fleetModalCloseBtn) {
+        return;
+      }
+
+      fleetModalCloseBtn.addEventListener("click", closeFleetModal);
+      fleetModalOverlay.addEventListener("click", (event) => {
+        if (event.target === fleetModalOverlay) {
+          closeFleetModal();
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          closeFleetModal();
+          closeEventModal();
+        }
+      });
+    }
+
+    function setupEventModal() {
+      if (!eventModalOverlay || !eventModalCloseBtn) {
+        return;
+      }
+
+      eventModalCloseBtn.addEventListener("click", closeEventModal);
+      eventModalOverlay.addEventListener("click", (event) => {
+        if (event.target === eventModalOverlay) {
+          closeEventModal();
+        }
+      });
+    }
+
+    function setupTimelineControls() {
+      if (startDateFilter && endDateFilter) {
+        startDateFilter.addEventListener("change", () => {
+          syncPeriodFilters();
+          renderTimeline();
+        });
+
+        endDateFilter.addEventListener("change", () => {
+          syncPeriodFilters();
+          renderTimeline();
+        });
+      }
+
+      if (fleetFilter) {
+        fleetFilter.addEventListener("input", renderTimeline);
+      }
+
+      if (plateFilter) {
+        plateFilter.addEventListener("input", renderTimeline);
+      }
+
+      if (statusFilter) {
+        statusFilter.addEventListener("change", renderTimeline);
+      }
+
+      if (sortFilter) {
+        sortFilter.addEventListener("change", renderTimeline);
+      }
+    }
+
+    syncPeriodFilters(true);
+    renderTimeline();
+    setupFiltersPanel();
+    setupTimelineControls();
+    setupMonthSwitcher();
+    setupFleetModal();
+    setupEventModal();
+    queueEmbedResize();
+  </script>
+</body>
+</html>

@@ -21,25 +21,25 @@
 .stat-label { font-size: 12px; color: var(--text-secondary); }
 .stat-value { font-weight: 700; }
 
-.layout-grid { display: grid; grid-template-columns: 280px 1fr; gap: 16px; align-items: start; }
+.layout-grid { display: grid; grid-template-columns: 865px 1fr; gap: 16px; align-items: start; }
 .panel { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
 
 /* Sidebar fina (cargas disponíveis) */
 .sidebar { padding: 8px 8px 10px; display: flex; flex-direction: column; }
-/* Lista de intenções com rolagem e scrollbar padrão do sistema */
-.sidebar-list {
+.sidebar .sidebar-header {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  /* Rolagem interna */
-  overflow-y: auto;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar .panel-title {
+  padding: 0;
+  border-bottom: 0;
+}
+/* Lista de pré-cargas com rolagem, duas colunas e scrollbar padrão do sistema */
+.sidebar-list {
   overscroll-behavior: contain;
-  /* Permite que a rolagem funcione em layouts flex */
-  min-height: 0;
-  /* Altura máxima para ativar a rolagem sem estourar o painel */
-  max-height: min(70vh, 620px);
-
-  /* Padrão de scrollbar do sistema (tema-aware) */
   scrollbar-width: thin; /* Firefox */
   scrollbar-color: rgba(var(--text-rgb), 0.30) transparent; /* Firefox */
 }
@@ -56,15 +56,23 @@
 
 /* Área principal: grid de cards de veículos */
 .main { padding: 12px; }
-.vehicles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-.vehicle-card { display: grid; grid-template-columns: auto 56px; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid var(--border); border-radius: 14px; padding: 16px; background: color-mix(in oklab, var(--surface) 94%, var(--brand-primary)); cursor: pointer; transition: border-color .15s ease, transform .12s ease, background .15s ease; }
+.vehicles-grid { display: grid; grid-template-columns: repeat(2, minmax(360px, 1fr)); gap: 16px; }
+.vehicle-card { position: relative; display: block; border: 1px solid var(--border); border-radius: 14px; padding: 16px; background: color-mix(in oklab, var(--surface) 94%, var(--brand-primary)); cursor: pointer; transition: border-color .15s ease, transform .12s ease, background .15s ease; }
 .vehicle-card:hover, .vehicle-card.drag-over { border-color: var(--brand-primary); background: color-mix(in oklab, var(--surface) 90%, var(--brand-primary)); transform: translateY(-1px); }
-.vehicle-info { display: grid; gap: 6px; text-align: left; }
+.vehicle-info { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.veh-header-line { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.veh-header-icon { font-size: 20px; }
+.veh-header-text { font-size: 15px; font-weight: 700; color: var(--text); }
+.veh-line { display: flex; align-items: center; gap: 4px; font-size: 13px; }
+.veh-label-inline { font-weight: 600; color: var(--text-secondary); }
+.veh-value-inline { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.veh-sep { color: var(--text-secondary); margin: 0 4px; }
+.veh-icon-line { width: 16px; text-align: center; }
 .vehicle-title { font-size: 18px; font-weight: 700; letter-spacing: .4px; }
 /* High-contrast color for license plates in dark mode */
 :host-context([data-theme="dark"]) .vehicle-title { color: var(--brand-accent); }
 .vehicle-sub { font-size: 13px; color: var(--text-secondary); }
-.vehicle-icon { font-size: 24px; display: flex; align-items: center; justify-content: center; }
+.vehicle-icon { display: none; }
 .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .pill.success { background: rgba(34,197,94,.12); color: var(--success); }
 
@@ -115,10 +123,10 @@
 .icon-btn:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
 
 /* Modal map */
-.modal-map { margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.modal-map { position: relative; margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface); }
 .modal-map-element { width: 100%; height: 220px; }
 .panel-title { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text-secondary); }
-.panel-actions { padding: 8px 12px; border-bottom: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+.panel-actions { padding: 8px 12px; border-bottom: 1px solid var(--border); display: flex; gap: 8px; }
 
 .table-container { overflow: auto; }
 .table { width: 100%; border-collapse: collapse; }
@@ -146,6 +154,13 @@
 .icon-btn:hover { background: color-mix(in oklab, var(--surface) 92%, var(--brand-primary)); }
 .icon-btn.sm { width: 28px; height: 28px; font-size: 13px; }
 .icon-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.vehicle-card .filter-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+}
 
 .icon { width: 16px; height: 16px; display: inline-block; }
 .icon-success { color: var(--success, #22c55e); }
@@ -203,10 +218,21 @@
 .origin-icon .poi-bubble { background: #3b82f6; }
 .dest-icon .poi-bubble { background: #f59e0b; }
 .list { display: flex; flex-direction: column; padding: 8px; gap: 6px; }
-.list-item { position: relative; text-align: left; width: 100%; border: 1px solid var(--border); background: var(--surface-secondary); color: var(--text); border-radius: var(--radius); padding: 8px 10px; cursor: pointer; }
+.sidebar .sidebar-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 cards por linha */
+  gap: 8px;
+}
+.list-item { position: relative; text-align: left; width: 100%; border: 1px solid var(--border); background: var(--surface-secondary); color: var(--text); border-radius: var(--radius); padding: 10px 10px 8px; cursor: pointer; }
 .list-item .card-icon { width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
-.list-item .title { font-weight: 600; font-size: 13px; color: var(--text); }
-.list-item .subtitle { font-size: 12px; color: var(--text-secondary); }
+.pc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.pc-title { font-weight: 600; font-size: 13px; color: var(--text); }
+.pc-body { display: flex; flex-direction: column; gap: 4px; }
+.pc-line { display: flex; align-items: center; gap: 4px; font-size: 12px; }
+.pc-line.route { margin-top: 2px; }
+.pc-text-strong { font-weight: 600; color: var(--text); }
+.pc-icon-line { width: 16px; text-align: center; }
+.pc-text { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .list-item.selected { outline: 2px solid var(--brand-primary); border-color: var(--brand-primary); background: color-mix(in oklab, var(--brand-primary) 12%, var(--surface-secondary)); }
 .list-item.dragging { opacity: .65; }
 .list-item.drag-over { outline: 2px dashed var(--brand-primary); background: color-mix(in oklab, var(--brand-primary) 8%, var(--surface-secondary)); }
@@ -218,9 +244,10 @@
 
 .op-actions { display: flex; justify-content: flex-end; margin: 12px 0; }
 .panel .list { max-height: 560px; overflow: auto; }
+.panel.sidebar .sidebar-list { max-height: none; overflow: visible; }
 .table tr.highlight td { background: color-mix(in oklab, var(--brand-primary) 14%, var(--surface)); }
 
-/* Modal local do Controle Intenção de Viagem */
+/* Modal local do Controle de Pré-Carga */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(2px); z-index: 6000; }
 .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.98); width: 720px; max-width: 96vw; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.18); z-index: 6100; border-radius: var(--radius); transition: transform 0.15s ease; }
 .modal.vinculos-modal { width: 1040px; }
@@ -250,12 +277,53 @@
 .vinculos-left .vinculos-list::-webkit-scrollbar-thumb { background: rgba(var(--text-rgb), 0.30); border-radius: 999px; }
 .vinculos-left .vinculos-list::-webkit-scrollbar-thumb:hover { background: rgba(var(--text-rgb), 0.40); }
 .vinculos-right { min-height: 0; }
+.modal-route-summary {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-secondary);
+  font-size: 12px;
+}
+.modal-route-summary .summary-item { display: flex; gap: 4px; }
+.modal-route-summary .label { color: var(--text-secondary); }
+.modal-route-summary .value { font-weight: 700; color: var(--text); }
 .modal.vinculos-modal .modal-map-element { height: 520px; }
+.modal-map-legend {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.88);
+  color: #e5e7eb;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 5;
+  pointer-events: none;
+}
+.modal-map-legend .legend-line { display: flex; gap: 4px; }
+.modal-map-legend .label { color: #9ca3af; }
+.modal-map-legend .value { font-weight: 600; }
 
 /* Capacidade na modal de vínculos */
 .capacity-block { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
 .capacity-header { font-weight: 700; font-size: 13px; color: var(--text); }
 .capacity-meta { font-size: 12px; color: var(--text-secondary); }
+.resumo-block {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--surface) 94%, var(--brand-primary));
+  box-shadow: var(--shadow-sm);
+}
+.resumo-block .resumo-line { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); }
+.resumo-block .resumo-value { font-size: 18px; font-weight: 700; }
+.resumo-block .resumo-route { font-weight: 600; }
 .capacity-bar { height: 8px; background: var(--surface-secondary); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
 .capacity-fill { height: 100%; background: color-mix(in oklab, var(--brand-primary) 35%, var(--surface)); }
 .capacity-warning { font-size: 12px; color: var(--text-secondary); }
@@ -301,6 +369,6 @@
 .tabs { display: flex; gap: 8px; margin: 12px 0 16px; }
 .tab-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: all .15s ease-in-out; }
 .tab-btn:hover { background: var(--surface-secondary); }
-.tab-btn.active { background: var(--brand-primary); color: var(--on-primary, #fff); border-color: var(--brand-primary); }
+.tab-btn.active { background: var(--brand-primary); color: #fff; border-color: var(--brand-primary); }
 .btn-danger { background: color-mix(in oklab, var(--danger) 14%, var(--surface)); border: 1px solid color-mix(in oklab, var(--danger) 40%, var(--border)); color: var(--danger); }
 .btn-danger:hover { background: color-mix(in oklab, var(--surface) 88%, var(--danger)); }

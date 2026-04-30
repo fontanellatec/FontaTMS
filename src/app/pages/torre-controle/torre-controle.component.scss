@@ -51,9 +51,9 @@
   --chip-color: var(--brand-primary);
   padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid var(--chip-color);
+  border: 1px solid var(--brand-soft-border);
   color: var(--chip-color);
-  background: var(--surface);
+  background: var(--brand-accent);
   font-weight: 600;
   font-size: 12px;
 }
@@ -164,9 +164,9 @@
   color: var(--text);
 }
 .tab-btn.active {
-  border-color: var(--brand-primary);
-  color: var(--brand-primary);
-  background: var(--surface-2);
+  border-color: var(--brand-soft-border);
+  color: #fff;
+  background: var(--brand-accent);
 }
 
 /* KM Vazio section */
@@ -182,7 +182,7 @@
 /* Rankings */
 .kmv-ranking .table-wrapper { padding: 12px; }
 .table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.table th, .table td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+.table th, .table td { padding: 8px 10px; border-bottom: 1px solid rgba(var(--text-rgb), 0.12); text-align: left; }
 .table thead th { background: var(--surface-2); font-weight: 700; }
 .table tr.top-bad td { background: rgba(239, 68, 68, 0.06); }
 
