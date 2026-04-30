@@ -1,57 +1,57 @@
-# ERP
+# ERP - Fonta TMS
 
-Aplicacao front-end em Angular para os modulos operacionais do projeto `project-lab`.
+Aplicação front-end em Angular para os módulos operacionais do projeto.
 
-## Visao geral
+## Visão geral
 
-Este projeto foi construido com:
+Este projeto foi construído com:
 
 - `Angular 20`
 - `TypeScript`
 - `Leaflet` para mapas
-- `Karma/Jasmine` para testes unitarios
+- `Karma/Jasmine` para testes unitários
 
-## Pre-requisitos
+## Pré-requisitos
 
-Antes de instalar o projeto, garanta que sua maquina possui:
+Antes de instalar o projeto, garanta que sua máquina possui:
 
-- `Node.js` em versao compativel com Angular 20
+- `Node.js` em versão compatível com Angular 20
 - `npm` instalado
-- `Angular CLI` opcionalmente disponivel de forma global
+- `Angular CLI`(opcionalmente disponível de forma global)
 
-Sugestao de ambiente:
+Sugestão de ambiente:
 
 - `Node.js 20 LTS` ou superior
 - `npm 10` ou superior
 
-Para validar as versoes instaladas, execute:
+Para validar as versões instaladas, execute:
 
 ```bash
 node -v
 npm -v
 ```
 
-Se quiser validar tambem o Angular CLI global:
+Se quiser validar também o Angular CLI global:
 
 ```bash
 ng version
 ```
 
-## Instalacao
+## Instalação
 
-1. Clone o repositorio:
+1. Clone o repositório:
 
 ```bash
-git clone <url-do-repositorio>
+git clone <url-do-repositório>
 ```
 
 2. Acesse a pasta do projeto:
 
 ```bash
-cd project-lab
+cd fonta-tms
 ```
 
-3. Instale as dependencias:
+3. Instale as dependências:
 
 ```bash
 npm install
@@ -71,15 +71,15 @@ Esse comando executa:
 ng serve --host 0.0.0.0
 ```
 
-Depois disso, a aplicacao normalmente fica disponivel em:
+Depois disso, a aplicação normalmente fica disponível em:
 
 - `http://localhost:4200/`
 
-Como o servidor sobe com `--host 0.0.0.0`, tambem e possivel acessar pela rede local usando o IP da maquina, por exemplo:
+Como o servidor sobe com `--host 0.0.0.0`, também é possível acessar pela rede local usando o IP da máquina, por exemplo:
 
 - `http://SEU_IP_LOCAL:4200/`
 
-## Scripts disponiveis
+## Scripts disponíveis
 
 ### Iniciar ambiente de desenvolvimento
 
@@ -87,9 +87,9 @@ Como o servidor sobe com `--host 0.0.0.0`, tambem e possivel acessar pela rede l
 npm start
 ```
 
-Sobe a aplicacao em modo desenvolvimento com recarregamento automatico ao alterar os arquivos.
+Sobe a aplicação em modo desenvolvimento com recarregamento automático ao alterar os arquivos.
 
-### Build de producao
+### Build de produção
 
 ```bash
 npm run build
@@ -103,9 +103,9 @@ Gera os arquivos compilados na pasta `dist/`.
 npm run watch
 ```
 
-Mantem a compilacao ativa em modo desenvolvimento, recompilando a cada alteracao.
+Mantém a compilação ativa em modo desenvolvimento, recompilando a cada alteração.
 
-### Rodar testes unitarios
+### Rodar testes unitários
 
 ```bash
 npm test
@@ -113,37 +113,32 @@ npm test
 
 Executa os testes configurados com `Karma/Jasmine`.
 
-## Estrutura basica do projeto
+## Estrutura básica do projeto
 
-Os principais diretorios sao:
+Os principais diretórios são:
 
-- `src/app`: componentes, paginas, rotas e logica da aplicacao
-- `src/assets`: arquivos estaticos e mockups
+- `src/app`: componentes, páginas, rotas e lógica da aplicação
+- `src/assets`: arquivos estáticos e mockups
 - `src/styles.scss`: estilos globais
-- `angular.json`: configuracoes de build e serve
+- `angular.json`: configurações de build e serve
 
-## Observacoes importantes
+## Observações importantes
 
-- O projeto utiliza `Leaflet`, e os estilos/imagens necessarios ja estao configurados no `angular.json`.
+- O projeto utiliza `Leaflet`, e os estilos/imagens necessários já estão configurados no `angular.json`.
 - O servidor de desenvolvimento pode falhar se a porta `4200` estiver ocupada.
-- Se a porta estiver em uso, voce pode iniciar em outra porta com:
+- Se a porta estiver em uso, você pode iniciar em outra porta com:
 
 ```bash
 ng serve --host 0.0.0.0 --port 4300
 ```
 
-## Solucao de problemas
+## Solução de problemas
 
-### Falha ao instalar dependencias
+### Falha ao instalar dependências
 
 Remova `node_modules` e o cache local do npm, depois reinstale:
 
-```bash
-rm -rf node_modules package-lock.json
-npm install
-```
-
-No Windows PowerShell:
+**Windows (PowerShell):**
 
 ```powershell
 Remove-Item -Recurse -Force node_modules
@@ -151,23 +146,29 @@ Remove-Item package-lock.json
 npm install
 ```
 
-### Aplicacao nao abre no navegador
+**Linux/Mac:**
+
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### Aplicação não abre no navegador
 
 Verifique:
 
-- se o `npm install` foi concluido sem erros
+- se o `npm install` foi concluído sem erros
 - se o servidor foi iniciado com `npm start`
-- se a porta `4200` nao esta ocupada por outro processo
+- se a porta `4200` não está ocupada por outro processo
 
 ### Problemas com cache do navegador
 
-Se alguma alteracao visual ou de assets nao aparecer, faca um reload forcado:
+Se alguma alteração visual ou de assets não aparecer, faça um reload forçado:
 
-```text
-Ctrl + F5
-```
+- `Ctrl + F5` (Windows/Linux)
+- `Cmd + Shift + R` (Mac)
 
-## Comandos uteis do Angular CLI
+## Comandos úteis do Angular CLI
 
 Gerar um componente:
 
@@ -175,12 +176,18 @@ Gerar um componente:
 ng generate component nome-do-componente
 ```
 
-Listar opcoes do Angular CLI:
+Gerar um serviço:
+
+```bash
+ng generate service nome-do-servico
+```
+
+Listar opções do Angular CLI:
 
 ```bash
 ng generate --help
 ```
 
-## Licenca
+## Licença
 
-Definir conforme a politica do projeto.
+Definir conforme a política do projeto.

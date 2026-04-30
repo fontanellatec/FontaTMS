@@ -5,11 +5,21 @@
 /tmp
 /out-tsc
 /bazel-out
+*-golden
+bazel-*
 
 # Node
 /node_modules
-npm-debug.log
-yarn-error.log
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+package-lock.json
+yarn.lock
+
+# Environment
+.env
+.env.local
+.env.*.local
 
 # IDEs and editors
 .idea/
@@ -37,6 +47,10 @@ yarn-error.log
 testem.log
 /typings
 __screenshots__/
+
+# Cache
+.npm
+.eslintcache
 
 # System files
 .DS_Store
