@@ -1,888 +1,617 @@
-<div class="gestao-motoristas-page">
-  <div class="header">
-    <h3>Gestão de Motoristas</h3>
-    <span class="muted">Configuração, cadastro e políticas</span>
-  </div>
+<div class="page-container">
 
-  
+  <!-- Botão Novo Motorista (fora das seções) -->
+  <button class="novo-colaborador-btn" [routerLink]="['/gestao-motoristas/novo']">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M20 8v6"/>
+      <path d="M23 11h-6"/>
+    </svg>
+    Novo Motorista
+  </button>
 
-  <!-- Tabs de gestão -->
-  <div class="tabs card">
-    <button class="tab" [class.active]="tab==='cadastro'" (click)="tab='cadastro'" aria-label="Cadastro">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <rect x="3" y="5" width="18" height="14" rx="2" />
-        <path d="M7 9h6" />
-        <path d="M7 13h10" />
-      </svg>
-      <span>Cadastro</span>
-    </button>
-    <button class="tab" [class.active]="tab === 'equipes'" (click)="tab='equipes'" aria-label="Equipes">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="8" cy="9" r="3" />
-        <circle cx="16" cy="9" r="3" />
-        <path d="M4 20c0-3 4-5 8-5" />
-        <path d="M12 15c4 0 8 2 8 5" />
-      </svg>
-      <span>Equipes</span>
-    </button>
-    <button class="tab" [class.active]="tab === 'politicas'" (click)="tab='politicas'" aria-label="Políticas">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M12 3l8 4v5c0 5-4 9-8 9s-8-4-8-9V7l8-4z" />
-        <path d="M9 12l2 2 4-4" />
-      </svg>
-      <span>Políticas</span>
-    </button>
-  </div>
+  <!-- Seção de Filtros (substituída pelo componente padronizado) -->
+  <app-filter-section
+    title="Filtros"
+    [filters]="filtersConfig"
+    [(collapsed)]="filtersCollapsed"
+    [showActionButtons]="true"
+    (filtersChange)="onFiltersChange($event)"
+    (applyFilters)="filtrar()"
+    (clearFilters)="clearFilters()">
+  </app-filter-section>
 
-  <!-- CADASTRO -->
-  <div *ngIf="tab === 'cadastro'">
-    <!-- Seção de Filtros -->
-    <section class="filters-section">
-      <div class="filters" [class.collapsed]="filtersCollapsed">
-        <div class="filters-header">
-          <h4>Filtros</h4>
-          <button class="toggle-btn" (click)="toggleFilters()" [attr.aria-label]="filtersCollapsed ? 'Expandir filtros' : 'Recolher filtros'">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path [attr.d]="filtersCollapsed ? 'M6 9l6 6 6-6' : 'M18 15l-6-6-6 6'"></path>
-            </svg>
-          </button>
-        </div>
-        <div class="filters-container" [class.hidden]="filtersCollapsed">
-          <div class="filters-grid">
-            <label class="filter">
-              <span>Buscar motorista</span>
-              <div class="input-with-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <path d="m21 21-4.35-4.35"></path>
-                </svg>
-                <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChanged()" placeholder="Nome, CPF ou código...">
-                <button *ngIf="searchTerm" class="clear-btn" (click)="clearSearch()" title="Limpar busca">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              </div>
-            </label>
-            <label class="filter">
-              <span>Categoria</span>
-              <select [(ngModel)]="cadCategoriaFilter" (ngModelChange)="onCadFiltersChanged()">
-                <option value="Todas">Todas</option>
-                <option *ngFor="let c of categorias" [value]="c">{{ c }}</option>
-              </select>
-            </label>
-            <label class="filter">
-              <span>Situação</span>
-              <select [(ngModel)]="cadSituacaoFilter" (ngModelChange)="onCadFiltersChanged()">
-                <option value="Todas">Todas</option>
-                <option *ngFor="let s of situacaoOptions" [value]="s">{{ s }}</option>
-              </select>
-            </label>
-            <label class="filter">
-              <span>Status</span>
-              <select [(ngModel)]="cadStatusFilter" (ngModelChange)="onCadFiltersChanged()">
-                <option value="Todos">Todos</option>
-                <option *ngFor="let st of driverStatuses" [value]="st">{{ st }}</option>
-              </select>
-            </label>
-            <label class="filter">
-              <span>Bloqueio</span>
-              <select [(ngModel)]="cadBloqueioFilter" (ngModelChange)="onCadFiltersChanged()">
-                <option value="Todos">Todos</option>
-                <option value="Sim">Sim</option>
-                <option value="Não">Não</option>
-              </select>
-            </label>
-            <label class="filter">
-              <span>Férias Programada</span>
-              <select [(ngModel)]="cadFeriasFilter" (ngModelChange)="onCadFiltersChanged()">
-                <option value="Todos">Todos</option>
-                <option value="Sim">Sim</option>
-                <option value="Não">Não</option>
-              </select>
-            </label>
-          </div>
-          <div class="actions">
-            <button class="btn" (click)="clearFilters()" title="Limpar filtros">Limpar</button>
-            <div class="action-icons">
-              <!-- Nova Categoria -->
-              <button class="icon-btn" data-tooltip="Nova categoria" (click)="openCategoryModal()" aria-label="Nova categoria">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M20 7v6" />
-                  <path d="M23 10h-6" />
-                  <path d="M3 7h13l-2.5 8.5a2 2 0 0 1-1.9 1.5H5.4A2 2 0 0 1 3.5 16L2 7z" />
-                </svg>
-              </button>
-              <!-- Nova Situação -->
-              <button class="icon-btn" data-tooltip="Nova situação" (click)="openSituacaoModal()" aria-label="Nova situação">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M4 4h14l-4 4 4 4H4z" />
-                  <path d="M4 20v-8" />
-                </svg>
-              </button>
-              <!-- Novo Motorista -->
-              <button class="icon-btn primary" data-tooltip="Novo motorista" (click)="openNewDriver()" aria-label="Novo motorista">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M16 21v-6" />
-                  <path d="M13 18h6" />
-                  <circle cx="8" cy="7" r="4" />
-                  <path d="M2 21a6 6 0 0 1 12 0" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+  <!-- Seção de KPIs (substituída pelo componente padronizado) -->
+  <app-kpi-section
+    title="Métricas dos Motoristas"
+    [kpis]="getMotoristasKpis()"
+    [(collapsed)]="kpisCollapsed">
+  </app-kpi-section>
 
-    <!-- Seção de KPIs -->
-    <section class="kpi-section">
-      <div class="kpi-header">
-        <h4>Métricas</h4>
-        <button class="toggle-btn" (click)="toggleKpis()" [attr.aria-label]="kpisCollapsed ? 'Expandir métricas' : 'Recolher métricas'">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path [attr.d]="kpisCollapsed ? 'M6 9l6 6 6-6' : 'M18 15l-6-6-6 6'"></path>
-          </svg>
-        </button>
-      </div>
-      <div class="metrics-grid" [class.hidden]="kpisCollapsed">
-      <div class="metric-card">
-        <div class="metric-header">
-          <span>Motoristas Ativos</span>
-          <span class="metric-icon">👥</span>
-        </div>
-        <div class="metric-value">{{ activeCount }}</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-header">
-          <span>Trabalhando</span>
-          <span class="metric-icon">🧑‍🔧</span>
-        </div>
-        <div class="metric-value">{{ workingCount }}</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-header">
-          <span>Afastados</span>
-          <span class="metric-icon">🩺</span>
-        </div>
-        <div class="metric-value">{{ afastadosCount }}</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-header">
-          <span>Novos Motoristas</span>
-          <span class="metric-icon">✨</span>
-        </div>
-        <div class="metric-value">{{ newDriversCount }}</div>
-      </div>
-      </div>
-    </section>
+  <!-- Grid padronizado de Motoristas -->
+  <!-- Templates para colunas com switch (Status e Bloqueio) -->
+  <ng-template #nomeTpl let-row>
+    <a href="#" class="driver-name-link" (click)="openProfile(row); $event.preventDefault()" aria-label="Abrir ficha do motorista">
+      {{ row.nome }}
+    </a>
+  </ng-template>
 
-    <!-- Seção da Tabela de Motoristas -->
-    <section class="drivers-table-section">
-    <div class="table card list-card">
-      <div class="row header">
-        <div class="sortable" (click)="setSort('codigo')">Código <span class="sort-arrow" *ngIf="sortKey==='codigo'">{{ sortDir === 'asc' ? '▲' : '▼' }}</span></div>
-        <div class="sortable" (click)="setSort('nome')">Nome <span class="sort-arrow" *ngIf="sortKey==='nome'">{{ sortDir === 'asc' ? '▲' : '▼' }}</span></div>
-        <div class="sortable" (click)="setSort('cpf')">CPF <span class="sort-arrow" *ngIf="sortKey==='cpf'">{{ sortDir === 'asc' ? '▲' : '▼' }}</span></div>
-        <div class="sortable" (click)="setSort('categoria')">Categoria <span class="sort-arrow" *ngIf="sortKey==='categoria'">{{ sortDir === 'asc' ? '▲' : '▼' }}</span></div>
-        <div class="sortable" (click)="setSort('situacao')">Situação <span class="sort-arrow" *ngIf="sortKey==='situacao'">{{ sortDir === 'asc' ? '▲' : '▼' }}</span></div>
-        <div class="sortable" (click)="setSort('gestor')">Gestor <span class="sort-arrow" *ngIf="sortKey==='gestor'">{{ sortDir === 'asc' ? '▲' : '▼' }}</span></div>
-        <div>Status</div>
-        <div>Bloqueio</div>
-        <div class="col-actions">Ações</div>
-      </div>
-      <div class="table-body">
-        <div class="row" *ngFor="let d of pagedDrivers">
-          <div>{{ d.codigo }}</div>
-          <div>{{ d.nome }}</div>
-          <div>{{ d.cpf }}</div>
-          <div>{{ d.categoria }}</div>
-          <div>{{ d.situacao }}</div>
-          <div>{{ d.gestor || '—' }}</div>
-          <div class="status-cell">
-            <label class="switch" [class.red]="d.status === 'Inativo'">
-              <input type="checkbox" [checked]="d.status==='Ativo'" (change)="toggleStatus(d)" />
-              <span class="slider"></span>
-            </label>
-            <span class="status-text" [class]="getStatusClass(d.status)">{{ d.status }}</span>
-          </div>
-          <div class="status-cell">
-            <label class="switch" [class.red]="d.bloqueado" aria-label="Alternar bloqueio">
-              <input type="checkbox" [checked]="d.bloqueado" (change)="toggleBloqueio(d)" />
-              <span class="slider"></span>
-            </label>
-            <span class="muted" [class.text-danger]="d.bloqueado" style="font-size:12px;">{{ d.bloqueado ? 'Sim' : 'Não' }}</span>
-          </div>
-          <div class="actions-cell col-actions">
-            <button class="icon-btn sm" data-tooltip="Editar" aria-label="Editar" (click)="openEditDriver(d)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 17.25V21h3.75L17 10.75l-3.75-3.75L3 17.25z" />
-                <path d="M14.25 7l3.75 3.75" />
-              </svg>
-            </button>
-            <button class="icon-btn sm" data-tooltip="Ações" aria-label="Ações" (click)="openDriverActions(d)">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <circle cx="6" cy="12" r="1.6" />
-                <circle cx="12" cy="12" r="1.6" />
-                <circle cx="18" cy="12" r="1.6" />
-              </svg>
-            </button>
-            <button class="icon-btn sm" data-tooltip="Remover" aria-label="Remover" (click)="deleteDriver(d)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 6h18" />
-                <path d="M8 6V4h8v2" />
-                <path d="M19 6l-1 14H6L5 6" />
-                <path d="M10 11v6" />
-                <path d="M14 11v6" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div class="row empty" *ngIf="filteredDrivers.length === 0">
-          <div class="muted">Nenhum motorista encontrado.</div>
-        </div>
-      </div>
-      <div class="table-footer">
-        <div class="footer-left">
-          <span class="muted">Página {{ page }} de {{ pageCount }}</span>
-          <span class="muted">• Mostrando {{ (page-1)*pageSize + 1 }}–{{ Math.min(page*pageSize, filteredDrivers.length) }} de {{ filteredDrivers.length }}</span>
-        </div>
-        <div class="footer-right">
-          <label class="page-size">
-            <span>Tamanho</span>
-            <select [(ngModel)]="pageSize" (ngModelChange)="setPageSize($event)">
-              <option *ngFor="let s of pageSizeOptions" [value]="s">{{ s }}</option>
-            </select>
-          </label>
-          <button class="btn sm" (click)="prevPage()" [disabled]="page<=1">Anterior</button>
-          <button class="btn sm" (click)="nextPage()" [disabled]="page>=pageCount">Próxima</button>
-        </div>
-      </div>
+  <ng-template #categoriaTpl let-row>
+    <span>{{ getShortCategory(row.categoria) }}</span>
+  </ng-template>
+
+  <ng-template #statusTpl let-row>
+    <div class="switch-cell">
+      <button type="button"
+              class="switch status"
+              [class.on]="row.status === 'Ativo'"
+              [class.off]="row.status !== 'Ativo'"
+              (click)="toggleStatus(row)"
+              aria-label="Alternar status">
+      </button>
+      <span class="status-text"
+            [class.ativo]="row.status === 'Ativo'"
+            [class.inativo]="row.status === 'Inativo'">
+        {{ row.status }}
+      </span>
     </div>
-    </section>
-  </div>
+  </ng-template>
 
-  <!-- EQUIPES -->
-  <div *ngIf="tab === 'equipes'">
-    <div class="card">
+  <ng-template #bloqueioTpl let-row>
+    <div class="switch-cell">
+      <button type="button"
+              class="switch bloqueio"
+              [class.on]="row.bloqueado"
+              [class.off]="!row.bloqueado"
+              (click)="toggleBloqueio(row)"
+              aria-label="Alternar bloqueio">
+      </button>
+      <span class="bloqueio-text"
+            [class.sim]="row.bloqueado"
+            [class.nao]="!row.bloqueado">
+        {{ row.bloqueado ? 'Sim' : 'Não' }}
+      </span>
+    </div>
+  </ng-template>
+
+  <app-grid-section
+    title="Lista de Motoristas"
+    [columns]="gridColumns"
+    [rows]="filteredDrivers"
+    [(collapsed)]="gridCollapsed"
+    [showActions]="true"
+    [actions]="gridActions"
+    [page]="page"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="pageSizeOptions"
+    [horizontalScroll]="false"
+    [verticalScroll]="true"
+    [bodyMaxHeight]="560"
+    (sortChange)="onGridSort($event)"
+    (pageChange)="page = $event"
+    (pageSizeChange)="pageSize = $event"
+    (rowClick)="openDriverActions($event)"
+    (actionClick)="onGridAction($event)">
+  </app-grid-section>
+
+  <!-- Modal: Confirmação de alteração de Status -->
+  <ng-template #statusConfirmTpl>
+    <div class="modal-section">
+      <p class="modal-intro">
+        Tem certeza que deseja alterar o status de
+        <strong>{{ pendingStatusDriver?.nome }}</strong> para
+        <strong>{{ pendingStatusDriver?.status === 'Ativo' ? 'Inativo' : 'Ativo' }}</strong>?
+      </p>
+      <p class="modal-helper">Esta ação será registrada no histórico do motorista.</p>
+    </div>
+  </ng-template>
+
+  <app-tab-modal
+    [title]="'Confirmar alteração de Status'"
+    [open]="statusConfirmModalOpen"
+    (openChange)="statusConfirmModalOpen = $event"
+    size="sm"
+    [tabs]="[{ id: 'content', label: 'Confirmação', template: statusConfirmTpl }]">
+    <div modal-actions>
+      <button class="btn btn-secondary" (click)="closeStatusConfirmModal()">Cancelar</button>
+      <button class="btn btn-primary" (click)="confirmStatusChange()">Confirmar</button>
+    </div>
+  </app-tab-modal>
+
+  <!-- Modal: Justificativa para Bloqueio/Desbloqueio -->
+  <ng-template #blockJustTpl>
+    <div class="modal-section">
+      <p class="modal-title-inline">
+        Informe a justificativa para
+        {{ pendingBlockAction === 'unblock' ? 'desbloqueio' : 'bloqueio' }} de
+        <strong>{{ pendingBlockDriver?.nome }}</strong>.
+      </p>
+
+      <app-justification-field
+        [(ngModel)]="justificationText"
+        [config]="justificationConfig">
+      </app-justification-field>
+    </div>
+  </ng-template>
+
+  <app-tab-modal
+    [title]="pendingBlockAction === 'unblock' ? 'Desbloquear Motorista' : 'Bloquear Motorista'"
+    [open]="blockJustificationModalOpen"
+    (openChange)="blockJustificationModalOpen = $event"
+    size="md"
+    [tabs]="[{ id: 'content', label: 'Justificativa', template: blockJustTpl }]">
+    <div modal-actions>
+      <button class="btn btn-secondary" (click)="closeBlockJustificationModal()">Cancelar</button>
+      <button class="btn btn-primary" (click)="confirmBlockChange()" [disabled]="!justificationText.trim()">Salvar</button>
+    </div>
+  </app-tab-modal>
+
+  <!-- Modal: Ações do Motorista (5 abas padrão) -->
+  <ng-template #riscoTpl>
+    <div class="modal-section">
+      <p class="modal-title-inline">Análise de Risco de <strong>{{ activeDriver?.nome }}</strong></p>
       <div class="form-grid">
         <label>
-          <span>Nome da equipe</span>
-          <input [(ngModel)]="newTeamName" placeholder="Ex: Equipe Norte" />
-        </label>
-        <label>
-          <span>Descrição (opcional)</span>
-          <input [(ngModel)]="newTeamDesc" placeholder="Ex: Cobertura de rotas do Norte" />
-        </label>
-        <div class="actions align-end">
-          <button class="btn" (click)="addTeam()">Adicionar equipe</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="table card">
-      <div class="row header">
-        <div>Equipe</div>
-        <div>Descrição</div>
-        <div class="col-actions">Ações</div>
-      </div>
-      <div class="row" *ngFor="let t of teams">
-        <div>{{ t.nome }}</div>
-        <div>{{ t.descricao || '—' }}</div>
-        <div>
-          <button class="btn sm danger" (click)="removeTeam(t)">Remover</button>
-        </div>
-      </div>
-      <div class="row empty" *ngIf="teams.length === 0">
-        <div class="muted">Nenhuma equipe cadastrada.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- POLÍTICAS -->
-  <div *ngIf="tab === 'politicas'">
-    <div class="card">
-      <div class="form-grid">
-        <label class="toggle">
-          <input type="checkbox" [(ngModel)]="policies.obrigarCnhValida" (ngModelChange)="onPoliciesChange()" />
-          <span>Obrigar CNH válida</span>
-        </label>
-        <label class="toggle">
-          <input type="checkbox" [(ngModel)]="policies.bloquearSemTreinamento" (ngModelChange)="onPoliciesChange()" />
-          <span>Bloquear sem treinamento atualizado</span>
-        </label>
-        <label>
-          <span>Máx. horas em rota</span>
-          <input type="number" min="0" [(ngModel)]="policies.maxHorasRota" (ngModelChange)="onPoliciesChange()" />
-        </label>
-        <label>
-          <span>Intervalo mínimo de descanso (h)</span>
-          <input type="number" min="0" [(ngModel)]="policies.intervaloMinDescanso" (ngModelChange)="onPoliciesChange()" />
-        </label>
-      </div>
-      <div class="muted" style="margin-top:8px; font-size:12px;">As políticas são salvas automaticamente.</div>
-    </div>
-  </div>
-
-  
-</div>
-
-<!-- Modal: criar/editar motorista -->
-<div class="modal-overlay" *ngIf="driverModalOpen" (click)="closeDriverModal()"></div>
-<div class="modal" *ngIf="driverModalOpen" [class.open]="driverModalOpen">
-  <div class="modal-header">
-    <h4>{{ isEditing ? 'Editar motorista' : 'Novo motorista' }}</h4>
-    <button class="icon" (click)="closeDriverModal()">✕</button>
-  </div>
-  <div class="modal-body" *ngIf="driverForm as f">
-    <div class="form-grid">
-      <label>
-        <span>Nome</span>
-        <input [(ngModel)]="f.nome" placeholder="Nome completo" />
-      </label>
-      <label>
-        <span>CPF</span>
-        <input [(ngModel)]="f.cpf" placeholder="000.000.000-00" />
-      </label>
-      <label>
-        <span>CNH</span>
-        <input [(ngModel)]="f.cnh" placeholder="Número da CNH" />
-      </label>
-      <label>
-        <span>Validade CNH</span>
-        <input type="date" [(ngModel)]="f.cnhValidade" />
-      </label>
-      <label>
-        <span>Equipe</span>
-        <select [(ngModel)]="f.equipe">
-          <option value="">—</option>
-          <option *ngFor="let e of equipeOptions" [value]="e">{{ e }}</option>
-        </select>
-      </label>
-      <label>
-        <span>Categoria</span>
-        <select [(ngModel)]="f.categoria">
-          <option *ngFor="let c of categoriaOptions" [value]="c">{{ c }}</option>
-        </select>
-      </label>
-      <label>
-        <span>Situação</span>
-        <select [(ngModel)]="f.situacao">
-          <option *ngFor="let s of situacaoOptions" [value]="s">{{ s }}</option>
-        </select>
-      </label>
-      <label>
-        <span>Status</span>
-        <select [(ngModel)]="f.status">
-          <option *ngFor="let st of driverStatuses" [value]="st">{{ st }}</option>
-        </select>
-      </label>
-      <label>
-        <span>Telefone</span>
-        <input [(ngModel)]="f.telefone" placeholder="(00) 00000-0000" />
-      </label>
-      <label>
-        <span>Email</span>
-        <input [(ngModel)]="f.email" type="email" placeholder="email@exemplo.com" />
-      </label>
-    </div>
-  </div>
-  <div class="modal-actions">
-    <button class="btn" (click)="closeDriverModal()">Cancelar</button>
-    <button class="btn btn-primary" (click)="saveDriver()" [disabled]="!canSaveDriver">Salvar</button>
-  </div>
-</div>
-
-<!-- Modal: Ações do Motorista -->
-<div class="modal-overlay" *ngIf="driverActionsOpen" (click)="closeDriverActions()"></div>
-<div class="modal" *ngIf="driverActionsOpen" [class.open]="driverActionsOpen">
-  <div class="modal-header">
-    <h4>Ações do Motorista</h4>
-    <button class="icon" (click)="closeDriverActions()">✕</button>
-  </div>
-  <div class="modal-body" *ngIf="activeDriver as drv">
-    <div class="muted" style="margin-bottom:8px;">Motorista: {{ drv.nome }}</div>
-    <div class="actions-tabs segmented" role="tablist" aria-label="Ações do motorista">
-      <button class="segmented-btn" [class.active]="actionsTab==='risco'" (click)="actionsTab='risco'" role="tab" [attr.aria-selected]="actionsTab==='risco'" id="actions-tab-risco" aria-controls="actions-panel-risco">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 3l7 4v5c0 5-3.5 9-7 10-3.5-1-7-5-7-10V7l7-4z" />
-          <path d="M9 12l2 2 4-4" />
-        </svg>
-        <span class="label">Risco</span>
-      </button>
-      <button class="segmented-btn" [class.active]="actionsTab==='registro'" (click)="actionsTab='registro'" role="tab" [attr.aria-selected]="actionsTab==='registro'" id="actions-tab-registro" aria-controls="actions-panel-registro">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M6 3h9l4 4v14H6z" />
-          <path d="M9 8h6" />
-          <path d="M9 12h8" />
-        </svg>
-        <span class="label">Registro</span>
-      </button>
-      <button class="segmented-btn" [class.active]="actionsTab==='exame'" (click)="actionsTab='exame'" role="tab" [attr.aria-selected]="actionsTab==='exame'" id="actions-tab-exame" aria-controls="actions-panel-exame">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="6" y="7" width="12" height="13" rx="2" />
-          <path d="M9 5h6" />
-          <path d="M10 12l2 2 3-3" />
-        </svg>
-        <span class="label">Exame</span>
-      </button>
-      <button class="segmented-btn" [class.active]="actionsTab==='anexo'" (click)="actionsTab='anexo'" role="tab" [attr.aria-selected]="actionsTab==='anexo'" id="actions-tab-anexo" aria-controls="actions-panel-anexo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M8 13l6-6a3 3 0 014.2 4.2l-7 7a5 5 0 01-7-7l7-7" />
-        </svg>
-        <span class="label">Anexo</span>
-      </button>
-      <button class="segmented-btn" [class.active]="actionsTab==='ferias'" (click)="actionsTab='ferias'" role="tab" [attr.aria-selected]="actionsTab==='ferias'" id="actions-tab-ferias" aria-controls="actions-panel-ferias">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="3" y="5" width="18" height="16" rx="2" />
-          <path d="M8 3v4" />
-          <path d="M16 3v4" />
-          <path d="M3 9h18" />
-        </svg>
-        <span class="label">Férias</span>
-      </button>
-      <button class="segmented-btn" [class.active]="actionsTab==='diaria'" (click)="actionsTab='diaria'" role="tab" [attr.aria-selected]="actionsTab==='diaria'" id="actions-tab-diaria" aria-controls="actions-panel-diaria">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="4" y="4" width="16" height="16" rx="2" />
-          <path d="M8 10h8" />
-          <path d="M8 14h6" />
-        </svg>
-        <span class="label">Diárias</span>
-      </button>
-      <button class="segmented-btn" [class.active]="actionsTab==='desconto'" (click)="actionsTab='desconto'" role="tab" [attr.aria-selected]="actionsTab==='desconto'" id="actions-tab-desconto" aria-controls="actions-panel-desconto">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="8" cy="8" r="3" />
-          <path d="M16 16l-8-8" />
-          <rect x="13" y="13" width="8" height="8" rx="2" />
-        </svg>
-        <span class="label">Descontos</span>
-      </button>
-    </div>
-
-    <!-- Abas conteudo -->
-    <div *ngIf="actionsTab==='risco'" role="tabpanel" id="actions-panel-risco" aria-labelledby="actions-tab-risco">
-      <div class="form-grid">
-        <label>
-          <span>Seguradora</span>
-          <select [(ngModel)]="riskForm.seguradora">
+          Seguradora
+          <select class="pv-input" [(ngModel)]="riskForm.seguradora">
             <option *ngFor="let s of seguradoras" [value]="s">{{ s }}</option>
           </select>
         </label>
         <label>
-          <span>Data Consulta</span>
-          <input type="date" [(ngModel)]="riskForm.dataConsulta" />
+          Pontuação
+          <input class="pv-input" type="number" [(ngModel)]="riskForm.pontuacao" />
         </label>
         <label>
-          <span>Data Vencimento</span>
-          <input type="date" [(ngModel)]="riskForm.dataVencimento" />
+          Data da Consulta
+          <input class="pv-input" type="date" [(ngModel)]="riskForm.dataConsulta" />
         </label>
         <label>
-          <span>Pontuação</span>
-          <input type="number" min="0" [(ngModel)]="riskForm.pontuacao" />
+          Vencimento
+          <input class="pv-input" type="date" [(ngModel)]="riskForm.dataVencimento" />
         </label>
-      </div>
-      <div class="muted sm" style="margin-top:8px;">Lançamentos anteriores</div>
-      <div class="card" *ngIf="(riskByDriver[drv.id] || []).length === 0">
-        <div class="muted">Nenhum lançamento até o momento.</div>
-      </div>
-      <div class="card" *ngFor="let r of (riskByDriver[drv.id] || [])">
-        <div>{{ r.seguradora }} • Consulta {{ r.dataConsulta || '—' }} • Vencimento {{ r.dataVencimento || '—' }} • Pontuação {{ r.pontuacao }}</div>
       </div>
     </div>
-    <div *ngIf="actionsTab==='registro'" role="tabpanel" id="actions-panel-registro" aria-labelledby="actions-tab-registro">
-      <div class="form-grid">
-        <label class="grow">
-          <span>Observação</span>
-          <input [(ngModel)]="registroForm.observacao" placeholder="Observação ou anotação" />
-        </label>
-      </div>
-      <div class="muted sm" style="margin-top:8px;">Lançamentos anteriores</div>
-      <div class="card" *ngIf="!(registroByDriver[drv.id]?.length)">
-        <div class="muted">Nenhum lançamento até o momento.</div>
-      </div>
-      <div class="card" *ngFor="let r of (registroByDriver[drv.id] || [])">
-        <div>{{ r.observacao || '—' }} • {{ r.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+
+    <div class="modal-section">
+      <p class="modal-title-inline">Lançamentos anteriores</p>
+      <div *ngIf="activeDriver">
+        <div *ngIf="(riskByDriver[activeDriver.id] || []).length === 0">
+          <span class="muted">Nenhuma análise registrada ainda.</span>
+        </div>
+        <table *ngIf="(riskByDriver[activeDriver.id] || []).length > 0">
+          <thead>
+            <tr>
+              <th>Seguradora</th>
+              <th>Consulta</th>
+              <th>Vencimento</th>
+              <th>Pontuação</th>
+              <th>Registrado em</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of riskByDriver[activeDriver.id]">
+              <td>{{ r.seguradora }}</td>
+              <td>{{ formatDate(r.dataConsulta) }}</td>
+              <td>{{ formatDate(r.dataVencimento) }}</td>
+              <td>{{ r.pontuacao }}</td>
+              <td>{{ formatDate(r.createdAt) }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
-    <div *ngIf="actionsTab==='exame'" role="tabpanel" id="actions-panel-exame" aria-labelledby="actions-tab-exame">
-      <div class="form-grid">
+  </ng-template>
+
+  <ng-template #registroTpl>
+    <div class="modal-section">
+      <p class="modal-title-inline">Registro Motorista - <strong>{{ activeDriver?.nome }}</strong></p>
+      <div class="form-grid cols-3">
         <label>
-          <span>Tipo</span>
-          <select [(ngModel)]="exameForm.tipo">
+          Situação Motorista
+          <select class="pv-input" [(ngModel)]="registroForm.situacao">
+            <option *ngFor="let s of situacoes" [value]="s">{{ s }}</option>
+          </select>
+        </label>
+        <label>
+          Data Início
+          <input class="pv-input" type="date" [(ngModel)]="registroForm.inicio" />
+        </label>
+        <label>
+          Data Fim
+          <input class="pv-input" type="date" [(ngModel)]="registroForm.fim" />
+        </label>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <p class="modal-title-inline">Lançamentos anteriores</p>
+      <div *ngIf="activeDriver">
+        <div *ngIf="(registroByDriver[activeDriver.id] || []).length === 0">
+          <span class="muted">Nenhum registro encontrado.</span>
+        </div>
+        <table *ngIf="(registroByDriver[activeDriver.id] || []).length > 0">
+          <thead>
+            <tr>
+              <th>Situação</th>
+              <th>Início</th>
+              <th>Fim</th>
+              <th>Registrado em</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of registroByDriver[activeDriver.id]">
+              <td>{{ r.situacao }}</td>
+              <td>{{ formatDate(r.inicio) }}</td>
+              <td>{{ formatDate(r.fim) }}</td>
+              <td>{{ formatDate(r.createdAt) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #exameTpl>
+    <div class="modal-section">
+      <p class="modal-title-inline">Controle de Exame - <strong>{{ activeDriver?.nome }}</strong></p>
+      <div class="form-grid cols-3">
+        <label>
+          Data
+          <input class="pv-input" type="date" [(ngModel)]="exameForm.data" />
+        </label>
+        <label>
+          Exame
+          <select class="pv-input" [(ngModel)]="exameForm.exame">
+            <option value="Toxicológico">Toxicológico</option>
             <option value="Periódico">Periódico</option>
             <option value="Admissional">Admissional</option>
             <option value="Demissional">Demissional</option>
+            <option value="Retorno">Retorno</option>
           </select>
         </label>
         <label>
-          <span>Data Consulta</span>
-          <input type="date" [(ngModel)]="exameForm.dataConsulta" />
-        </label>
-        <label>
-          <span>Data Vencimento</span>
-          <input type="date" [(ngModel)]="exameForm.dataVencimento" />
-        </label>
-      </div>
-      <div class="muted sm" style="margin-top:8px;">Lançamentos anteriores</div>
-      <div class="card" *ngIf="!(exameByDriver[drv.id]?.length)">
-        <div class="muted">Nenhum lançamento até o momento.</div>
-      </div>
-      <div class="card" *ngFor="let r of (exameByDriver[drv.id] || [])">
-        <div>{{ r.tipo }} • Consulta {{ r.dataConsulta || '—' }} • Vence {{ r.dataVencimento || '—' }}</div>
-      </div>
-    </div>
-    <div *ngIf="actionsTab==='anexo'" role="tabpanel" id="actions-panel-anexo" aria-labelledby="actions-tab-anexo">
-      <div class="form-grid">
-        <label class="grow">
-          <span>Descrição</span>
-          <input [(ngModel)]="anexoForm.descricao" placeholder="Ex: Termo de confidencialidade" />
-        </label>
-        <label class="grow">
-          <span>URL</span>
-          <input [(ngModel)]="anexoForm.url" placeholder="https://..." />
-        </label>
-      </div>
-      <div class="muted sm" style="margin-top:8px;">Lançamentos anteriores</div>
-      <div class="card" *ngIf="!(anexoByDriver[drv.id]?.length)">
-        <div class="muted">Nenhum lançamento até o momento.</div>
-      </div>
-      <div class="card" *ngFor="let r of (anexoByDriver[drv.id] || [])">
-        <div>{{ r.descricao || '—' }} • {{ r.url || '—' }}</div>
-      </div>
-    </div>
-    <div *ngIf="actionsTab==='ferias'" role="tabpanel" id="actions-panel-ferias" aria-labelledby="actions-tab-ferias">
-      <div class="form-grid">
-        <label>
-          <span>Início</span>
-          <input type="date" [(ngModel)]="feriasForm.inicio" />
-        </label>
-        <label>
-          <span>Fim</span>
-          <input type="date" [(ngModel)]="feriasForm.fim" />
-        </label>
-        <label class="grow">
-          <span>Observação</span>
-          <input [(ngModel)]="feriasForm.observacao" placeholder="Observação" />
-        </label>
-      </div>
-      <div class="muted sm" style="margin-top:8px;">Lançamentos anteriores</div>
-      <div class="card" *ngIf="!(feriasByDriver[drv.id]?.length)">
-        <div class="muted">Nenhum lançamento até o momento.</div>
-      </div>
-      <div class="card" *ngFor="let r of (feriasByDriver[drv.id] || [])">
-        <div>De {{ r.inicio || '—' }} até {{ r.fim || '—' }} • {{ r.observacao || '—' }}</div>
-      </div>
-    </div>
-    <div *ngIf="actionsTab==='diaria'" role="tabpanel" id="actions-panel-diaria" aria-labelledby="actions-tab-diaria">
-      <div class="form-grid">
-        <label>
-          <span>Data</span>
-          <input type="date" [(ngModel)]="diariaForm.data" />
-        </label>
-      </div>
-      <div class="form-grid">
-        <label>
-          <span>Data Diária</span>
-          <input type="date" [(ngModel)]="diariaForm.diariaInicio" />
-        </label>
-        <label>
-          <span>Data Diária (Fim)</span>
-          <input type="date" [(ngModel)]="diariaForm.diariaFim" />
-        </label>
-      </div>
-      <div class="form-grid">
-        <label>
-          <span>Data Vencimento</span>
-          <input type="date" [(ngModel)]="diariaForm.vencimento" />
-        </label>
-      </div>
-      <div class="form-grid">
-        <label>
-          <span>Valor Diária</span>
-          <input type="number" step="0.01" [(ngModel)]="diariaForm.valor" />
-        </label>
-        <label>
-          <span>Tipo Pagamento</span>
-          <select [(ngModel)]="diariaForm.tipoPagamento">
-            <option *ngFor="let tp of tipoPagamentoOptions" [value]="tp">{{ tp }}</option>
+          Resultado
+          <select class="pv-input" [(ngModel)]="exameForm.resultado">
+            <option value="Aguardando Resultado">Aguardando Resultado</option>
+            <option value="Positivo">Positivo</option>
+            <option value="Negativo">Negativo</option>
           </select>
         </label>
       </div>
-      <div class="form-grid">
-        <label class="grow">
-          <span>Observação</span>
-          <textarea [(ngModel)]="diariaForm.observacao" rows="3" placeholder="Observação"></textarea>
-        </label>
-      </div>
-      <div class="muted sm" style="margin-top:8px;">Lançamentos anteriores</div>
-      <div class="card" *ngIf="!(diariaByDriver[drv.id]?.length)">
-        <div class="muted">Nenhum lançamento até o momento.</div>
-      </div>
-      <div class="card" *ngFor="let r of (diariaByDriver[drv.id] || [])">
-        <div>
-          {{ r.data || '—' }} • {{ r.diariaInicio || '—' }} à {{ r.diariaFim || '—' }} • Vence {{ r.vencimento || '—' }} • Valor {{ r.valor | number:'1.2-2' }} • {{ r.tipoPagamento }}
-        </div>
-        <div class="muted">{{ r.observacao || '—' }}</div>
-      </div>
+      <label>
+        Observação
+        <textarea class="pv-input" rows="3" [(ngModel)]="exameForm.observacao" placeholder="Observações do exame"></textarea>
+      </label>
     </div>
-    <div *ngIf="actionsTab==='desconto'" role="tabpanel" id="actions-panel-desconto" aria-labelledby="actions-tab-desconto">
+
+    <div class="modal-section" *ngIf="exameForm.resultado === 'Positivo'">
       <div class="form-grid">
         <label>
-          <span>Data</span>
-          <input type="date" [(ngModel)]="descontoForm.data" />
+          Validade
+          <input class="pv-input" type="date" [(ngModel)]="exameForm.validade" />
+        </label>
+        <label class="grow">
+          Substâncias
+          <div class="inline" style="gap:8px; flex-wrap: wrap;">
+            <label class="checkbox"><input type="checkbox" [(ngModel)]="exameForm.substanciasMap.anfetamina" /> Anfetamina</label>
+            <label class="checkbox"><input type="checkbox" [(ngModel)]="exameForm.substanciasMap.cocaina" /> Cocaína</label>
+            <label class="checkbox"><input type="checkbox" [(ngModel)]="exameForm.substanciasMap.opiaceos" /> Opiáceos</label>
+            <label class="checkbox"><input type="checkbox" [(ngModel)]="exameForm.substanciasMap.maconha" /> Maconha</label>
+            <label class="checkbox"><input type="checkbox" [(ngModel)]="exameForm.substanciasMap.mazindol" /> Mazindol</label>
+          </div>
+        </label>
+      </div>
+      <div class="attachments-area" style="border: 1px dashed #556; border-radius: 6px; padding: 12px; margin-top: 8px;">
+        <div class="muted">Área de anexos de arquivos (visual)</div>
+        <div class="muted">Arraste arquivos ou clique para selecionar (sem funcionalidade)</div>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #anexoTpl>
+    <div class="modal-section">
+      <p class="modal-title-inline">Anexo Restrito - <strong>{{ activeDriver?.nome }}</strong></p>
+      <!-- Área de Comentários Restritos (visual igual à Justificativa do Bloqueio) -->
+      <app-justification-field
+        [(ngModel)]="anexoForm.comentario"
+        [config]="anexoRestritoConfig">
+      </app-justification-field>
+
+      <!-- Área de Anexo Restrito (apenas visual, igual ao exame) -->
+      <div class="attachments-area" style="border: 1px dashed #556; border-radius: 6px; padding: 12px; margin-top: 8px;">
+        <div class="muted">Área de anexos restritos (visual)</div>
+        <div class="muted">Arraste arquivos ou clique para selecionar (sem funcionalidade)</div>
+      </div>
+    </div>
+
+    <!-- Histórico: Comentários e anexos restritos anteriores -->
+    <div class="modal-section">
+      <p class="modal-title-inline">Lançamentos anteriores</p>
+      <div *ngIf="activeDriver">
+        <div *ngIf="(anexoByDriver[activeDriver.id] || []).length === 0">
+          <span class="muted">Nenhum lançamento restrito encontrado.</span>
+        </div>
+        <table *ngIf="(anexoByDriver[activeDriver.id] || []).length > 0">
+          <thead>
+            <tr>
+              <th>Comentário</th>
+              <th>Registrado em</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let a of anexoByDriver[activeDriver.id]">
+              <td>{{ a.comentario || '—' }}</td>
+              <td>{{ formatDate(a.createdAt) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #feriasTpl>
+    <div class="modal-section">
+      <p class="modal-title-inline">Intenção de Férias - <strong>{{ activeDriver?.nome }}</strong></p>
+      <div class="form-grid cols-3">
+        <label>
+          Data Início
+          <input class="pv-input" type="date" [(ngModel)]="feriasForm.inicio" />
         </label>
         <label>
-          <span>Valor</span>
-          <input type="number" step="0.01" [(ngModel)]="descontoForm.valor" />
+          Data Fim
+          <input class="pv-input" type="date" [(ngModel)]="feriasForm.fim" />
         </label>
-        <label class="grow">
-          <span>Motivo</span>
-          <input [(ngModel)]="descontoForm.motivo" placeholder="Motivo do desconto" />
-        </label>
-      </div>
-      <div class="form-grid">
-        <label class="grow">
-          <span>Observação</span>
-          <textarea [(ngModel)]="descontoForm.observacao" rows="3" placeholder="Observação"></textarea>
+        <label>
+          Solicitante (coordenador)
+          <select class="pv-input" [(ngModel)]="feriasForm.solicitante">
+            <option *ngFor="let c of coordenadores" [value]="c">{{ c }}</option>
+          </select>
         </label>
       </div>
-      <div class="muted sm" style="margin-top:8px;">Lançamentos anteriores</div>
-      <div class="card" *ngIf="!(descontoByDriver[drv.id]?.length)">
-        <div class="muted">Nenhum lançamento até o momento.</div>
-      </div>
-      <div class="card" *ngFor="let r of (descontoByDriver[drv.id] || [])">
-        <div>
-          {{ r.data || '—' }} • Valor {{ r.valor | number:'1.2-2' }} • {{ r.motivo || '—' }}
-        </div>
-        <div class="muted">{{ r.observacao || '—' }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="modal-actions">
-    <button class="btn" (click)="closeDriverActions()">Fechar</button>
-    <button class="btn" (click)="saveRiskAnalysis()" *ngIf="actionsTab==='risco'">Salvar</button>
-    <button class="btn" (click)="saveDiaria()" *ngIf="actionsTab==='diaria'">Salvar</button>
-    <button class="btn" (click)="saveDesconto()" *ngIf="actionsTab==='desconto'">Salvar</button>
-    <button class="btn btn-primary">Abrir detalhes</button>
-  </div>
-</div>
 
-<!-- Modal: Cadastro de Categoria -->
-<div class="modal-overlay" *ngIf="categoryModalOpen" (click)="closeCategoryModal()"></div>
-<div class="modal sm" *ngIf="categoryModalOpen" [class.open]="categoryModalOpen">
-  <div class="modal-header">
-    <h4>Categorias de Motorista</h4>
-    <button class="icon" (click)="closeCategoryModal()">✕</button>
-  </div>
-  <div class="modal-body">
-    <div class="form-grid">
-      <label class="grow">
-        <span>Nova categoria</span>
-        <input [(ngModel)]="newCategoryName" placeholder="Ex: CATEGORIA IV - MOT REGIONAL" />
-      </label>
-      <div class="align-end">
-        <button class="btn btn-primary" (click)="addCategory()">Adicionar</button>
-      </div>
+      <app-justification-field
+        [(ngModel)]="feriasForm.observacao"
+        [config]="feriasJustConfig">
+      </app-justification-field>
     </div>
-    <div class="table card list-card" style="margin-top:12px;">
-      <div class="row header">
-        <div>Categoria</div>
-        <div class="col-actions">Ações</div>
-      </div>
-      <div class="row" *ngFor="let c of categoriaOptions">
-        <div>
-          <ng-container *ngIf="editingCategory !== c; else editCategoryInput">{{ c }}</ng-container>
-          <ng-template #editCategoryInput>
-            <input [(ngModel)]="editingCategoryValue" placeholder="Renomear categoria..." />
-          </ng-template>
-        </div>
-        <div>
-          <ng-container *ngIf="editingCategory !== c; else editCategoryActions">
-            <button class="icon-btn sm" data-tooltip="Editar" aria-label="Editar" (click)="startEditCategory(c)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 17.25V21h3.75L17 10.75l-3.75-3.75L3 17.25z" />
-                <path d="M14.25 7l3.75 3.75" />
-              </svg>
-            </button>
-            <button class="icon-btn sm" data-tooltip="Remover" aria-label="Remover" (click)="removeCategory(c)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 6h18" />
-                <path d="M8 6V4h8v2" />
-                <path d="M19 6l-1 14H6L5 6" />
-                <path d="M10 11v6" />
-                <path d="M14 11v6" />
-              </svg>
-            </button>
-          </ng-container>
-          <ng-template #editCategoryActions>
-            <div style="display:flex; gap:6px;">
-              <button class="icon-btn sm primary" data-tooltip="Salvar" aria-label="Salvar" (click)="saveEditCategory()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M20 6L9 17l-5-5" />
-                </svg>
-              </button>
-              <button class="icon-btn sm" data-tooltip="Cancelar" aria-label="Cancelar" (click)="cancelEditCategory()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M18 6L6 18" />
-                  <path d="M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </ng-template>
-        </div>
-      </div>
-      <div class="row empty" *ngIf="categoriaOptions.length===0">
-        <div class="muted">Nenhuma categoria cadastrada.</div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- Modal: Cadastro de Situação -->
-<div class="modal-overlay" *ngIf="situacaoModalOpen" (click)="closeSituacaoModal()"></div>
-<div class="modal sm" *ngIf="situacaoModalOpen" [class.open]="situacaoModalOpen">
-  <div class="modal-header">
-    <h4>Situações de Motorista</h4>
-    <button class="icon" (click)="closeSituacaoModal()">✕</button>
-  </div>
-  <div class="modal-body">
-    <div class="form-grid">
-      <label class="grow">
-        <span>Nova situação</span>
-        <input [(ngModel)]="newSituacaoName" placeholder="Ex: Em Treinamento" />
-      </label>
-      <div class="align-end">
-        <button class="btn btn-primary" (click)="addSituacao()">Adicionar</button>
-      </div>
-    </div>
-    <div class="table card list-card" style="margin-top:12px;">
-      <div class="row header">
-        <div>Situação</div>
-        <div class="col-actions">Ações</div>
-      </div>
-      <div class="row" *ngFor="let s of situacaoOptions">
-        <div>
-          <ng-container *ngIf="editingSituacao !== s; else editSituacaoInput">{{ s }}</ng-container>
-          <ng-template #editSituacaoInput>
-            <input [(ngModel)]="editingSituacaoValue" placeholder="Renomear situação..." />
-          </ng-template>
+    <div class="modal-section">
+      <p class="modal-title-inline">Lançamentos anteriores</p>
+      <div *ngIf="activeDriver">
+        <div *ngIf="(feriasByDriver[activeDriver.id] || []).length === 0">
+          <span class="muted">Nenhuma intenção de férias encontrada.</span>
         </div>
-        <div>
-          <ng-container *ngIf="editingSituacao !== s; else editSituacaoActions">
-            <button class="icon-btn sm" data-tooltip="Editar" aria-label="Editar" (click)="startEditSituacao(s)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 17.25V21h3.75L17 10.75l-3.75-3.75L3 17.25z" />
-                <path d="M14.25 7l3.75 3.75" />
-              </svg>
-            </button>
-            <button class="icon-btn sm" data-tooltip="Remover" aria-label="Remover" (click)="removeSituacao(s)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 6h18" />
-                <path d="M8 6V4h8v2" />
-                <path d="M19 6l-1 14H6L5 6" />
-                <path d="M10 11v6" />
-                <path d="M14 11v6" />
-              </svg>
-            </button>
-          </ng-container>
-          <ng-template #editSituacaoActions>
-            <div style="display:flex; gap:6px;">
-              <button class="icon-btn sm primary" data-tooltip="Salvar" aria-label="Salvar" (click)="saveEditSituacao()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M20 6L9 17l-5-5" />
-                </svg>
-              </button>
-              <button class="icon-btn sm" data-tooltip="Cancelar" aria-label="Cancelar" (click)="cancelEditSituacao()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M18 6L6 18" />
-                  <path d="M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </ng-template>
+        <table *ngIf="(feriasByDriver[activeDriver.id] || []).length > 0">
+          <thead>
+            <tr>
+              <th>Início</th>
+              <th>Fim</th>
+              <th>Solicitante</th>
+              <th>Observações</th>
+              <th>Registrado em</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let f of feriasByDriver[activeDriver.id]">
+              <td>{{ formatDate(f.inicio) }}</td>
+              <td>{{ formatDate(f.fim) }}</td>
+              <td>{{ f.solicitante || '—' }}</td>
+              <td>{{ f.observacao || '—' }}</td>
+              <td>{{ formatDate(f.createdAt) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-template>
+
+  <app-tab-modal
+    [title]="'Ações - ' + (activeDriver?.nome || '')"
+    [open]="driverActionsOpen"
+    (openChange)="driverActionsOpen = $event"
+    size="lg"
+    [tabs]="[
+      { id: 'risco', label: 'Análise de Risco', template: riscoTpl },
+      { id: 'registro', label: 'Registro Motorista', template: registroTpl },
+      { id: 'exame', label: 'Controle Exame', template: exameTpl },
+      { id: 'anexo', label: 'Anexo Restrito', template: anexoTpl },
+      { id: 'ferias', label: 'Intenção de Férias', template: feriasTpl }
+    ]"
+    [activeTabId]="actionsTab"
+    (activeTabIdChange)="setActionsTab($event)">
+    <div modal-actions>
+      <button class="btn btn-secondary" (click)="closeDriverActions()">Fechar</button>
+      <button class="btn btn-primary" (click)="saveCurrentAction()" [disabled]="!activeDriver">Salvar</button>
+    </div>
+  </app-tab-modal>
+
+  <!-- Modal: Ficha do Motorista (visualização) -->
+  <ng-template #profileTpl>
+    <!-- 🧍‍♂️ Identificação -->
+    <div class="modal-section">
+      <p class="modal-title-inline">🧍‍♂️ Identificação</p>
+      <div class="inline" style="gap:16px; align-items:center;">
+        <img src="assets/avatars/avatar-user.svg" alt="Foto" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:1px solid var(--border)" />
+        <div class="grow">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <strong style="font-size:16px;">{{ profileDriver?.nome || '—' }}</strong>
+            <span class="status-badge" [ngClass]="{
+              'ativo': profileDriver?.status==='Ativo',
+              'inativo': profileDriver?.status==='Inativo',
+              'suspenso': profileDriver?.bloqueado
+            }">{{ profileDriver?.status || '—' }}</span>
+          </div>
+          <div class="muted" style="margin-top:4px;">
+            Apelido: <b>{{ profileDriver?.apelido || '—' }}</b>
+            • Código: <b>{{ profileDriver?.codigo || '—' }}</b>
+            • Tipo de Motorista: <b>{{ profileDriver?.tipo || '—' }}</b>
+          </div>
         </div>
       </div>
-      <div class="row empty" *ngIf="situacaoOptions.length===0">
-        <div class="muted">Nenhuma situação cadastrada.</div>
+      <div class="form-grid cols-3" style="margin-top:12px;">
+        <label>
+          📅 Data de Nascimento
+          <span class="pv-input readonly">{{ profileDriver?.nascimento ? (profileDriver?.nascimento | date:'dd/MM/yyyy') : '—' }}</span>
+        </label>
+        <label>
+          🪪 CPF
+          <span class="pv-input readonly">{{ profileDriver?.cpf || '—' }}</span>
+        </label>
+        <label>
+          🧾 RG
+          <span class="pv-input readonly">{{ profileDriver?.rg || '—' }}</span>
+        </label>
+        <label>
+          👨‍💼 Empregador
+          <span class="pv-input readonly">{{ profileDriver?.empregador || '—' }}</span>
+        </label>
+        <label>
+          📆 Data de Admissão
+          <span class="pv-input readonly">{{ profileDriver?.admissao ? (profileDriver?.admissao | date:'dd/MM/yyyy') : '—' }}</span>
+        </label>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Modal: Confirmação de Alteração de Status -->
-<div class="modal-overlay" *ngIf="statusConfirmModalOpen" (click)="closeStatusConfirmModal()"></div>
-<div class="modal sm" *ngIf="statusConfirmModalOpen" [class.open]="statusConfirmModalOpen">
-  <div class="modal-header">
-    <h4>Confirmar Alteração de Status</h4>
-    <button class="icon" (click)="closeStatusConfirmModal()">✕</button>
-  </div>
-  <div class="modal-body">
-    <p *ngIf="pendingStatusDriver">
-      Tem certeza que deseja alterar o status do motorista 
-      <strong>{{ pendingStatusDriver.nome }}</strong> 
-      de <strong>{{ pendingStatusDriver.status }}</strong> 
-      para <strong>{{ pendingStatusDriver.status === 'Ativo' ? 'Inativo' : 'Ativo' }}</strong>?
-    </p>
-    <div class="modal-actions">
-      <button class="btn" (click)="closeStatusConfirmModal()">Cancelar</button>
-      <button class="btn btn-primary" (click)="confirmStatusChange()">Confirmar</button>
+    <!-- 🚗 Habilitação e Documentação -->
+    <div class="modal-section">
+      <p class="modal-title-inline">🚗 Habilitação e Documentação</p>
+      <div class="form-grid cols-3">
+        <label>
+          CNH
+          <span class="pv-input readonly">{{ profileDriver?.cnh || '—' }}</span>
+        </label>
+        <label>
+          Categoria
+          <span class="pv-input readonly">{{ profileDriver?.categoria || '—' }}</span>
+        </label>
+        <label>
+          Data de Vencimento
+          <span class="pv-input readonly">
+            {{ profileDriver?.cnhValidade ? (profileDriver?.cnhValidade | date:'dd/MM/yyyy') : '—' }}
+          </span>
+          <span *ngIf="isCnhVencida(profileDriver?.cnhValidade)" class="status-badge suspenso" style="margin-top:6px; display:inline-block;">CNH Vencida</span>
+          <span *ngIf="!isCnhVencida(profileDriver?.cnhValidade) && isExpiringWithin(profileDriver?.cnhValidade, 30)" class="status-badge suspenso" style="margin-top:6px; display:inline-block;">Vencendo (≤30 dias)</span>
+          <span *ngIf="profileDriver?.cnhValidade && !isCnhVencida(profileDriver?.cnhValidade) && !isExpiringWithin(profileDriver?.cnhValidade, 30)" style="margin-top:6px; display:inline-block; color: var(--success);">✅ Em dia</span>
+        </label>
+        <label>
+          UF de Emissão
+          <span class="pv-input readonly">{{ profileDriver?.cnhUf || '—' }}</span>
+        </label>
+        <label>
+          RNTRC
+          <span class="pv-input readonly">{{ profileDriver?.rntrc || '—' }}</span>
+        </label>
+        <label>
+          Tipo RNTRC
+          <span class="pv-input readonly">{{ profileDriver?.rntrcTipo || '—' }}</span>
+        </label>
+        <label>
+          Data de Gerenciamento de Risco
+          <span class="pv-input readonly">{{ getLastRiskDate(profileDriver?.id) || '—' }}</span>
+        </label>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- Modal: Justificativa para Bloqueio/Desbloqueio -->
-<div class="modal-overlay" *ngIf="blockJustificationModalOpen" (click)="closeBlockJustificationModal()"></div>
-<div class="modal sm" *ngIf="blockJustificationModalOpen" [class.open]="blockJustificationModalOpen">
-  <div class="modal-header">
-    <h4>{{ pendingBlockAction === 'block' ? 'Bloquear' : 'Desbloquear' }} Motorista</h4>
-    <button class="icon" (click)="closeBlockJustificationModal()">✕</button>
-  </div>
-  <div class="modal-body">
-    <div class="justification-info" *ngIf="pendingBlockDriver">
-      <div class="info-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="16" x2="12" y2="12"></line>
-          <line x1="12" y1="8" x2="12.01" y2="8"></line>
-        </svg>
-      </div>
-      <div class="info-text">
-        <p class="action-description">
-          {{ pendingBlockAction === 'block' ? 'Bloqueando' : 'Desbloqueando' }} o motorista 
-          <strong>{{ pendingBlockDriver.nome }}</strong>
-        </p>
-        <p class="action-note">
-          {{ pendingBlockAction === 'block' ? 
-            'Esta ação impedirá que o motorista receba novas viagens até ser desbloqueado.' : 
-            'Esta ação permitirá que o motorista volte a receber viagens normalmente.' }}
-        </p>
+    <!-- 💳 Informações Financeiras -->
+    <div class="modal-section">
+      <p class="modal-title-inline">💳 Informações Financeiras</p>
+      <div class="form-grid cols-3">
+        <label>
+          Forma de Pagamento
+          <span class="pv-input readonly">{{ profileDriver?.formaPagamento || '—' }}</span>
+        </label>
+        <label>
+          Banco
+          <span class="pv-input readonly">{{ profileDriver?.banco || '—' }}</span>
+        </label>
+        <label>
+          Agência
+          <span class="pv-input readonly">{{ profileDriver?.agencia || '—' }}</span>
+        </label>
+        <label>
+          Conta
+          <span class="pv-input readonly">{{ profileDriver?.conta || '—' }}</span>
+        </label>
+        <label>
+          % Comissão
+          <span class="pv-input readonly">{{ profileDriver?.comissao ? (profileDriver?.comissao + '%') : '—' }}</span>
+        </label>
+        <label>
+          Cartão Pamcard
+          <span class="pv-input readonly">{{ profileDriver?.pamcard || '—' }}</span>
+        </label>
+        <label>
+          Cartão Repom
+          <span class="pv-input readonly">{{ profileDriver?.repom || '—' }}</span>
+        </label>
       </div>
     </div>
-    
-    <!-- Usando o novo componente de justificativa -->
-    <app-justification-field
-      [(ngModel)]="justificationText"
-      [config]="justificationConfig">
-    </app-justification-field>
-  </div>
-  
-  <div class="modal-actions">
-    <button class="btn btn-secondary" (click)="closeBlockJustificationModal()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-      Cancelar
-    </button>
-    <button 
-      class="btn btn-primary" 
-      [disabled]="!justificationText?.trim()"
-      (click)="confirmBlockChange()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="20,6 9,17 4,12"></polyline>
-      </svg>
-      {{ pendingBlockAction === 'block' ? 'Bloquear Motorista' : 'Desbloquear Motorista' }}
-    </button>
-  </div>
+
+    <!-- 📞 Contato -->
+    <div class="modal-section">
+      <p class="modal-title-inline">📞 Contato</p>
+      <div class="form-grid cols-2">
+        <label>
+          📱 Celular
+          <span class="pv-input readonly">{{ profileDriver?.telefone || profileDriver?.celular || '—' }}</span>
+        </label>
+        <label>
+          ☎️ Comercial
+          <span class="pv-input readonly">{{ profileDriver?.comercial || '—' }}</span>
+        </label>
+        <label>
+          🏠 Residencial
+          <span class="pv-input readonly">{{ profileDriver?.residencial || '—' }}</span>
+        </label>
+        <label>
+          📧 E-mail
+          <span class="pv-input readonly">{{ profileDriver?.email || '—' }}</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- 🏠 Endereço -->
+    <div class="modal-section">
+      <p class="modal-title-inline">🏠 Endereço</p>
+      <div class="form-grid cols-3">
+        <label>
+          Endereço
+          <span class="pv-input readonly">{{ profileDriver?.endereco || '—' }}</span>
+        </label>
+        <label>
+          Bairro
+          <span class="pv-input readonly">{{ profileDriver?.bairro || '—' }}</span>
+        </label>
+        <label>
+          Cidade/UF
+          <span class="pv-input readonly">{{ profileDriver?.cidadeUf || '—' }}</span>
+        </label>
+        <label>
+          CEP
+          <span class="pv-input readonly">{{ profileDriver?.cep || '—' }}</span>
+        </label>
+        <label>
+          Tipo de Residência
+          <span class="pv-input readonly">{{ profileDriver?.tipoResidencia || '—' }}</span>
+        </label>
+        <label>
+          Reside desde
+          <span class="pv-input readonly">{{ profileDriver?.resideDesde || '—' }}</span>
+        </label>
+      </div>
+    </div>
+  </ng-template>
+
+  <app-tab-modal
+    [title]="'Ficha do Motorista'"
+    [open]="profileOpen"
+    (openChange)="profileOpen = $event"
+    size="lg"
+    [tabs]="[{ id: 'dados', label: 'Dados', template: profileTpl }]">
+    <div modal-actions>
+      <button class="btn btn-secondary" (click)="closeProfile()">Fechar</button>
+    </div>
+  </app-tab-modal>
+
 </div>

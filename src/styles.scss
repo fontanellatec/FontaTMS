@@ -1,5 +1,6 @@
 /* Leaflet CSS */
 @import "leaflet/dist/leaflet.css";
+@import "app/shared/styles/pv-modal";
 
 /* Reset e tokens globais */
 * {
@@ -165,6 +166,8 @@ body {
   transition: all 0.2s ease;
   text-decoration: none;
 }
+/* Centralizar rótulo quando ocupar largura total */
+.btn.w-full { justify-content: center; }
 
 .btn:hover {
   background: var(--bg);

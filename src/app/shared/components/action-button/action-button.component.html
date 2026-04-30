@@ -1,0 +1,37 @@
+<div class="action-section" [class.collapsed]="collapsed">
+  <div class="action-header" *ngIf="showHeader">
+    <h4>{{ title }}</h4>
+    <button class="toggle-btn" (click)="onToggle()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6,9 12,15 18,9"></polyline>
+      </svg>
+    </button>
+  </div>
+  
+  <div class="action-container" [class]="'align-' + alignment">
+    <div class="buttons-group">
+      <button 
+        *ngFor="let button of buttons"
+        [class]="getButtonClass(button)"
+        [disabled]="button.disabled || button.loading"
+        (click)="onButtonClick(button.action)">
+        
+        <!-- Loading Spinner -->
+        <div class="loading-spinner" *ngIf="button.loading">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-dasharray="31.416" stroke-dashoffset="31.416">
+              <animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite"/>
+              <animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        </div>
+        
+        <!-- Icon -->
+        <div class="button-icon" *ngIf="button.icon && !button.loading" [innerHTML]="getIconSvg(button.icon)"></div>
+        
+        <!-- Label -->
+        <span class="button-label">{{ button.label }}</span>
+      </button>
+    </div>
+  </div>
+</div>

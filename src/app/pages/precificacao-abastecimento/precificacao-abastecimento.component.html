@@ -1,18 +1,35 @@
 <div class="precificacao-page">
   <div class="header">
-    <h3>Precificação de Abastecimento</h3>
+    <h3>Abastecimento</h3>
     <span class="muted">Preços por fornecedor · histórico · mapa</span>
   </div>
 
   <!-- Abas -->
   <div class="tabs">
-    <button class="tab-btn" [class.active]="tab==='precificacao'" (click)="setTab('precificacao')">Precificação</button>
+    <button class="tab-btn" [class.active]="tab==='precificacao'" (click)="setTab('precificacao')">Abastecimento</button>
     <button class="tab-btn" [class.active]="tab==='dashboards'" (click)="setTab('dashboards')">Dashboards</button>
     <button class="tab-btn" [class.active]="tab==='mapa'" (click)="setTab('mapa')">Mapa</button>
   </div>
 
-  <!-- Aba: Precificação -->
+  <!-- Aba: Abastecimento -->
   @if (tab==='precificacao') { <div role="tabpanel">
+    <app-filter-section
+      [title]="'Filtros de Abastecimento'"
+      [filters]="filtersConfig"
+      [collapsed]="false"
+      [showActionButtons]="true"
+      [actionButtonText]="'Aplicar Filtros'"
+      [clearButtonText]="'Limpar'"
+      (filtersChange)="onFiltersChange($event)"
+      (applyFilters)="onApplyFilters($event)"
+      (clearFilters)="onClearFilters()"
+    ></app-filter-section>
+    <app-kpi-section
+      [title]="'KPIs de Abastecimento'"
+      [kpis]="kpiAbastecimentoConfigs"
+      [collapsed]="false"
+      [compactMargin]="true">
+    </app-kpi-section>
     <div class="card form-card">
       <div class="form-grid">
         <label>
@@ -83,36 +100,24 @@
       </div>
     </div>
 
-    <div class="card table-card">
-      <div class="section-header">
-        <strong>Histórico de Preços</strong>
-      </div>
-      <div class="table">
-        <div class="row header">
-          <div>Data/Hora</div>
-          <div>Fornecedor</div>
-          <div>Bomba</div>
-          <div>Combustível</div>
-          <div class="cell-right">Preço</div>
-        </div>
-        <div class="table-body">
-          @for (h of getHistoricoPorBomba(form.bombaId); track $index) {
-            <div class="row">
-              <div>{{ formatDateTimeBR(h.dataHora) }}</div>
-              <div>{{ fornecedorById(h.fornecedorId)?.nome }}</div>
-              <div>{{ bombaById(h.bombaId)?.nome }}</div>
-              <div>{{ h.combustivel }}</div>
-              <div class="cell-right">{{ h.preco | currency:'BRL':'symbol-narrow' }}</div>
-            </div>
-          }
-          @if (getHistoricoPorBomba(form.bombaId).length===0) {
-            <div class="row empty">
-              <div class="muted">Sem registros para a bomba selecionada.</div>
-            </div>
-          }
-        </div>
-      </div>
-    </div>
+    <app-grid-section
+      title="Listagem de Abastecimentos"
+      [columns]="gridColumnsAbastecimento"
+      [rows]="gridRowsAbastecimento"
+      [(collapsed)]="gridCollapsedAbastecimento"
+      [showActions]="true"
+      [actions]="gridActionsAbastecimento"
+      [page]="pageAbastecimento"
+      [pageSize]="pageSizeAbastecimento"
+      [pageSizeOptions]="pageSizeOptionsAbastecimento"
+      [horizontalScroll]="true"
+      [verticalScroll]="true"
+      [bodyMaxHeight]="560"
+      (pageChange)="pageAbastecimento = $event"
+      (pageSizeChange)="pageSizeAbastecimento = $event"
+      (rowClick)="onRowClickAbastecimento($event)"
+      (actionClick)="onGridActionAbastecimento($event)">
+    </app-grid-section>
   </div>
   }
 

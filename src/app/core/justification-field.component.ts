@@ -2,16 +2,7 @@ import { Component, Input, Output, EventEmitter, forwardRef } from '@angular/cor
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-export interface JustificationConfig {
-  label?: string;
-  placeholder?: string;
-  maxLength?: number;
-  minHeight?: string;
-  required?: boolean;
-  rows?: number;
-  helpText?: string;
-}
+import { JustificationConfig } from './justification-field.types';
 
 @Component({
   selector: 'app-justification-field',
@@ -44,7 +35,7 @@ export interface JustificationConfig {
             (blur)="onBlur()"
             (focus)="onFocus()">
           </textarea>
-          <div class="character-counter">
+          <div class="character-counter" *ngIf="config.showCounter !== false">
             <span class="counter-text" [class.warning]="isNearLimit" [class.error]="isOverLimit">
               {{ value?.length || 0 }}/{{ config.maxLength || 500 }}
             </span>

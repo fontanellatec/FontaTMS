@@ -23,6 +23,9 @@ export interface JustificationConfig {
   /** Texto de ajuda exibido abaixo do rótulo */
   helpText?: string;
   
+  /** Controla a exibição do contador de caracteres (default: true) */
+  showCounter?: boolean;
+  
   /** Tamanho do componente */
   size?: 'sm' | 'md' | 'lg';
   

@@ -8,8 +8,8 @@ import { LoginComponent } from './pages/login/login.component';
 import { JornadaComponent } from './pages/jornada/jornada.component';
 import { MaintenanceComponent } from './pages/maintenance/maintenance.component';
 import { TrackingComponent } from './pages/tracking/tracking.component';
-import { EmbarqueComponent } from './pages/embarque/embarque.component';
-import { ControleEmbarquesComponent } from './pages/controle-embarques/controle-embarques.component';
+import { IntencaoViagemComponent } from './pages/intencao-viagem/intencao-viagem.component';
+import { ControleIntencaoViagemComponent } from './pages/controle-intencao-viagem/controle-intencao-viagem.component';
 import { GestaoMotoristasComponent } from './pages/gestao-motoristas/gestao-motoristas.component';
 import { ProgramacaoComponent } from './pages/programacao/programacao.component';
 import { authGuard } from './core/auth.guard';
@@ -20,9 +20,12 @@ import { AcertoViagemComponent } from './pages/acerto-viagem/acerto-viagem.compo
 import { ProducaoOficinaComponent } from './pages/producao-oficina/producao-oficina.component';
 import { PrecificacaoAbastecimentoComponent } from './pages/precificacao-abastecimento/precificacao-abastecimento.component';
 import { FreteTerceiroComponent } from './pages/frete-terceiro/frete-terceiro.component';
+import { MenuConfigComponent } from './pages/menu-config/menu-config.component';
+import { TorreControleComponent } from './pages/torre-controle/torre-controle.component';
+import { CadastroMotoristaComponent } from './pages/gestao-motoristas/cadastro-motorista.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '', redirectTo: 'torre-controle', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'jornada', component: JornadaComponent, canActivate: [authGuard] },
@@ -30,11 +33,13 @@ const routes: Routes = [
   { path: 'vehicles', component: VehiclesComponent, canActivate: [authGuard] },
   { path: 'drivers', component: DriversComponent, canActivate: [authGuard] },
   { path: 'gestao-motoristas', component: GestaoMotoristasComponent, canActivate: [authGuard] },
+  { path: 'gestao-motoristas/novo', component: CadastroMotoristaComponent, canActivate: [authGuard] },
   { path: 'manutencao', component: MaintenanceComponent, canActivate: [authGuard] },
   { path: 'rastreamento', component: TrackingComponent, canActivate: [authGuard] },
+  { path: 'torre-controle', component: TorreControleComponent, canActivate: [authGuard] },
   { path: 'programacao', component: ProgramacaoComponent, canActivate: [authGuard] },
-  { path: 'embarque', component: EmbarqueComponent, canActivate: [authGuard] },
-  { path: 'controle-embarques', component: ControleEmbarquesComponent, canActivate: [authGuard] },
+  { path: 'intencao-viagem', component: IntencaoViagemComponent, canActivate: [authGuard] },
+  { path: 'controle-intencao-viagem', component: ControleIntencaoViagemComponent, canActivate: [authGuard] },
   { path: 'controle-colaboradores', component: ControleColaboradoresComponent, canActivate: [authGuard] },
   { path: 'controle-frota', component: ControleFrotaComponent, canActivate: [authGuard] },
   { path: 'contratos', component: ContratosComponent, canActivate: [authGuard] },
@@ -42,7 +47,8 @@ const routes: Routes = [
   { path: 'producao-oficina', component: ProducaoOficinaComponent, canActivate: [authGuard] },
   { path: 'precificacao-abastecimento', component: PrecificacaoAbastecimentoComponent, canActivate: [authGuard] },
   { path: 'frete-terceiro', component: FreteTerceiroComponent, canActivate: [authGuard] },
-  { path: '**', redirectTo: 'dashboard' }
+  { path: 'config-menu', component: MenuConfigComponent, canActivate: [authGuard] },
+  { path: '**', redirectTo: 'torre-controle' }
 ];
 
 @NgModule({

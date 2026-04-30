@@ -1,0 +1,23 @@
+<div class="modal-overlay" *ngIf="open" (click)="close()"></div>
+<div class="modal" *ngIf="open" [class.open]="open" [class.sm]="size==='sm'" [class.md]="size==='md'" [class.lg]="size==='lg'" [class.xl]="size==='xl'" role="dialog" aria-modal="true" tabindex="-1">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2 class="modal-title">{{ title }}</h2>
+      <button class="btn btn-ghost close" (click)="close()" aria-label="Fechar">✕</button>
+    </div>
+
+    <div class="tabs" role="tablist" *ngIf="hasMultipleTabs">
+      <button *ngFor="let t of tabs" class="tab" [class.active]="(activeTabId || tabs[0]?.id)===t.id" (click)="setActive(t.id)" role="tab" [attr.aria-selected]="((activeTabId||tabs[0]?.id)===t.id)">
+        {{ t.label }}
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <ng-container *ngIf="currentTab" [ngTemplateOutlet]="currentTab.template"></ng-container>
+    </div>
+
+    <div class="modal-actions">
+      <ng-content select="[modal-actions]"></ng-content>
+    </div>
+  </div>
+</div>

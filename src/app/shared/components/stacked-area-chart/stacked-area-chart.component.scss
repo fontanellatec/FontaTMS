@@ -1,0 +1,8 @@
+.chart-card { background: #0b1220; border: 1px solid #1f2937; border-radius: 10px; padding: 12px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.title { font-weight: 600; color: #e5e7eb; }
+.subtitle { font-size: 12px; color: #9ca3af; }
+.legend { display: flex; gap: 12px; align-items: center; font-size: 12px; color: #e5e7eb; }
+.legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+.legend .line { width: 16px; height: 2px; display: inline-block; margin-right: 6px; background: #fff; }
+.x-label { font-size: 11px; fill: #9ca3af; }

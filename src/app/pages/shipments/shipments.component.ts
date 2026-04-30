@@ -32,11 +32,11 @@ export class ShipmentsComponent implements OnInit {
 
   // Dados (carrega de storage; se vazio, usa exemplos)
   shipments: ShipmentRow[] = [
-    { id: 'EMB-0001', status: 'Em rota', eta: '12:30', motorista: 'João Santos', veiculo: 'ABC1D23', origem: 'São Paulo', destino: 'Rio de Janeiro' },
-    { id: 'EMB-0002', status: 'Em rota', eta: '14:10', motorista: 'Maria Lima', veiculo: 'EFG4H56', origem: 'Campinas', destino: 'Sorocaba' },
-    { id: 'EMB-0003', status: 'Atrasado', eta: '16:00', motorista: 'Carlos Silva', veiculo: 'IJK7L89', origem: 'BH', destino: 'São Paulo' },
-    { id: 'EMB-0004', status: 'Pendente', eta: '—', motorista: 'Ana Costa', veiculo: 'MNO1P23', origem: 'Santos', destino: 'Curitiba' },
-    { id: 'EMB-0005', status: 'Concluído', eta: '10:05', motorista: 'Pedro Alves', veiculo: 'QRS4T56', origem: 'Rio', destino: 'Niterói' }
+    { id: 'IV-0001', status: 'Em rota', eta: '12:30', motorista: 'João Santos', veiculo: 'ABC1D23', origem: 'São Paulo', destino: 'Rio de Janeiro' },
+    { id: 'IV-0002', status: 'Em rota', eta: '14:10', motorista: 'Maria Lima', veiculo: 'EFG4H56', origem: 'Campinas', destino: 'Sorocaba' },
+    { id: 'IV-0003', status: 'Atrasado', eta: '16:00', motorista: 'Carlos Silva', veiculo: 'IJK7L89', origem: 'BH', destino: 'São Paulo' },
+    { id: 'IV-0004', status: 'Pendente', eta: '—', motorista: 'Ana Costa', veiculo: 'MNO1P23', origem: 'Santos', destino: 'Curitiba' },
+    { id: 'IV-0005', status: 'Concluído', eta: '10:05', motorista: 'Pedro Alves', veiculo: 'QRS4T56', origem: 'Rio', destino: 'Niterói' }
   ];
 
   ngOnInit(): void {
@@ -54,7 +54,7 @@ export class ShipmentsComponent implements OnInit {
     localStorage.setItem(this.shipmentsKey, JSON.stringify(this.shipments));
   }
   private nextShipmentId(): string {
-    const prefix = 'EMB-';
+    const prefix = 'IV-';
     let max = 0;
     for (const r of this.shipments) {
       if (r.id?.startsWith(prefix)) {
@@ -95,7 +95,7 @@ export class ShipmentsComponent implements OnInit {
     }
   }
 
-  // Modal Novo Embarque
+  // Modal Nova Intenção de Viagem
   newModalOpen = false;
   newShipment: Partial<ShipmentRow> = { status: 'Pendente' };
 
@@ -128,7 +128,7 @@ export class ShipmentsComponent implements OnInit {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `embarques.csv`;
+    link.download = `intencao-viagem.csv`;
     link.click();
     URL.revokeObjectURL(url);
   }

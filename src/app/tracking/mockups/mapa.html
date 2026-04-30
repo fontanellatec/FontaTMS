@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Mapa Transportadora - Protótipo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Estilo do Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map { height: 100vh; width: 100%; }
+        .leaflet-popup-content { font-size: 0.9rem; }
+        .truck-div-icon { font-size: 22px; line-height: 22px; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- Biblioteca Leaflet -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Inicializa o mapa centralizado no Brasil
+        var map = L.map('map').setView([-14.2350, -51.9253], 4);
+
+        // Adiciona camada base (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // LayerGroups para controle de camadas
+        var vehiclesLayer = L.layerGroup().addTo(map);
+        var loadsLayer = L.layerGroup().addTo(map);
+        var routesLayer = L.layerGroup().addTo(map);
+        var confirmedRoutesLayer = L.layerGroup().addTo(map);
+
+        // Ícone para veículo (DivIcon com emoji)
+        var truckIcon = L.divIcon({ className: 'truck-div-icon', html: '🚚', iconSize: [22, 22], iconAnchor: [11, 11] });
+        // Ícone para carga (imagem)
+        var cargoIcon = L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/679/679720.png', iconSize: [24, 24], iconAnchor: [12, 24], popupAnchor: [0, -22] });
+
+        function clearLayers() { vehiclesLayer.clearLayers(); loadsLayer.clearLayers(); routesLayer.clearLayers(); confirmedRoutesLayer.clearLayers(); }
+        function pickColor(idx) { var palette = ['#1976d2', '#086A54', '#ff9800', '#9c27b0', '#e53935', '#00897b', '#6d4c41']; return palette[idx % palette.length]; }
+        function disperse(lat, lng, count) {
+            if (count === 0) return [lat, lng];
+            var meters = 120 * ((count % 5) + 1); var angle = (count * 42) % 360;
+            var dLat = (meters / 111320); var dLng = (meters / (111320 * Math.cos((lat * Math.PI) / 180)));
+            var rad = (angle * Math.PI) / 180; var offLat = dLat * Math.sin(rad); var offLng = dLng * Math.cos(rad);
+            return [lat + offLat, lng + offLng];
+        }
+
+        function renderFromData(payload) {
+            if (!payload) return; clearLayers();
+            var bounds = []; var filter = payload.filter || 'all';
+            var vehicles = Array.isArray(payload.vehicles) ? payload.vehicles : [];
+            var loads = Array.isArray(payload.loads) ? payload.loads : [];
+            var confirmedRoutes = Array.isArray(payload.confirmedRoutes) ? payload.confirmedRoutes : [];
+            var osrmCache = {};
+
+            // Haversine (km) para manter consistência com tela de rastreamento
+            function haversineKm(a, b) {
+                try {
+                    var toRad = function(d){ return d * Math.PI/180; };
+                    var R = 6371;
+                    var dLat = toRad((b[0]-a[0])); var dLon = toRad((b[1]-a[1]));
+                    var lat1 = toRad(a[0]); var lat2 = toRad(b[0]);
+                    var h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+                    return 2*R*Math.asin(Math.sqrt(h));
+                } catch(e) { return 0; }
+            }
+
+            // Foco por veículo
+            if (filter === 'focus' && payload.focusVehicle) { vehicles = [payload.focusVehicle]; loads = Array.isArray(payload.loadsFocus) ? payload.loadsFocus : []; }
+            // Foco por carga
+            if (filter === 'focusLoad' && payload.focusLoad) { loads = [payload.focusLoad]; vehicles = Array.isArray(payload.vehiclesFocus) ? payload.vehiclesFocus : []; }
+
+            var coordCount = {}; function keyFor(lat, lng) { return lat.toFixed(3) + ',' + lng.toFixed(3); }
+
+            // Veículos
+            if (filter === 'all' || filter === 'vehicles' || filter === 'focus' || filter === 'focusLoad') {
+                vehicles.forEach(function(v) {
+                    if (typeof v.lat !== 'number' || typeof v.lng !== 'number') return;
+                    var key = keyFor(v.lat, v.lng); var kCount = (coordCount[key] || 0); coordCount[key] = kCount + 1;
+                    var pos = disperse(v.lat, v.lng, kCount);
+                    var title = (v.nome || 'Veículo');
+                    var extra = [];
+                    if (v.uf) extra.push('UF: ' + v.uf);
+                    if (v.placa) extra.push('Placa: ' + v.placa);
+                    if (typeof v.id !== 'undefined') extra.push('ID: ' + v.id);
+                    var m = L.marker(pos, { icon: truckIcon }).bindPopup(`<b>${title}</b><br>${extra.join('<br>')}`);
+                    m.addTo(vehiclesLayer); bounds.push(pos);
+                });
+            }
+
+            // Cargas e rotas
+            if (filter === 'all' || filter === 'loads' || filter === 'focus' || filter === 'focusLoad') {
+                loads.forEach(function(c, idx) {
+                    if (Array.isArray(c.origem) && Array.isArray(c.destino)) {
+                        var color = pickColor(idx);
+                        var keyO = keyFor(c.origem[0], c.origem[1]); var keyD = keyFor(c.destino[0], c.destino[1]);
+                        var cO = (coordCount[keyO] || 0); coordCount[keyO] = cO + 1;
+                        var cD = (coordCount[keyD] || 0); coordCount[keyD] = cD + 1;
+                        var posO = disperse(c.origem[0], c.origem[1], cO);
+                        var posD = disperse(c.destino[0], c.destino[1], cD);
+                        L.marker(posO, { icon: cargoIcon }).bindPopup(`<b>${c.descricao || 'Carga'}</b><br>Origem: ${c.origemUF || '-'}`).addTo(loadsLayer);
+                        L.marker(posD, { icon: cargoIcon }).bindPopup(`<b>${c.descricao || 'Carga'}</b><br>Destino: ${c.destinoUF || '-'}`).addTo(loadsLayer);
+                        var opts = { color: color, weight: 3, dashArray: '5,5' };
+                        // Em foco por carga, destacar a rota
+                        if (filter === 'focusLoad') { opts = { color: '#086A54', weight: 4, dashArray: '3,3' }; }
+                        var line = L.polyline([posO, posD], opts).bindPopup(`Rota da ${c.descricao || 'Carga'}`).addTo(routesLayer);
+                        bounds.push(posO, posD);
+                    }
+                });
+            }
+
+            // Rotas confirmadas (polylines) + suporte a progresso
+            if (confirmedRoutes.length) {
+                confirmedRoutes.forEach(async function(r){
+                    // Se coords veio vazio/linear, mas temos waypoints, busca geometria OSRM
+                    if ((!Array.isArray(r.coords) || r.coords.length < 2) && Array.isArray(r.waypoints) && r.waypoints.length >= 2) {
+                        try {
+                            var key = JSON.stringify(r.waypoints);
+                            if (!osrmCache[key]) {
+                                var wp = r.waypoints.map(function(p){ return p[1] + ',' + p[0]; }).join(';');
+                                var url = 'https://router.project-osrm.org/route/v1/driving/' + wp + '?overview=full&geometries=geojson';
+                                var resp = await fetch(url);
+                                var data = await resp.json();
+                                var coordsGeo = (data && data.routes && data.routes[0] && data.routes[0].geometry && data.routes[0].geometry.coordinates) || [];
+                                // GeoJSON coord = [lng, lat] -> [lat, lng]
+                                r.coords = coordsGeo.map(function(c){ return [c[1], c[0]]; });
+                                osrmCache[key] = r.coords;
+                            } else {
+                                r.coords = osrmCache[key];
+                            }
+                        } catch(_err) {}
+                    }
+                    if (!Array.isArray(r.coords) || r.coords.length < 2) return;
+                    var full = L.polyline(r.coords, { color: '#086A54', weight: 4 }).addTo(confirmedRoutesLayer);
+                    try { if (r.coords[0]) bounds.push(r.coords[0]); if (r.coords[r.coords.length-1]) bounds.push(r.coords[r.coords.length-1]); } catch(e) {}
+
+                    // Se tivermos vehicles com id, tentamos achar posição atual e calcular progresso simples
+                    try {
+                        var vid = r.vehicleId;
+                        var current = null;
+                        if (vid != null) {
+                            var found = vehicles.find(function(v){ return v.id === vid; });
+                            if (found && typeof found.lat === 'number' && typeof found.lng === 'number') {
+                                current = [found.lat, found.lng];
+                            }
+                        }
+                        if (current) {
+                            // Encontra vértice mais próximo e calcula distância acumulada via Haversine
+                            var minD = Infinity; var idx = 0;
+                            for (var i = 0; i < r.coords.length; i++) {
+                                var p = r.coords[i];
+                                var d = Math.hypot((p[0]-current[0]), (p[1]-current[1]));
+                                if (d < minD) { minD = d; idx = i; }
+                            }
+                            // Distância total e cumulativa
+                            var totalKm = (typeof r.distanceKm === 'number') ? r.distanceKm : 0;
+                            if (!(totalKm > 0)) {
+                                for (var t = 1; t < r.coords.length; t++) { totalKm += haversineKm(r.coords[t-1], r.coords[t]); }
+                            }
+                            var cumKm = 0; for (var j = 1; j <= idx; j++) { cumKm += haversineKm(r.coords[j-1], r.coords[j]); }
+                            var frac = (totalKm > 0) ? (cumKm / totalKm) : (r.coords.length > 1 ? idx / (r.coords.length-1) : 0);
+                            var perc = Math.max(0, Math.min(1, frac));
+                            var kmRestante = (totalKm > 0) ? Math.max(0, totalKm - cumKm) : null;
+                            // divide a rota em percorrida e restante para desenho
+                            var doneCoords = r.coords.slice(0, Math.max(1, idx+1));
+                            var todoCoords = r.coords.slice(Math.max(0, idx), r.coords.length);
+                            // cor alinhada com barra de progresso do card (verde sucesso)
+                            L.polyline(doneCoords, { color: '#28a745', weight: 5, opacity: 0.95 }).addTo(confirmedRoutesLayer);
+                            L.polyline(todoCoords, { color: '#ff9800', weight: 4, opacity: 0.9, dashArray: '6,6' }).addTo(confirmedRoutesLayer);
+
+                            // Popup/tooltip de progresso
+                            try {
+                                var durationMin = (typeof r.durationMin === 'number') ? r.durationMin : null;
+                                var etaMin = null;
+                                if (durationMin != null) {
+                                    etaMin = Math.max(0, durationMin * (1 - perc));
+                                }
+                                var mid = r.coords[idx];
+                                if (mid) {
+                                    var parts = [];
+                                    parts.push('<b>Progresso</b>: ' + Math.round(perc*100) + '%');
+                                    if (totalKm != null) parts.push('Total: ' + totalKm.toFixed(1) + ' km');
+                                    if (kmRestante != null) parts.push('Restante: ' + kmRestante.toFixed(1) + ' km');
+                                    if (etaMin != null) {
+                                        var h = Math.floor(etaMin/60); var m = Math.round(etaMin%60);
+                                        var etaStr = h > 0 ? (h + ' h ' + (m>0? (m+' min') : '')) : (m + ' min');
+                                        parts.push('ETA: ' + etaStr);
+                                    }
+                                    var popup = L.popup({ autoClose: false, closeOnClick: false, className: 'route-tooltip' })
+                                      .setLatLng([mid[0], mid[1]])
+                                      .setContent(parts.join(' · '));
+                                    popup.addTo(confirmedRoutesLayer);
+                                }
+                            } catch(_err) {}
+                        }
+                    } catch(_e) {}
+                });
+            }
+
+            if (bounds.length) { try { map.fitBounds(bounds, { padding: [30, 30] }); } catch (e) {} }
+        }
+
+        window.addEventListener('message', function(ev) { var data = ev.data || {}; if (data.type === 'MAP_DATA') { renderFromData(data); } });
+        try { window.parent && window.parent.postMessage({ type: 'MAP_READY' }, '*'); } catch(e) {}
+    </script>
+</body>
+</html>

@@ -416,27 +416,19 @@
   background: var(--success-dark, #15803d);
   border-color: var(--success-dark, #15803d);
 }
-
-/* Modal styles */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(17, 24, 39, 0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
+/* Modal styles - alinhar ao padrão global */
 .modal {
   width: 720px;
   max-width: 90vw;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
+  color: var(--text);
 }
-
+.modal-header { border-bottom: 1px solid rgba(var(--text-rgb), 0.12); }
+.modal-confirm .modal-footer { border-top: 1px solid rgba(var(--text-rgb), 0.12); }
 .modal-header {
   display: flex;
   align-items: center;

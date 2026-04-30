@@ -1,0 +1,186 @@
+// Seção de Filtros - Visual da Gestão de Motoristas
+.filters-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin: 16px 0 20px 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  overflow: hidden;
+
+  &:hover {
+    box-shadow: none;
+  }
+
+  /* Cabeçalho dos filtros */
+  .filters-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-secondary);
+    margin: -1px -1px 0 -1px;
+    border-radius: 12px 12px 0 0;
+
+    h4 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      &::before {
+        content: '';
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18M7 12h10M10 18h4'/%3E%3C/svg%3E");
+        background-size: contain;
+        background-repeat: no-repeat;
+      }
+    }
+
+    .toggle-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      color: var(--text-secondary);
+
+      &:hover {
+        background: var(--bg);
+        border-color: var(--brand-primary);
+        color: var(--brand-primary);
+      }
+
+      svg {
+        width: 14px;
+        height: 14px;
+        transition: transform 0.3s ease;
+      }
+    }
+  }
+
+  /* Estado colapsado */
+  &.collapsed {
+    .filters-header {
+      border-bottom: none;
+      border-radius: 12px;
+    }
+  }
+
+  /* Ícone: para baixo quando fechado, para cima quando aberto */
+  &:not(.collapsed) .filters-header .toggle-btn svg {
+    transform: rotate(180deg);
+  }
+
+  .filters-container {
+    padding: 24px;
+    transition: all 0.3s ease;
+
+    &.hidden {
+      display: none;
+    }
+  }
+
+  .filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    align-items: end;
+
+    .filter-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+
+      select,
+      input {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 12px;
+        height: 40px;
+        font-size: 14px;
+        color: var(--text);
+        transition: all 0.2s ease;
+
+        &:focus {
+          outline: none;
+          border-color: var(--brand-primary);
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        &:hover {
+          border-color: var(--brand-primary);
+        }
+
+        &::placeholder {
+          color: var(--text-muted);
+        }
+      }
+
+      select {
+        cursor: pointer;
+      }
+    }
+  }
+
+  .filters-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 20px;
+
+    .btn {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: var(--bg);
+        border-color: var(--brand-primary);
+        color: var(--brand-primary);
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .filters-section {
+    .filters-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .filters-actions {
+      flex-direction: column;
+
+      .btn-primary,
+      .btn-secondary {
+        width: 100%;
+      }
+    }
+  }
+}

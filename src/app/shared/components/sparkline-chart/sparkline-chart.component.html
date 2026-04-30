@@ -1,0 +1,18 @@
+<div class="spark-card">
+  <div class="spark-header">
+    <div class="title">{{ title }}</div>
+    <div class="subtitle" *ngIf="subtitle">{{ subtitle }}</div>
+  </div>
+  <div class="spark-chart">
+    <svg [attr.viewBox]="viewBox" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="sparkGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" [attr.style]="'stop-color:'+color+';stop-opacity:0.28'"/>
+          <stop offset="100%" [attr.style]="'stop-color:'+color+';stop-opacity:0'"/>
+        </linearGradient>
+      </defs>
+      <polyline [attr.points]="points" [attr.stroke]="color" stroke-width="2.5" fill="none" />
+      <polygon *ngIf="variant==='area'" [attr.points]="areaPoints" fill="url(#sparkGradient)" />
+    </svg>
+  </div>
+</div>

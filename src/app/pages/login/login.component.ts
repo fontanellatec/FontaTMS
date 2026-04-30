@@ -27,7 +27,7 @@ export class LoginComponent implements OnInit {
         sessionStorage.setItem('isAuthenticated', 'true');
         localStorage.removeItem('isAuthenticated');
       }
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/torre-controle']);
     }
   }
 
@@ -49,7 +49,7 @@ export class LoginComponent implements OnInit {
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'
       || sessionStorage.getItem('isAuthenticated') === 'true';
     if (isAuthenticated) {
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/torre-controle']);
     }
   }
 }

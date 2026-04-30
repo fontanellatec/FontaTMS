@@ -1,5 +1,5 @@
 <div class="header">
-  <h3>Embarques</h3>
+  <h3>Intenção de Viagem</h3>
   <span class="muted">Operações de transporte</span>
 </div>
 
@@ -27,7 +27,7 @@
   <div class="actions">
     <button class="btn" (click)="exportCSV()">Exportar CSV</button>
     <button class="btn" (click)="printList()">Imprimir</button>
-    <button class="btn btn-primary" (click)="openNewShipmentModal()">Novo Embarque</button>
+    <button class="btn btn-primary" (click)="openNewShipmentModal()">Nova Intenção de Viagem</button>
   </div>
 </div>
 
@@ -54,16 +54,16 @@
         <div>{{ r.eta }}</div>
       </div>
       <div class="row empty" *ngIf="filteredShipments.length === 0">
-        <div class="muted">Nenhum embarque encontrado.</div>
+        <div class="muted">Nenhuma intenção de viagem encontrada.</div>
       </div>
     </div>
   </div>
 
-  <!-- Modal Novo Embarque -->
+  <!-- Modal Nova Intenção de Viagem -->
   <div class="modal-overlay" *ngIf="newModalOpen" (click)="closeNewShipmentModal()"></div>
   <div class="modal" *ngIf="newModalOpen" [class.open]="newModalOpen">
     <div class="modal-header">
-      <div class="modal-title">Novo Embarque</div>
+      <div class="modal-title">Nova Intenção de Viagem</div>
       <button class="btn btn-ghost" (click)="closeNewShipmentModal()">Fechar</button>
     </div>
     <div class="modal-body">

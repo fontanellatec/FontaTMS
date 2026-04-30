@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet'
+import { FilterSectionComponent, FilterConfig } from '../../shared/components/filter-section/filter-section.component';
+import { GridSectionComponent, GridColumn, GridAction } from '../../shared/components/grid-section/grid-section.component';
+import { KpiSectionComponent, KpiConfig } from '../../shared/components/kpi-section/kpi-section.component';
 
 // Dados e modelos
 export type Combustivel = 'Diesel S10' | 'Diesel S500' | 'Gasolina' | 'Etanol' | 'GNV';
@@ -58,12 +61,25 @@ interface Abastecimento {
   kmsRodados?: number;
 }
 
+// Linhas do grid de Abastecimento (mover tipo para nível de arquivo)
+interface GridAbastecimentoRow {
+  codigo: number;
+  controle: number;
+  identificacao: number;
+  data: Date;
+  fornecedor: string;
+  veiculo: string;
+  valorTotal: number;
+  status: string;
+  tituloTicketCar: string;
+}
+
 @Component({
   selector: 'app-precificacao-abastecimento',
   templateUrl: './precificacao-abastecimento.component.html',
   styleUrls: ['./precificacao-abastecimento.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, FilterSectionComponent, GridSectionComponent, KpiSectionComponent]
 })
 export class PrecificacaoAbastecimentoComponent implements OnInit {
   // Tabs
@@ -88,6 +104,10 @@ export class PrecificacaoAbastecimentoComponent implements OnInit {
     preco: null,
     dataHora: ''
   };
+
+  // Filtros da aba Abastecimento
+  filtersConfig: FilterConfig[] = [];
+  activeFilters: { [key: string]: any } = {};
 
   // Data
   fornecedores: Fornecedor[] = [
@@ -149,6 +169,47 @@ export class PrecificacaoAbastecimentoComponent implements OnInit {
     this.form.fornecedorId = this.fornecedores[0]?.id ?? null;
     this.form.bombaId = bombas[0]?.id ?? null;
     this.form.combustivel = bombas[0]?.combustiveis[0] ?? '';
+    // Inicializa filtros com opções dinâmicas
+    this.filtersConfig = [
+      {
+        type: 'select',
+        label: 'Fornecedor',
+        key: 'fornecedorId',
+        placeholder: 'Todos',
+        options: [{ value: '', label: 'Todos' }, ...this.fornecedores.map(f => ({ value: f.id, label: f.nome }))],
+        value: ''
+      },
+      {
+        type: 'select',
+        label: 'Bomba',
+        key: 'bombaId',
+        placeholder: 'Todas',
+        options: [{ value: '', label: 'Todas' }, ...this.bombas.map(b => ({ value: b.id, label: b.nome }))],
+        value: ''
+      },
+      {
+        type: 'select',
+        label: 'Combustível',
+        key: 'combustivel',
+        placeholder: 'Todos',
+        options: [{ value: '', label: 'Todos' }, ...this.combustiveis.map(c => ({ value: c, label: c }))],
+        value: ''
+      },
+      {
+        type: 'date',
+        label: 'Início',
+        key: 'dataInicio',
+        placeholder: 'Data inicial',
+        value: ''
+      },
+      {
+        type: 'date',
+        label: 'Fim',
+        key: 'dataFim',
+        placeholder: 'Data final',
+        value: ''
+      }
+    ];
   }
 
   onRadiusChange(km: number): void {
@@ -396,6 +457,56 @@ export class PrecificacaoAbastecimentoComponent implements OnInit {
       .sort((a, b) => (a.dataHora > b.dataHora ? -1 : 1));
   }
 
+  historicoFiltrado(): PrecoRegistro[] {
+    const f = this.activeFilters;
+    const hasAnyFilter = Object.values(f).some(v => v !== undefined && v !== null && v !== '');
+    const base = hasAnyFilter ? this.precos : this.getHistoricoPorBomba(this.form.bombaId);
+
+    const parseDate = (s: string): Date => new Date(s);
+    const fFornecedorId = f['fornecedorId'];
+    const fBombaId = f['bombaId'];
+    const fCombustivel = f['combustivel'];
+    const fDataInicio = f['dataInicio'];
+    const fDataFim = f['dataFim'];
+
+    return base.filter(r => {
+      if (fFornecedorId && String(r.fornecedorId) !== String(fFornecedorId)) return false;
+      if (fBombaId && String(r.bombaId) !== String(fBombaId)) return false;
+      if (fCombustivel && r.combustivel !== fCombustivel) return false;
+      if (fDataInicio) {
+        const d0 = new Date(fDataInicio);
+        if (parseDate(r.dataHora) < d0) return false;
+      }
+      if (fDataFim) {
+        const d1 = new Date(fDataFim);
+        const rDate = parseDate(r.dataHora);
+        // incluir fim do dia
+        d1.setHours(23,59,59,999);
+        if (rDate > d1) return false;
+      }
+      return true;
+    });
+  }
+
+  onFiltersChange(values: any): void {
+    this.activeFilters = { ...values };
+    // Atualiza opções de bomba quando fornecedor é alterado
+    const fornecedorId = values?.['fornecedorId'] ? Number(values['fornecedorId']) : null;
+    const bombasOpts = [{ value: '', label: 'Todas' }, ...this.getBombasPorFornecedor(fornecedorId).map(b => ({ value: b.id, label: b.nome }))];
+    this.filtersConfig = this.filtersConfig.map(fc => fc.key === 'bombaId' ? { ...fc, options: bombasOpts } : fc);
+  }
+
+  onApplyFilters(values: any): void {
+    this.activeFilters = { ...values };
+  }
+
+  onClearFilters(): void {
+    this.activeFilters = {};
+    // Reset opções de bomba
+    const bombasOpts = [{ value: '', label: 'Todas' }, ...this.bombas.map(b => ({ value: b.id, label: b.nome }))];
+    this.filtersConfig = this.filtersConfig.map(fc => fc.key === 'bombaId' ? { ...fc, options: bombasOpts, value: '' } : ({ ...fc, value: fc.type === 'select' ? '' : '' }));
+  }
+
   getPrecoAtual(bombaId: number | null, combustivel?: Combustivel): number | null {
     const hist = this.getHistoricoPorBomba(bombaId);
     if (combustivel) {
@@ -517,6 +628,96 @@ export class PrecificacaoAbastecimentoComponent implements OnInit {
     { dataHora: '2025-10-17T09:50', veiculo: 'MNO1P23', fornecedorId: 1, bombaId: 1, combustivel: 'Diesel S10', litros: 100, precoBomba: 6.29, precoNota: 6.27, valorTotal: 629.0, kmsRodados: 310 }
   ];
 
+  // Dados mockados para o grid de Abastecimento
+  abastecimentosGridMock: GridAbastecimentoRow[] = [
+    { codigo: 4473, controle: 9361, identificacao: 65490, data: new Date('2025-10-15'), fornecedor: 'AUTO POSTO E REST PETROPEN LTDA', veiculo: 'MIY5190', valorTotal: 1363.06, status: 'Em Aberto', tituloTicketCar: 'TC-10001' },
+    { codigo: 38083, controle: 87338, identificacao: 87338, data: new Date('2025-10-14'), fornecedor: 'POSTO MAGNOLIA LTDA (TERESINA-PI)', veiculo: 'MCU4280', valorTotal: 1253.67, status: 'Finalizada', tituloTicketCar: 'TC-10002' },
+    { codigo: 42970, controle: 83118, identificacao: 347062, data: new Date('2025-10-27'), fornecedor: 'POSTO REFORÇO II LTDA', veiculo: 'MIT3580', valorTotal: 1927.24, status: 'Finalizada', tituloTicketCar: 'TC-10003' },
+    { codigo: 37148, controle: 87811, identificacao: 33324, data: new Date('2025-10-25'), fornecedor: 'REDE HG COMBUSIVEIS (POSTO IRAPURU)', veiculo: 'QHG6230', valorTotal: 1221.28, status: 'Finalizada', tituloTicketCar: 'TC-10004' },
+    { codigo: 1145, controle: 358226, identificacao: 99080, data: new Date('2025-10-31'), fornecedor: 'POSTO LIMARQUES', veiculo: 'MIY4670', valorTotal: 978.20, status: 'Finalizada', tituloTicketCar: 'TC-10005' },
+    { codigo: 38985, controle: 65739, identificacao: 10404, data: new Date('2025-10-22'), fornecedor: 'MARAVILHA COM DER.PETR.LTDA', veiculo: 'MIY5320', valorTotal: 1354.68, status: 'Finalizada', tituloTicketCar: 'TC-10006' },
+    { codigo: 30887, controle: 113016, identificacao: 166851, data: new Date('2025-12-21'), fornecedor: 'POSTO FAISAO V LTDA', veiculo: 'QHG6230', valorTotal: 1522.77, status: 'Finalizada', tituloTicketCar: 'TC-10007' },
+    { codigo: 47427, controle: 82644, identificacao: 387489, data: new Date('2025-06-06'), fornecedor: 'POSTO CHIMBA (RENON COSTA & CIA LTDA)', veiculo: 'MIY4930', valorTotal: 1765.44, status: 'Finalizada', tituloTicketCar: 'TC-10008' },
+    { codigo: 37988, controle: 92458, identificacao: 20979, data: new Date('2025-03-14'), fornecedor: 'POSTO O CUPIM BALSA NOVA LTDA', veiculo: 'QHG4750', valorTotal: 475.04, status: 'Finalizada', tituloTicketCar: 'TC-10009' },
+    { codigo: 33857, controle: 114431, identificacao: 14259, data: new Date('2025-01-26'), fornecedor: 'FERNANDO SILVINO DE LIMA', veiculo: 'MCU5950', valorTotal: 1493.32, status: 'Finalizada', tituloTicketCar: 'TC-10010' }
+  ];
+
+  // Grid de Abastecimentos
+  gridCollapsedAbastecimento = false;
+  pageAbastecimento = 1;
+  pageSizeAbastecimento = 10;
+  pageSizeOptionsAbastecimento: number[] = [10, 25, 50];
+  gridColumnsAbastecimento: GridColumn[] = [
+    { key: 'codigo', label: 'Código', sortable: true, width: '120px', align: 'center', sticky: true, stickyLeft: 0 },
+    { key: 'controle', label: 'Controle', sortable: true, width: '140px', sticky: true, stickyLeft: 120 },
+    { key: 'identificacao', label: 'Identificação', sortable: true, width: '160px', sticky: true, stickyLeft: 260 },
+    { key: 'data', label: 'Data', type: 'date', sortable: true, width: '140px' },
+    { key: 'fornecedor', label: 'Fornecedor', sortable: true, width: '160px' },
+    { key: 'veiculo', label: 'Veículo', sortable: true, width: '120px' },
+    { key: 'valorTotal', label: 'Valor Total', type: 'number', align: 'right', sortable: true, width: '140px' },
+    { key: 'status', label: 'Status', sortable: true, width: '120px' },
+    { key: 'tituloTicketCar', label: 'Título TicketCar', sortable: true, width: '160px' }
+  ];
+  gridActionsAbastecimento: GridAction[] = [
+    {
+      action: 'edit',
+      label: 'Editar',
+      icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>'
+    },
+    {
+      action: 'cancel',
+      label: 'Cancelar',
+      icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg>'
+    }
+  ];
+  private abastecimentoStatusByCodigo: Record<string, string> = {};
+
+  get gridRowsAbastecimento(): any[] {
+    // Usa os dados mockados como fonte principal, mantendo status atualizado quando cancelado
+    return this.abastecimentosGridMock.map(r => ({
+      ...r,
+      status: this.abastecimentoStatusByCodigo[r.codigo] || r.status
+    }));
+  }
+
+  onGridActionAbastecimento(evt: { action: string; row: any }): void {
+    const row = evt.row;
+    switch (evt.action) {
+      case 'edit':
+        this.editarAbastecimento(row);
+        break;
+      case 'cancel':
+        this.cancelarAbastecimento(row);
+        break;
+      default:
+        console.log('Ação não reconhecida no grid de Abastecimento:', evt);
+    }
+  }
+
+  onRowClickAbastecimento(row: any): void {
+    // Pode abrir detalhes; por ora, apenas log
+    console.log('Row click Abastecimento', row);
+  }
+
+  private editarAbastecimento(row: any): void {
+    const a: Abastecimento | undefined = row?._source;
+    if (!a) return;
+    // Preenche o formulário acima com dados do abastecimento para edição simples
+    this.form = {
+      fornecedorId: a.fornecedorId,
+      bombaId: a.bombaId,
+      combustivel: a.combustivel,
+      preco: a.precoBomba,
+      dataHora: a.dataHora
+    };
+  }
+
+  private cancelarAbastecimento(row: any): void {
+    const codigo: string | undefined = row?.codigo;
+    if (!codigo) return;
+    this.abastecimentoStatusByCodigo[codigo] = 'Cancelado';
+  }
+
   setDashTab(tab: 'resumo' | 'precos' | 'frota' | 'notas' | 'alertas'): void {
     this.dashTab = tab;
   }
@@ -612,6 +813,33 @@ export class PrecificacaoAbastecimentoComponent implements OnInit {
     let bestId:number|null=null, bestLit=0;
     map.forEach((lit,fid)=>{ if (lit>bestLit){ bestLit=lit; bestId=fid; }});
     return this.fornecedorById(bestId)?.nome ?? null;
+  }
+
+  // Utilidades de data
+  private isSameDay(a: Date, b: Date): boolean {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  }
+
+  // KPIs – Abastecimento
+  get abastecimentosHojeCount(): number {
+    const today = new Date();
+    return this.abastecimentos.filter(a => this.isSameDay(this.parseLocalDate(a.dataHora), today)).length;
+  }
+
+  get naoVinculadosAcertoCount(): number {
+    // Proxy: registros sem precoNota considerado não vinculados a acerto
+    return this.abastecimentosFiltrados().filter(a => a.precoNota == null).length;
+  }
+
+  get kpiAbastecimentoConfigs(): KpiConfig[] {
+    const precoMedio = this.precoMedioLitroPeriodo();
+    return [
+      { label: 'Abastecimentos Hoje', value: this.abastecimentosHojeCount, icon: 'clock', format: 'number', color: 'var(--brand-primary)' },
+      { label: 'Abastecimentos no Período', value: this.abastecimentosCountPeriodo(), icon: 'check-circle', format: 'number', color: '#0ea5e9' },
+      { label: 'Não vinculados a acerto', value: this.naoVinculadosAcertoCount, icon: 'stop-circle', format: 'number', color: '#f59e0b' },
+      { label: 'Preço Médio (R$/L)', value: precoMedio ?? 0, icon: 'currency', format: 'currency', suffix: '/L', color: '#7c3aed' },
+      { label: 'Valor no Período', value: this.gastoPeriodo(), icon: 'currency', format: 'currency', color: '#059669' }
+    ];
   }
 
   participacaoFornecedores(): Array<{ nome:string, percent:number }> {

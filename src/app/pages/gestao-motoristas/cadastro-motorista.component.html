@@ -1,0 +1,469 @@
+<div class="page-container">
+  <div class="page-header">
+    <h2>Cadastro de Motorista</h2>
+  </div>
+
+  <!-- Abas -->
+  <div class="tabs" role="tablist">
+    <button *ngFor="let t of tabs" class="tab-btn" [class.active]="activeTabId===t.id" (click)="setActiveTab(t.id)" role="tab" [attr.aria-selected]="(activeTabId===t.id)">
+      {{ t.label }}
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <ng-container *ngIf="currentTab" [ngTemplateOutlet]="currentTab.template"></ng-container>
+    </div>
+
+    <div class="card-actions">
+      <button class="btn btn-ghost" (click)="cancelar()">Cancelar</button>
+      <button class="btn btn-primary" [disabled]="saving || !nome.trim() || !cpf.trim()" (click)="save()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Templates das Abas -->
+<ng-template #tplDadosPrincipais>
+  <!-- 1ª linha: Código e Tipo de Motorista -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Código
+      <input type="number" class="pv-input" [(ngModel)]="codigo" placeholder="Gerado automaticamente, pode ajustar" />
+    </label>
+    <label class="pv-label">
+      Tipo de Motorista
+      <select class="pv-input" [(ngModel)]="tipoMotorista">
+        <option [ngValue]="'FROTA'">FROTA</option>
+        <option [ngValue]="'TERCEIRO'">TERCEIRO</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- 2ª linha: Nome Completo e Apelido -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Nome Completo
+      <input type="text" class="pv-input" [(ngModel)]="nome" placeholder="Digite o nome completo" />
+    </label>
+    <label class="pv-label">
+      Apelido
+      <input type="text" class="pv-input" [(ngModel)]="apelido" placeholder="Apelido (opcional)" />
+    </label>
+  </div>
+
+  <!-- 3ª linha: CPF e Data de Admissão -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      CPF
+      <input type="text" class="pv-input" [(ngModel)]="cpf" placeholder="000.000.000-00" />
+    </label>
+    <label class="pv-label">
+      Data de Admissão
+      <input type="date" class="pv-input" [(ngModel)]="dataAdmissao" />
+    </label>
+  </div>
+
+  <!-- 4ª linha: RG, Órgão Expeditor, Data de Emissão -->
+  <div class="form-grid cols-3">
+    <label class="pv-label">
+      RG
+      <input type="text" class="pv-input" [(ngModel)]="rg" placeholder="RG" />
+    </label>
+    <label class="pv-label">
+      Órgão Expeditor
+      <input type="text" class="pv-input" [(ngModel)]="rgOrgao" placeholder="SSP, DETRAN..." />
+    </label>
+    <label class="pv-label">
+      Data de Emissão
+      <input type="date" class="pv-input" [(ngModel)]="rgEmissao" />
+    </label>
+  </div>
+
+  <!-- 5ª linha: Data de Nascimento e Sexo -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Data de Nascimento
+      <input type="date" class="pv-input" [(ngModel)]="nascimento" />
+    </label>
+    <label class="pv-label">
+      Sexo
+      <select class="pv-input" [(ngModel)]="sexo">
+        <option [ngValue]="''">Selecione</option>
+        <option [ngValue]="'MASCULINO'">MASCULINO</option>
+        <option [ngValue]="'FEMININO'">FEMININO</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- 6ª linha: Nacionalidade e Naturalidade -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Nacionalidade
+      <input type="text" class="pv-input" [(ngModel)]="nacionalidade" placeholder="Brasileira, ..." />
+    </label>
+    <label class="pv-label">
+      Naturalidade
+      <input type="text" class="pv-input" [(ngModel)]="naturalidade" placeholder="Cidade/UF" />
+    </label>
+  </div>
+
+  <!-- 7ª linha: Empregador -->
+  <div class="form-grid cols-1">
+    <label class="pv-label">
+      Empregador
+      <input type="text" class="pv-input" [(ngModel)]="empregador" placeholder="Empresa empregadora" />
+    </label>
+  </div>
+
+  <!-- 8ª linha: Status do Cadastro (informativo) -->
+  <div class="status-info">
+    <span class="muted">Status do Cadastro</span>
+    <span class="status-badge" [class.active]="status==='Ativo'" [class.inactive]="status==='Inativo'">{{ status }}</span>
+  </div>
+
+  <!-- Observações (componente de justificativa) -->
+  <app-justification-field
+    [(ngModel)]="observacoes"
+    [config]="observacoesConfig">
+  </app-justification-field>
+</ng-template>
+
+<ng-template #tplHabilitacao>
+  <!-- 1ª linha: Nº CNH, Categoria, UF de Emissão -->
+  <div class="form-grid cols-3">
+    <label class="pv-label">
+      Nº CNH
+      <input type="text" class="pv-input" [(ngModel)]="cnh" placeholder="Número da CNH" />
+    </label>
+    <label class="pv-label">
+      Categoria
+      <input type="text" class="pv-input" [(ngModel)]="cnhCategoria" placeholder="Ex.: A, B, C, D, E" />
+    </label>
+    <label class="pv-label">
+      UF de Emissão
+      <select class="pv-input" [(ngModel)]="cnhEmissaoUf">
+        <option [ngValue]="''">Selecione</option>
+        <option [ngValue]="'AC'">AC</option>
+        <option [ngValue]="'AL'">AL</option>
+        <option [ngValue]="'AP'">AP</option>
+        <option [ngValue]="'AM'">AM</option>
+        <option [ngValue]="'BA'">BA</option>
+        <option [ngValue]="'CE'">CE</option>
+        <option [ngValue]="'DF'">DF</option>
+        <option [ngValue]="'ES'">ES</option>
+        <option [ngValue]="'GO'">GO</option>
+        <option [ngValue]="'MA'">MA</option>
+        <option [ngValue]="'MT'">MT</option>
+        <option [ngValue]="'MS'">MS</option>
+        <option [ngValue]="'MG'">MG</option>
+        <option [ngValue]="'PA'">PA</option>
+        <option [ngValue]="'PB'">PB</option>
+        <option [ngValue]="'PR'">PR</option>
+        <option [ngValue]="'PE'">PE</option>
+        <option [ngValue]="'PI'">PI</option>
+        <option [ngValue]="'RJ'">RJ</option>
+        <option [ngValue]="'RN'">RN</option>
+        <option [ngValue]="'RS'">RS</option>
+        <option [ngValue]="'RO'">RO</option>
+        <option [ngValue]="'RR'">RR</option>
+        <option [ngValue]="'SC'">SC</option>
+        <option [ngValue]="'SP'">SP</option>
+        <option [ngValue]="'SE'">SE</option>
+        <option [ngValue]="'TO'">TO</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- 2ª linha: Data de Emissão, Data de Vencimento -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Data de Emissão
+      <input type="date" class="pv-input" [(ngModel)]="cnhDataEmissao" />
+    </label>
+    <label class="pv-label">
+      Data de Vencimento
+      <input type="date" class="pv-input" [(ngModel)]="cnhDataVencimento" />
+    </label>
+  </div>
+
+  <!-- 3ª linha: Primeira Habilitação -->
+  <div class="form-grid cols-1">
+    <label class="pv-label">
+      Primeira Habilitação
+      <input type="date" class="pv-input" [(ngModel)]="cnhPrimeiraHabilitacao" />
+    </label>
+  </div>
+
+  <!-- 4ª linha: Equiparado TAC, RNTRC, Tipo RNTRC -->
+  <div class="form-grid cols-3">
+    <label class="pv-label">
+      Equiparado TAC
+      <select class="pv-input" [(ngModel)]="equiparadoTac">
+        <option [ngValue]="''">Selecione</option>
+        <option [ngValue]="'SIM'">SIM</option>
+        <option [ngValue]="'NÃO'">NÃO</option>
+      </select>
+    </label>
+    <label class="pv-label">
+      RNTRC
+      <input type="text" class="pv-input" [(ngModel)]="rntrc" placeholder="Registro RNTRC" />
+    </label>
+    <label class="pv-label">
+      Tipo RNTRC
+      <input type="text" class="pv-input" [(ngModel)]="tipoRntrc" placeholder="Ex.: TAC, ETC..." />
+    </label>
+  </div>
+
+  <!-- 5ª linha: Data de Gerenciamento de Risco -->
+  <div class="form-grid cols-1">
+    <label class="pv-label">
+      Data de Gerenciamento de Risco
+      <input type="date" class="pv-input" [(ngModel)]="dataGerenciamentoRisco" />
+    </label>
+  </div>
+</ng-template>
+
+<ng-template #tplFinanceiro>
+  <!-- 1ª linha: Forma de Pagamento do Frete -->
+  <div class="form-grid cols-1">
+    <label class="pv-label">
+      Forma de Pagamento do Frete
+      <select class="pv-input" [(ngModel)]="formaPagamentoFrete">
+        <option [ngValue]="''">Selecione</option>
+        <option [ngValue]="'CARTÃO'">CARTÃO</option>
+        <option [ngValue]="'CONTA'">CONTA</option>
+        <option [ngValue]="'DEPÓSITO'">DEPÓSITO</option>
+        <option [ngValue]="'OUTROS'">OUTROS</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- 2ª linha: Cartão Pamcard, Data de Vencimento -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Cartão Pamcard
+      <input type="text" class="pv-input" [(ngModel)]="cartaoPamcard" placeholder="Número do cartão Pamcard" />
+    </label>
+    <label class="pv-label">
+      Data de Vencimento
+      <input type="date" class="pv-input" [(ngModel)]="pamcardVencimento" />
+    </label>
+  </div>
+
+  <!-- 3ª linha: Banco, Tipo de Conta -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Banco
+      <input type="text" class="pv-input" [(ngModel)]="banco" placeholder="Banco" />
+    </label>
+    <label class="pv-label">
+      Tipo de Conta
+      <select class="pv-input" [(ngModel)]="tipoConta">
+        <option [ngValue]="''">Selecione</option>
+        <option [ngValue]="'Corrente'">Corrente</option>
+        <option [ngValue]="'Poupança'">Poupança</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- 4ª linha: Conta Bancária, Agência, Número -->
+  <div class="form-grid cols-3">
+    <label class="pv-label">
+      Conta Bancária
+      <input type="text" class="pv-input" [(ngModel)]="conta" placeholder="Conta" />
+    </label>
+    <label class="pv-label">
+      Agência
+      <input type="text" class="pv-input" [(ngModel)]="agencia" placeholder="Agência" />
+    </label>
+    <label class="pv-label">
+      Número
+      <input type="text" class="pv-input" [(ngModel)]="numeroFinanceiro" placeholder="Número" />
+    </label>
+  </div>
+
+  <!-- 5ª linha: PIS/PASEP, % Comissão, Código de Exportação -->
+  <div class="form-grid cols-3">
+    <label class="pv-label">
+      PIS / PASEP
+      <input type="text" class="pv-input" [(ngModel)]="pisPasep" placeholder="PIS/PASEP" />
+    </label>
+    <label class="pv-label">
+      % Comissão
+      <input type="text" class="pv-input" [(ngModel)]="percentualComissao" placeholder="Ex.: 10%" />
+    </label>
+    <label class="pv-label">
+      Código de Exportação
+      <input type="text" class="pv-input" [(ngModel)]="codigoExportacao" placeholder="Código de exportação" />
+    </label>
+  </div>
+
+  <!-- Seção opcional: PIX -->
+  <div class="form-grid cols-3">
+    <label class="pv-label">
+      Tipo da Chave PIX
+      <select class="pv-input" [(ngModel)]="pixTipo">
+        <option [ngValue]="''">Selecione</option>
+        <option [ngValue]="'CPF'">CPF</option>
+        <option [ngValue]="'CNPJ'">CNPJ</option>
+        <option [ngValue]="'E-mail'">E-mail</option>
+        <option [ngValue]="'Telefone'">Telefone</option>
+        <option [ngValue]="'Aleatória'">Aleatória</option>
+      </select>
+    </label>
+    <label class="pv-label">
+      Chave PIX
+      <input type="text" class="pv-input" [(ngModel)]="pixChave" placeholder="Digite a chave PIX" />
+    </label>
+  </div>
+</ng-template>
+
+<ng-template #tplContato>
+  <!-- 1ª linha: Telefone Comercial, Contato Comercial -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Telefone Comercial
+      <input type="text" class="pv-input" [(ngModel)]="telefoneComercial" placeholder="(00) 0000-0000" />
+    </label>
+    <label class="pv-label">
+      Contato Comercial
+      <input type="text" class="pv-input" [(ngModel)]="contatoComercial" placeholder="Nome do contato" />
+    </label>
+  </div>
+
+  <!-- 2ª linha: Telefone Residencial, Contato Residencial -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Telefone Residencial
+      <input type="text" class="pv-input" [(ngModel)]="telefoneResidencial" placeholder="(00) 0000-0000" />
+    </label>
+    <label class="pv-label">
+      Contato Residencial
+      <input type="text" class="pv-input" [(ngModel)]="contatoResidencial" placeholder="Nome do contato" />
+    </label>
+  </div>
+
+  <!-- 3ª linha: Celular, E-mail -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Celular
+      <input type="text" class="pv-input" [(ngModel)]="celular" placeholder="(00) 00000-0000" />
+    </label>
+    <label class="pv-label">
+      E-mail
+      <input type="text" class="pv-input" [(ngModel)]="email" placeholder="nome@exemplo.com" />
+    </label>
+  </div>
+</ng-template>
+
+<ng-template #tplEndereco>
+  <!-- 1ª linha: País, UF, Cidade -->
+  <div class="form-grid cols-3">
+    <label class="pv-label">
+      País
+      <input type="text" class="pv-input" [(ngModel)]="pais" placeholder="Brasil" />
+    </label>
+    <label class="pv-label">
+      UF
+      <input type="text" class="pv-input" [(ngModel)]="estado" placeholder="SP, RJ..." />
+    </label>
+    <label class="pv-label">
+      Cidade
+      <input type="text" class="pv-input" [(ngModel)]="cidade" placeholder="Cidade" />
+    </label>
+  </div>
+
+  <!-- 2ª linha: Endereço, Nº -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Endereço
+      <input type="text" class="pv-input" [(ngModel)]="logradouro" placeholder="Rua, Av..." />
+    </label>
+    <label class="pv-label">
+      Nº
+      <input type="text" class="pv-input" [(ngModel)]="numero" placeholder="Número" />
+    </label>
+  </div>
+
+  <!-- 3ª linha: Bairro, CEP -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Bairro
+      <input type="text" class="pv-input" [(ngModel)]="bairro" placeholder="Bairro" />
+    </label>
+    <label class="pv-label">
+      CEP
+      <input type="text" class="pv-input" [(ngModel)]="cep" placeholder="00000-000" />
+    </label>
+  </div>
+
+  <!-- 4ª linha: Complemento, Referência -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Complemento
+      <input type="text" class="pv-input" [(ngModel)]="complemento" placeholder="Bloco, Apto, etc." />
+    </label>
+    <label class="pv-label">
+      Referência
+      <input type="text" class="pv-input" [(ngModel)]="referencia" placeholder="Ponto de referência" />
+    </label>
+  </div>
+
+  <!-- 5ª linha: Tipo de Residência, Reside Desde -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Tipo de Residência
+      <input type="text" class="pv-input" [(ngModel)]="tipoResidencia" placeholder="Casa, Apartamento..." />
+    </label>
+    <label class="pv-label">
+      Reside Desde
+      <input type="text" class="pv-input" [(ngModel)]="resideDesde" placeholder="MM/AAAA ou data" />
+    </label>
+  </div>
+</ng-template>
+
+<ng-template #tplComplementares>
+  <!-- 1ª linha: Nome do Pai, Nome da Mãe -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Nome do Pai
+      <input type="text" class="pv-input" [(ngModel)]="paiNome" placeholder="Nome completo do pai" />
+    </label>
+    <label class="pv-label">
+      Nome da Mãe
+      <input type="text" class="pv-input" [(ngModel)]="maeNome" placeholder="Nome completo da mãe" />
+    </label>
+  </div>
+
+  <!-- 2ª linha: Grupo Sanguíneo, Plano de Saúde -->
+  <div class="form-grid cols-2">
+    <label class="pv-label">
+      Grupo Sanguíneo
+      <input type="text" class="pv-input" [(ngModel)]="grupoSanguineo" placeholder="Ex.: O+, A-, AB+" />
+    </label>
+    <label class="pv-label">
+      Plano de Saúde
+      <input type="text" class="pv-input" [(ngModel)]="planoSaude" placeholder="Operadora / nº do plano" />
+    </label>
+  </div>
+
+  <!-- 3ª linha: Código APISUL MOB -->
+  <div class="form-grid cols-1">
+    <label class="pv-label">
+      Código APISUL MOB
+      <input type="text" class="pv-input" [(ngModel)]="codigoApisulMob" placeholder="Código APISUL MOB" />
+    </label>
+  </div>
+
+  <!-- 4ª linha: Indicação -->
+  <div class="form-grid cols-1">
+    <label class="pv-label">
+      Indicação
+      <input type="text" class="pv-input" [(ngModel)]="indicacao" placeholder="Quem indicou / referência" />
+    </label>
+  </div>
+
+  
+
+  
+</ng-template>

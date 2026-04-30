@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { GridSectionComponent, GridColumn, GridAction } from '../../shared/components/grid-section/grid-section.component';
 
 type ColabStatus = 'Ativo' | 'Inativo' | 'Suspenso';
 
@@ -34,12 +35,15 @@ interface Registro {
   observacao: string;
 }
 
+import { FilterSectionComponent, FilterConfig } from '../../shared/components/filter-section/filter-section.component';
+import { KpiSectionComponent, KpiConfig } from '../../shared/components/kpi-section/kpi-section.component';
+
 @Component({
   selector: 'app-controle-colaboradores',
   templateUrl: './controle-colaboradores.component.html',
   styleUrls: ['./controle-colaboradores.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, FilterSectionComponent, KpiSectionComponent, GridSectionComponent]
 })
 export class ControleColaboradoresComponent implements OnInit {
   ngOnInit() {
@@ -61,6 +65,85 @@ export class ControleColaboradoresComponent implements OnInit {
   filtroTempoCasa: 'Todos' | '< 1 ano' | '1-3 anos' | '> 3 anos' = 'Todos';
   filtroStatus: 'Todos' | 'Ativo' | 'Inativo' | 'Suspenso' = 'Todos';
 
+  // Estado dos filtros e KPIs (colapsado/expandido)
+  filtersCollapsed = true;
+  kpisCollapsed = false;
+
+  // Estado do grid
+  gridCollapsed = false;
+
+  // Configuração das colunas e ações do grid
+  gridColumns: GridColumn[] = [
+    { key: 'nome', label: 'Nome', sortable: true, width: '180px', sticky: true, stickyLeft: 0 },
+    { key: 'cargo', label: 'Cargo', sortable: true, width: '140px', sticky: true, stickyLeft: 180 },
+    { key: 'setor', label: 'Setor', sortable: true, width: '120px', sticky: true, stickyLeft: 320 },
+    { key: 'status', label: 'Status', type: 'status', sortable: true },
+    { key: 'admissao', label: 'Admissão', type: 'date', sortable: true }
+  ];
+  gridActions: GridAction[] = [
+    { action: 'ficha', label: 'Ficha', type: 'primary' },
+    { action: 'historico', label: 'Histórico', type: 'secondary' },
+    { action: 'lancar', label: 'Lançar', type: 'success' }
+  ];
+
+  onGridAction(evt: { action: string; row: any }) {
+    const c = evt.row;
+    if (!c) return;
+    switch (evt.action) {
+      case 'ficha': this.abrirFicha(c); break;
+      case 'historico': this.verHistorico(c); break;
+      case 'lancar': this.lancar(c); break;
+      default: console.log('Ação não reconhecida:', evt);
+    }
+  }
+
+  // Configuração dos filtros para componente padronizado
+  filtersConfig: FilterConfig[] = [
+    { type: 'text', label: 'Nome', key: 'nome', value: this.filtroNome, placeholder: 'Digite o nome' },
+    { type: 'select', label: 'Cargo', key: 'cargo', value: this.filtroCargo, options: [
+      { label: 'Todos os cargos', value: 'Todos' },
+      { label: 'Analista', value: 'Analista' },
+      { label: 'Desenvolvedor', value: 'Desenvolvedor' },
+      { label: 'Gerente', value: 'Gerente' },
+      { label: 'Coordenador', value: 'Coordenador' }
+    ] },
+    { type: 'select', label: 'Setor', key: 'setor', value: this.filtroSetor, options: [
+      { label: 'Todos os setores', value: 'Todos' },
+      { label: 'TI', value: 'TI' },
+      { label: 'RH', value: 'RH' },
+      { label: 'Financeiro', value: 'Financeiro' },
+      { label: 'Comercial', value: 'Comercial' }
+    ] },
+    { type: 'select', label: 'Tempo de Casa', key: 'tempoCasa', value: this.filtroTempoCasa, options: [
+      { label: 'Qualquer tempo', value: 'Todos' },
+      { label: '< 1 ano', value: '< 1 ano' },
+      { label: '1-3 anos', value: '1-3 anos' },
+      { label: '> 3 anos', value: '> 3 anos' }
+    ] },
+    { type: 'select', label: 'Status', key: 'status', value: this.filtroStatus, options: [
+      { label: 'Todos', value: 'Todos' },
+      { label: 'Ativo', value: 'Ativo' },
+      { label: 'Inativo', value: 'Inativo' },
+      { label: 'Suspenso', value: 'Suspenso' }
+    ] }
+  ];
+
+  onFiltersChange(values: any): void {
+    this.filtroNome = values?.nome ?? '';
+    this.filtroCargo = values?.cargo ?? 'Todos';
+    this.filtroSetor = values?.setor ?? 'Todos';
+    this.filtroTempoCasa = values?.tempoCasa ?? 'Todos';
+    this.filtroStatus = values?.status ?? 'Todos';
+  }
+
+  getColabKpis(): KpiConfig[] {
+    return [
+      { label: 'Colaboradores Ativos', value: this.ativos, icon: 'users', color: '#059669' },
+      { label: 'Admissões (Mês)', value: this.admissoesMes, icon: 'plus', color: '#2563eb' },
+      { label: 'Demissões (Mês)', value: this.demissoesMes, icon: 'download', color: '#dc2626' },
+      { label: 'Tempo Médio de Empresa', value: this.tempoMedioEmpresa, icon: 'route', format: 'text', color: '#0ea5e9' }
+    ];
+  }
   // Dados simulados
   colabs: Colaborador[] = [
     { id: 'c1', nome: 'João Silva', cargo: 'Analista', setor: 'Operações', status: 'Ativo', admissao: '2018-02-10', nascimento: '1990-06-30', whatsapp: '(11) 99999-1234', badges: ['Veterano da Jornada'] },
@@ -195,6 +278,21 @@ export class ControleColaboradoresComponent implements OnInit {
     console.log('Aplicar filtros', {
       nome: this.filtroNome, cargo: this.filtroCargo, setor: this.filtroSetor, tempoCasa: this.filtroTempoCasa, status: this.filtroStatus
     });
+  }
+
+  // Métodos para toggle das seções
+  toggleFilters(): void {
+    this.filtersCollapsed = !this.filtersCollapsed;
+  }
+
+  toggleKpis(): void {
+    this.kpisCollapsed = !this.kpisCollapsed;
+  }
+
+  // Método para novo colaborador
+  novoColaborador(): void {
+    console.log('Abrir modal/página para novo colaborador');
+    // Implementar navegação ou modal para cadastro de novo colaborador
   }
   verHistorico(c: Colaborador): void {
     this.selectedColab = c;

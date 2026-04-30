@@ -1,0 +1,218 @@
+<div class="header">
+  <h3>Controle Intenção de Viagem</h3>
+  <span class="muted">Monitoramento e vínculos</span>
+</div>
+
+<!-- Filtros usando componente reutilizável -->
+<app-filter-section
+  [title]="'Filtros'"
+  [filters]="filterConfigs"
+  [collapsed]="filtersCollapsed"
+  (filtersChange)="onFiltersChange($event)"
+  (applyFilters)="onApplyFilters($event)"
+  (clearFilters)="onClearFilters()"
+></app-filter-section>
+
+  <!-- Indicadores rápidos -->
+  <app-kpi-section
+    [title]="'Indicadores'"
+    [kpis]="kpiConfigs"
+    [compactMargin]="true"
+  ></app-kpi-section>
+
+  <div class="tabs">
+    <button class="tab-btn" [class.active]="selectedTab === 'criar'" (click)="selectedTab = 'criar'">Criar vínculos</button>
+    <button class="tab-btn" [class.active]="selectedTab === 'confirmados'" (click)="selectedTab = 'confirmados'">Vínculos criados</button>
+  </div>
+
+  <ng-container *ngIf="selectedTab === 'criar'">
+  <div class="layout-grid">
+    <!-- Sidebar: Intenções disponíveis -->
+    <div class="panel sidebar">
+      <div class="panel-title">Intenções Disponíveis</div>
+      <div class="panel-actions">
+        <button class="btn" (click)="addIntencoesExemplo()">Adicionar intenções de exemplo</button>
+      </div>
+      <div class="list sidebar-list">
+        <button class="list-item" *ngFor="let i of intencoes; let idx = index"
+                [class.selected]="selecionadaIntencaoIndex === intencoes.indexOf(i)"
+                (click)="onSelecionarOuLockarIntencao(intencoes.indexOf(i))"
+                draggable="true"
+                (dragstart)="onIntencaoDragStart(intencoes.indexOf(i), $event)"
+                (dragend)="onIntencaoDragEnd()"
+                [class.dragging]="dragIntencaoIndex === intencoes.indexOf(i)">
+          <div class="title-row">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="card-icon" aria-hidden="true">📦</span>
+              <div>
+                <div class="title">Intenção {{ (idx + 1) | number:'2.0-0' }}</div>
+                <div class="subtitle">{{ i.origem.uf }}/{{ i.origem.cidade }} → {{ i.destino.uf }}/{{ i.destino.cidade }}</div>
+                <div class="meta">{{ i.pesoKg | number:'1.0-0' }} kg</div>
+              </div>
+            </div>
+          </div>
+        </button>
+        <div class="empty muted" *ngIf="intencoes.length === 0">Nenhuma intenção cadastrada.</div>
+      </div>
+    </div>
+
+    <!-- Veículos: cards grandes e dropzones -->
+    <div class="panel main">
+      <div class="panel-title">Veículos Disponíveis</div>
+      <div class="vehicles-grid">
+        <button class="vehicle-card"
+                *ngFor="let v of veiculosDisponiveis"
+                [class.selected]="selecionadoVeiculoIndex === veiculos.indexOf(v)"
+                (click)="selecionadoVeiculoIndex = veiculos.indexOf(v); abrirModalVinculosVeiculo(veiculos.indexOf(v))"
+                (dragover)="onVeiculoDragOver($event)"
+                (dragenter)="onVeiculoDragEnter(veiculos.indexOf(v))"
+                (dragleave)="onVeiculoDragLeave(veiculos.indexOf(v))"
+                (drop)="onVeiculoDrop(veiculos.indexOf(v))"
+                [class.drag-over]="dragOverVeiculoIndex === veiculos.indexOf(v)">
+          <div class="vehicle-info">
+            <div class="vehicle-title">{{ v.placa }} - {{ v.tipo || 'Veículo' }}</div>
+            <div class="vehicle-sub">Localização: {{ v.localizacao }}</div>
+            <div class="vehicle-sub">Pré Vínculos: {{ getPreVinculadosCountForVehicleIndex(veiculos.indexOf(v)) }} - Confirmados: {{ getConfirmadosCountForVehicleIndex(veiculos.indexOf(v)) }}</div>
+          </div>
+          <div class="vehicle-icon" aria-hidden="true">🚚</div>
+        </button>
+      </div>
+    </div>
+
+  
+  </div>
+  </ng-container>
+
+  <ng-container *ngIf="selectedTab === 'confirmados'">
+    <!-- Vínculos confirmados: visão geral -->
+    <div class="panel">
+      <div class="panel-title">Vínculos Confirmados</div>
+      <div class="vehicle-groups">
+        <div class="vehicle-group-card" *ngFor="let group of confirmedGroups">
+          <div class="group-header">
+            <div class="left">
+              <div class="vehicle">
+                <span class="icon" aria-hidden="true">🚚</span>
+                <div class="labels">
+                  <div class="title">{{ group.veiculo.placa }} · {{ group.veiculo.tipo || 'Veículo' }}</div>
+                  <div class="subtitle">Localização: {{ group.veiculo.localizacao }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="right">
+              <span class="chip">{{ group.items.length }} intenções</span>
+              <span class="chip alt">{{ getPesoTotalGrupo(group.items) | number:'1.0-0' }} kg</span>
+            </div>
+          </div>
+          <button class="icon-btn sm group-close" (click)="excluirGrupoConfirmado(group.veiculo)" aria-label="Remover vínculos do veículo" data-tooltip="Remover grupo">✕</button>
+          <div class="group-body">
+            <div class="intencao-card" *ngFor="let item of group.items">
+              <div class="int-left">
+                <span class="mini-icon" aria-hidden="true">📦</span>
+                <div>
+                  <div class="int-title">{{ item.v.intencao.origem.uf }}/{{ item.v.intencao.origem.cidade }} → {{ item.v.intencao.destino.uf }}/{{ item.v.intencao.destino.cidade }}</div>
+                  <div class="int-sub">{{ item.v.intencao.pesoKg | number:'1.0-0' }} kg · {{ item.v.intencao.tipoCarga || 'Carga' }}</div>
+                </div>
+              </div>
+              <div class="int-right">
+                <span [class]="getStatusClass(item.v.status)" class="status-pill">{{ item.v.status }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="empty muted" *ngIf="confirmedGroups.length === 0">Nenhum vínculo confirmado.</div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Modal: vínculos do veículo -->
+<div class="modal-overlay" *ngIf="veiculoVinculosModalOpen" (click)="fecharModalVinculosVeiculo()"></div>
+<div class="modal vinculos-modal" *ngIf="veiculoVinculosModalOpen" [class.open]="veiculoVinculosModalOpen">
+  <div class="modal-header">
+    <div class="modal-headings">
+      <div class="modal-title">
+        Vinculando intenções ao veículo {{ veiculos[veiculoVinculosModalForIndex!]?.placa }}
+      </div>
+      <div class="modal-subtitle">Selecione, confirme ou remova as intenções vinculadas a este veículo.</div>
+    </div>
+    <button class="btn btn-ghost" (click)="fecharModalVinculosVeiculo()">Fechar</button>
+  </div>
+  <div class="modal-body">
+    <div class="vinculos-layout">
+      <div class="vinculos-left">
+        <div class="capacity-block" [class.exceeded]="isCapacidadeExcedidaForVehicleIndex(veiculoVinculosModalForIndex!)">
+          <div class="capacity-header">
+            Capacidade do veículo
+            <span class="capacity-alert" *ngIf="isCapacidadeExcedidaForVehicleIndex(veiculoVinculosModalForIndex!)" aria-hidden="true">⚠️</span>
+          </div>
+          <div class="capacity-meta" [class.exceeded]="isCapacidadeExcedidaForVehicleIndex(veiculoVinculosModalForIndex!)">
+            {{ getPreVinculadosPesoKgForVehicleIndex(veiculoVinculosModalForIndex!) | number:'1.0-0' }} kg
+            de
+            {{ getVehicleCapacityKg(veiculos[veiculoVinculosModalForIndex!]) | number:'1.0-0' }} kg
+            ({{ getCapacidadeUsoPercentForVehicleIndex(veiculoVinculosModalForIndex!) }}%)
+          </div>
+          <div class="capacity-bar">
+            <div class="capacity-fill" [class.exceeded]="isCapacidadeExcedidaForVehicleIndex(veiculoVinculosModalForIndex!)" [style.width.%]="getCapacidadeUsoPercentForVehicleIndex(veiculoVinculosModalForIndex!)"></div>
+          </div>
+        </div>
+        <div class="vinculos-list list">
+          <div class="list-item" *ngFor="let item of modalVinculos">
+            <button class="icon-btn close" (click)="removerVinculo(item.i)" aria-label="Remover intenção">✕</button>
+            <div class="title-row">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span class="card-icon" aria-hidden="true">📦</span>
+                <div>
+                  <div class="title">Intenção</div>
+                  <div class="subtitle">{{ item.v.intencao.origem.uf }}/{{ item.v.intencao.origem.cidade }} → {{ item.v.intencao.destino.uf }}/{{ item.v.intencao.destino.cidade }}</div>
+                  <div class="meta">{{ item.v.intencao.pesoKg | number:'1.0-0' }} kg</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="empty muted" *ngIf="modalVinculos.length === 0">Nenhum vínculo para este veículo.</div>
+        </div>
+      </div>
+      <div class="vinculos-right">
+        <div class="modal-map">
+          <div id="modal-map" class="modal-map-element"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-primary" (click)="confirmarTodosVinculosVeiculo()">Confirmar vínculos</button>
+    <button class="btn" (click)="fecharModalVinculosVeiculo()">Fechar</button>
+  </div>
+</div>
+
+<!-- Toast de desfazer pré-vínculo -->
+<div class="undo-toast" *ngIf="undoVisible">
+  <span class="msg">Pré‑vínculo adicionado.</span>
+  <button class="btn btn-ghost" (click)="undoLinking()">Desfazer</button>
+  <button class="icon-btn close" (click)="clearUndo()" aria-label="Fechar">✕</button>
+</div>
+
+<!-- Toast simples de sucesso -->
+<div class="success-toast" *ngIf="successVisible">
+  <span class="msg">{{ successMessage }}</span>
+  <button class="icon-btn close" (click)="successVisible=false" aria-label="Fechar">✕</button>
+  </div>
+
+<!-- Modal: confirmar vínculo com motorista (opcional) -->
+<div class="modal-overlay" *ngIf="motoristaModalOpen" (click)="closeMotoristaModal()"></div>
+<div class="modal" *ngIf="motoristaModalOpen" [class.open]="motoristaModalOpen">
+  <div class="modal-header">
+    <div class="modal-title">Confirmar vínculo</div>
+    <button class="btn btn-ghost" (click)="closeMotoristaModal()">Fechar</button>
+  </div>
+  <div class="modal-body">
+    <label>
+      <span>Motorista</span>
+      <input [(ngModel)]="motoristaTemp" placeholder="Nome do motorista" />
+    </label>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-primary" (click)="confirmarComMotorista()">Confirmar</button>
+    <button class="btn" (click)="closeMotoristaModal()">Cancelar</button>
+  </div>
+</div>

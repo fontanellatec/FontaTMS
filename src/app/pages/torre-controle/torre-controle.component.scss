@@ -1,0 +1,357 @@
+.torre-page {
+  /* reduzir ainda mais o espaço entre header e filtros */
+  padding: 2px 8px 8px;
+}
+
+/* Override local: diminuir margem superior do componente de filtros nesta página */
+:host ::ng-deep .filters-section {
+  margin-top: 2px !important;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 12px;
+  align-items: stretch; /* esticar lateral para alinhar com coluna esquerda */
+}
+
+.card {
+  background: var(--surface);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.map-header {
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.map-header-left .title {
+  font-weight: 700;
+}
+.map-header-left .subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.map-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  --chip-color: var(--brand-primary);
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--chip-color);
+  color: var(--chip-color);
+  background: var(--surface);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.map-area {
+  min-height: 560px;
+  height: 76vh;
+}
+
+/* Mini mapa na visão geral (canto superior direito) */
+.map-mini {
+  position: sticky;
+  top: 8px;
+}
+.map-mini .map-header { padding: 8px 12px; }
+.map-mini .map-element {
+  width: 100%;
+  height: 280px;
+  min-height: 280px;
+}
+
+.map-element {
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+}
+
+/* Garantir que o mapa grande use 76vh quando ambas classes estiverem presentes */
+.map-element.map-area {
+  height: 76vh;
+  min-height: 560px;
+}
+
+.map-large { margin-top: 12px; }
+
+.indicadores {
+  /* KPIs ocupam a coluna principal (esquerda), sem sticky */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Matriz de Operação Frota sob o mapa */
+.lateral { display: flex; flex-direction: column; }
+.lateral.card { display: flex; flex-direction: column; height: 100%; }
+.op-matrix {
+  margin-top: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex: 1;
+  min-height: 0; /* permite que o wrapper interno ocupe toda a altura do card */
+}
+.op-matrix .table-wrapper { padding: 8px 12px 12px; flex: 1; min-height: 0; overflow: auto; }
+.op-matrix .table th:first-child, .op-matrix .table td:first-child { width: 60%; }
+.op-matrix .table th:last-child, .op-matrix .table td:last-child { text-align: right; }
+
+/* Override: KPI cards vertical stack (one per row) */
+.indicadores .kpi-section .stats-cards {
+  display: grid;
+  /* Preencher largura das seções dinamicamente conforme quantidade de cards */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+/* Quebra de linha após o 3º card na seção Operação */
+.indicadores .kpi-section:first-of-type .stats-cards .statistic-card:nth-child(4) {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+/* Expandir o primeiro card da Operação para ocupar duas colunas na primeira linha */
+.indicadores .kpi-section:first-of-type .stats-cards .statistic-card:first-child {
+  grid-column: span 2;
+}
+
+/* Expandir "Qualidade de Entregas" (5º card) para ocupar duas colunas na segunda linha */
+.indicadores .kpi-section:first-of-type .stats-cards .statistic-card:nth-child(5) {
+  grid-column: span 2;
+}
+
+/* Destaque maior para o valor de "Total de Veículos" (1º card da Operação) */
+.indicadores .kpi-section:first-of-type .stats-cards .statistic-card:first-child .stat-content .stat-value {
+  font-size: 32px; /* igual aos cards pais (Parados/Em Rota) */
+  line-height: 1.1;
+}
+
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+.tab-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text);
+}
+.tab-btn.active {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  background: var(--surface-2);
+}
+
+/* KM Vazio section */
+.kmv-body {
+  padding: 12px;
+}
+.kmv-controls .label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-right: 6px;
+}
+
+/* Rankings */
+.kmv-ranking .table-wrapper { padding: 12px; }
+.table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table th, .table td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+.table thead th { background: var(--surface-2); font-weight: 700; }
+.table tr.top-bad td { background: rgba(239, 68, 68, 0.06); }
+
+/* Exceções */
+.ex-body { padding: 12px; }
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+.donut-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+.donut-header { display:flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.donut-header .title { font-weight: 600; color: var(--text); }
+.donut-header .subtitle { font-size: 12px; color: var(--text-muted); }
+.donut-chart { display:flex; gap: 12px; align-items: center; }
+.donut-chart svg { width: 180px; height: 180px; }
+.donut-legend { display:flex; flex-direction: column; gap: 6px; }
+.donut-legend .legend-item { display:flex; align-items:center; gap:8px; font-size: 13px; color: var(--text); }
+.donut-legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+@media (max-width: 1200px) {
+  .charts-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 820px) {
+  .charts-grid { grid-template-columns: 1fr; }
+}
+.table tr.top-good td { background: rgba(34, 197, 94, 0.06); }
+
+/* Tendências */
+.kmv-trend .trend-chips { padding: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+.trends-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 20px;
+  margin-bottom: 8px;
+  h3 { font-weight: 600; font-size: 16px; margin: 0; }
+  .interval { color: #64748b; font-size: 12px; }
+}
+.trends-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.comparatives-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0;
+}
+
+/* Bloco colapsável para tendências detalhadas – visual alinhado ao kpi-section */
+.collapsible-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin: 0 0 20px 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+.collapsible-section .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-secondary);
+  border-radius: 12px 12px 0 0;
+}
+.collapsible-section .section-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.collapsible-section .toggle-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+}
+.collapsible-section .toggle-btn:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+.collapsible-section .toggle-btn svg { width: 14px; height: 14px; transition: transform 0.3s ease; }
+.collapsible-section .section-content { padding: 24px; }
+.collapsible-section .section-content.collapsed { display: none; }
+.collapsible-section.collapsed .section-header { border-bottom: none; border-radius: 12px; }
+.collapsible-section.collapsed .toggle-btn svg { transform: rotate(180deg); }
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.summary-bar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.summary-item { display: flex; align-items: center; gap: 12px; }
+.summary-item .label { min-width: 160px; color: var(--text-muted); font-weight: 600; }
+.summary-item .value { font-weight: 700; }
+.summary-item .delta { margin-left: auto; font-weight: 600; }
+.summary-item .delta.good { color: var(--success); }
+.summary-item .delta.bad { color: #ef4444; }
+@media (min-width: 1200px) {
+  .trends-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* Responsivo para os mini cards, seguindo o kpi-section */
+@media (max-width: 768px) {
+  .comparatives-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .collapsible-section .section-content { padding: 16px; }
+}
+@media (max-width: 480px) {
+  .comparatives-grid { grid-template-columns: 1fr; }
+}
+
+/* Ajustes específicos para "Principais (Executivo)" em KM Vazio */
+:host ::ng-deep app-kpi-section.executivo-vazio .kpi-section .stats-cards {
+  gap: 16px;
+}
+
+:host ::ng-deep app-kpi-section.executivo-vazio .kpi-section .statistic-card {
+  padding: 16px;
+}
+
+:host ::ng-deep app-kpi-section.executivo-vazio .kpi-section .stat-icon {
+  width: 30px;
+  height: 30px;
+}
+
+:host ::ng-deep app-kpi-section.executivo-vazio .kpi-section .stat-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+:host ::ng-deep app-kpi-section.executivo-vazio .kpi-section .stat-content .stat-value {
+  font-size: 32px !important;
+  line-height: 1.1;
+}
+
+:host ::ng-deep app-kpi-section.executivo-vazio .kpi-section .stat-content .stat-label {
+  font-size: 13px;
+}
+
+/* Ajustes específicos para "Principais" em Custo Operacional (Rodando) */
+:host ::ng-deep app-kpi-section.principais-carregado .kpi-section .stat-content .stat-value {
+  font-size: 32px !important;
+  line-height: 1.1;
+}

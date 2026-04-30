@@ -1,0 +1,370 @@
+.grid-section {
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  margin: 16px 0;
+}
+
+.grid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border, #f0f2f5);
+}
+
+.grid-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.grid-header .toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border, #e5e7eb);
+  background: var(--surface-secondary, #fafafa);
+  color: var(--text, #374151);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.grid-body {
+  padding: 8px 12px 12px 12px;
+  // Garantir que o container de rolagem funcione dentro de layouts flex
+  min-height: 0;
+}
+
+/* Apenas o conteúdo da tabela deve rolar horizontalmente */
+/* Scrollbar padrão do sistema aplicado ao container de rolagem da grid */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  /* Evita que a rolagem vertical/horizontal "vaze" para a página */
+  overscroll-behavior: contain;
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--text-rgb), 0.30) transparent;
+  /* Acolchoar à direita para evitar que conteúdo cole na borda e seja cortado */
+  padding-right: 24px;
+}
+/* WebKit */
+.table-scroll::-webkit-scrollbar { height: 10px; width: 10px; }
+.table-scroll::-webkit-scrollbar-track { background: rgba(var(--text-rgb), 0.08); border-radius: 999px; }
+.table-scroll::-webkit-scrollbar-thumb { background: rgba(var(--text-rgb), 0.30); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+.table-scroll::-webkit-scrollbar-thumb:hover { background: rgba(var(--text-rgb), 0.40); }
+
+.grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  /* Necessário para sticky funcionar corretamente em contêiner com overflow */
+  position: relative;
+  /* Permitir crescer até exceder a largura do container para scroll horizontal */
+  min-width: 100%;
+  /* Forçar alinhamento consistente entre cabeçalho e corpo */
+  table-layout: fixed;
+}
+
+.grid-table thead th,
+.grid-table tbody td {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border, #f0f2f5);
+  color: var(--text, #374151);
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+
+.grid-table thead th {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: none;
+  color: var(--text-secondary, #6b7280);
+  background: var(--surface, #fff);
+  position: sticky;
+  top: 0;
+  /* Ficar acima do corpo da tabela sem interferir nas colunas fixas */
+  z-index: 2;
+  white-space: nowrap; /* cabeçalho não deve quebrar */
+}
+
+.grid-table tbody td {
+  font-size: 12px;
+  color: var(--text, #111827);
+  background: var(--surface, #fff);
+  /* permitir quebra para evitar scroll lateral */
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+.grid-table thead th .th-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  width: 100%;
+}
+
+.grid-table thead th .th-title { font-weight: 600; }
+.grid-table thead th .th-sort { font-size: 11px; opacity: 0.8; }
+
+/* Colunas fixas - cabeçalho e células */
+.grid-table thead th.sticky-col,
+.grid-table tbody td.sticky-col {
+  position: sticky;
+  background: linear-gradient(90deg, var(--surface, #fff), var(--surface, #fff));
+  /* A sombra delicada ajuda a distinguir a coluna fixa sem afetar zebra/hovers */
+  box-shadow: 1px 0 0 var(--border, #f0f2f5);
+}
+
+/* Efeitos visuais */
+.grid-table tbody tr:hover {
+  background: var(--surface-secondary, #f9fafb);
+}
+.grid-table tbody tr:nth-child(even) {
+  background: color-mix(in oklab, var(--surface) 96%, var(--text) 4%);
+}
+
+.grid-table td.left { text-align: left; }
+.grid-table td.center { text-align: center; }
+.grid-table td.right { text-align: right; }
+/* Alinhamento de cabeçalhos conforme configuração da coluna */
+.grid-table thead th.left { text-align: left; }
+.grid-table thead th.center { text-align: center; }
+.grid-table thead th.right { text-align: right; }
+
+.chip {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 12px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  margin-right: 6px;
+}
+
+.status {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 12px;
+  border-radius: 999px;
+}
+.status.ativo { background: #ecfdf5; color: #065f46; }
+.status.inativo { background: #fee2e2; color: #991b1b; }
+.status.suspenso { background: #fef3c7; color: #92400e; }
+
+.grid-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 8px 8px 8px;
+}
+
+.grid-footer.modern {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border, #f0f2f5);
+}
+
+.grid-footer .footer-left,
+.grid-footer .footer-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grid-footer .page-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.grid-footer .page-size .label {
+  margin-right: 4px;
+}
+
+.grid-footer select {
+  height: 28px;
+  padding: 2px 6px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 6px;
+  background: var(--surface, #fff);
+  color: var(--text, #374151);
+  font-size: 12px;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 6px;
+  background: var(--surface, #fff);
+  color: var(--text, #374151);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.icon-btn:hover:not([disabled]) {
+  background: var(--surface-secondary, #f9fafb);
+  border-color: var(--border-hover, #d1d5db);
+}
+.icon-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Ações: garantir que o SVG tenha tamanho e contraste visíveis */
+.action-icon { color: var(--text, #111827); }
+.action-icon .icon { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; }
+.action-icon .icon svg { width: 16px; height: 16px; }
+
+.page-indicator {
+  font-size: 12px;
+  color: var(--text, #374151);
+}
+.page-indicator strong {
+  font-weight: 600;
+}
+
+.muted {
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
+}
+.actions-col, .actions { text-align: left; }
+/* Garantir largura suficiente para 2 ícones e alinhar à esquerda para evitar corte */
+.grid-table thead th.actions-col { text-align: left; }
+.grid-table thead th.actions-col .th-wrapper { justify-content: flex-start; }
+.grid-table .actions-col { width: 140px; min-width: 140px; text-align: left; padding-left: 8px; }
+.grid-table .actions-col .icon-btn { margin-inline: 2px; }
+
+/* Tema-aware icon color: usar claro no dark e escuro no light */
+.action-icon { color: var(--text); }
+:host-context([data-theme="dark"]) .action-icon { color: #e5e7eb; }
+:host-context(:not([data-theme="dark"])) .action-icon { color: #0f172a; }
+.card { background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: var(--radius, 8px); }
+.card-header { border-bottom: 1px solid var(--border, #f0f2f5); }
+.card-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.card-header .toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border, #e5e7eb);
+  background: var(--surface-secondary, #fafafa);
+  color: var(--text, #374151);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.card-body {
+  padding: 8px 12px 12px 12px;
+}
+
+.card-table {
+  width: 100%;
+  border-collapse: collapse;
+  /* Necessário para sticky funcionar corretamente em contêiner com overflow */
+  position: relative;
+}
+
+.card-table thead th {
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: none;
+  color: var(--text-secondary, #6b7280);
+  background: var(--surface, #fff);
+  position: sticky;
+  top: 0;
+  z-index: 2; // acima das colunas fixas do corpo
+  border-bottom: 1px solid var(--border, #f0f2f5);
+}
+
+.card-table tbody td {
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--text, #111827);
+  border-bottom: 1px solid var(--border, #f0f2f5);
+}
+
+.grid-table thead th.sticky-col {
+  z-index: 4; // header da coluna fixa acima dos demais
+}
+.grid-table tbody td.sticky-col {
+  z-index: 3; // células de coluna fixa acima do header geral
+}
+
+.grid-section.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--surface, #fff);
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-section.fullscreen .grid-header {
+  border-bottom: 1px solid var(--border, #f0f2f5);
+}
+
+.grid-section.fullscreen .grid-body { flex: 1; min-height: 0; }
+.grid-section.fullscreen .table-scroll { height: 100%; max-height: none !important; overflow-y: auto; }
+.grid-section.fullscreen .grid-footer { border-top: 1px solid var(--border, #f0f2f5); }
+
+/* Compactar botões apenas dentro da grid para reduzir a altura da linha */
+.grid-section .grid-table .btn {
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 1.2;
+  height: auto; /* evita altura mínima elevada */
+}
+
+/* Ações com ícones discretos na coluna de ações */
+.grid-section .grid-table th.actions-col {
+  width: 140px;
+  min-width: 140px;
+  text-align: left;
+  padding-left: 8px;
+}
+.grid-section .grid-table td.actions-col {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding-left: 8px;
+}
+.grid-section .grid-table td.actions-col .action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border, #485569);
+  background: transparent;
+  color: var(--text-contrast, #e5e7eb);
+  transition: all .15s ease-in-out;
+}
+.grid-section .grid-table td.actions-col .action-icon .icon svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+.grid-section .grid-table td.actions-col .action-icon:hover,
+.grid-section .grid-table td.actions-col .action-icon:focus {
+  border-color: var(--brand-primary, #3b82f6);
+  color: var(--brand-primary, #3b82f6);
+  outline: none;
+}

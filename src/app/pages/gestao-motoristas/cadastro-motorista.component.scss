@@ -1,0 +1,107 @@
+.page-container { 
+  /* Reduzir espaço antes do título e puxar toda a página para cima */
+  padding: 6px 16px 12px; 
+  margin-top: -24px; 
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px; /* +2px adicionais para um respiro sutil */
+  color: var(--text);
+}
+
+/* Remover margem padrão do h2 para compactar a área do título */
+.page-header h2 { margin: 0; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 12px;
+}
+
+/* Abas */
+.tabs { display: inline-flex; gap: 6px; margin: 4px 0 8px; align-items: center; }
+.tab-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 8px 12px; border-radius: 999px; cursor: pointer; font-weight: 600; transition: all .15s ease; }
+.tab-btn:hover { border-color: var(--border-hover, var(--brand-primary)); background: rgba(var(--text-rgb), 0.06); }
+.tab-btn.active { background: var(--brand-primary); color: var(--on-brand, #fff); border-color: var(--brand-primary); }
+.tab-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(var(--brand-primary-rgb), 0.30); }
+
+.form-grid { display: grid; gap: 12px; }
+.form-grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.form-grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.form-field { display: flex; flex-direction: column; }
+
+label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+
+.pv-input {
+  background: rgba(var(--text-rgb), 0.06);
+  border: 1px solid rgba(var(--text-rgb), 0.18);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.pv-input::placeholder { color: var(--text-secondary); }
+.pv-input:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(var(--brand-primary-rgb), 0.18);
+}
+
+/* Selects no tema escuro (mesmo padrão das modais de Ações) */
+select.pv-input,
+.form-grid select {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  color-scheme: dark;
+}
+.form-grid select,
+select.pv-input {
+  /* Espaço extra para a seta do select não cobrir o texto */
+  padding-right: 34px;
+  white-space: nowrap; /* evitar quebra de linha do valor selecionado */
+  text-overflow: clip; /* evitar ellipsis caso algum estilo global aplique */
+}
+
+/* Garantir altura e line-height adequadas para não cortar texto nos selects */
+.form-grid select.pv-input,
+select.pv-input {
+  height: 32px !important;
+  min-height: 32px;
+  line-height: 1.2;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+.form-grid select option {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+.form-grid select::-ms-value {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+
+.checkbox-field label { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text); }
+.checkbox-field input[type="checkbox"] { width: 16px; height: 16px; }
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  border-top: 1px solid rgba(var(--text-rgb), 0.12);
+  padding-top: 12px;
+}
+.form-grid.cols-1 { grid-template-columns: 1fr; }
+.status-info { display: flex; align-items: center; gap: 10px; margin: 12px 0; }
+.status-info .muted { font-size: 12px; color: var(--text-secondary); }
+.status-badge { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid var(--border); color: var(--text); background: var(--surface-secondary, rgba(var(--text-rgb), 0.06)); }
+.status-badge.active { color: var(--success, #16a34a); border-color: color-mix(in oklab, var(--success) 40%, var(--border)); background: color-mix(in oklab, var(--surface) 86%, var(--success)); }
+.status-badge.inactive { color: var(--muted, #6b7280); border-color: var(--border); background: rgba(var(--text-rgb), 0.06); }

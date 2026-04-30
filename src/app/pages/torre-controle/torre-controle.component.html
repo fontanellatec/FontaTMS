@@ -1,0 +1,449 @@
+<div class="torre-page">
+  <app-filter-section
+    [title]="'Filtros da Torre de Controle'"
+    [filters]="filtersConfig"
+    [collapsed]="filtersCollapsed"
+    (collapsedChange)="filtersCollapsed = $event"
+    (filtersChange)="onFiltersChange($event)"
+    (applyFilters)="onApplyFilters($event)"
+    (clearFilters)="onClearFilters()"
+  ></app-filter-section>
+
+  <div class="tabs">
+    <button class="tab-btn" [class.active]="selectedTab === 'geral'" (click)="selectedTab = 'geral'">Visão Geral</button>
+    <button class="tab-btn" [class.active]="selectedTab === 'custoOperacional'" (click)="selectedTab = 'custoOperacional'">Custo Operacional</button>
+    <button class="tab-btn" [class.active]="selectedTab === 'kmVazio'" (click)="selectedTab = 'kmVazio'">Custo Operacional (Vazio)</button>
+    <button class="tab-btn" [class.active]="selectedTab === 'excecoes'" (click)="selectedTab = 'excecoes'">Painel de Exceções</button>
+  </div>
+
+  <ng-container *ngIf="selectedTab === 'geral'">
+    <div class="layout">
+      <div class="indicadores card">
+        <app-kpi-section [title]="'Operação'" [kpis]="kpisOperacao" [collapsed]="false" [vertical]="false" [rowBreakIndex]="3" [highlightFirstValue]="true"></app-kpi-section>
+        <app-kpi-section [title]="'Receita'" [kpis]="kpisReceita" [collapsed]="false" [vertical]="false" [compactMargin]="true"></app-kpi-section>
+      </div>
+      <!-- Lateral ocupada integralmente pela matriz -->
+      <aside class="lateral card">
+        <div class="op-matrix">
+          <div class="map-header">
+            <div class="map-header-left">
+              <div class="title">Receita por Operação Frota</div>
+              <div class="subtitle">Período: {{ intervalLabel }}</div>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Operação Frota</th>
+                  <th>Receita</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of matrizOperacaoFrotaReceita">
+                  <td>{{ row.operacao }}</td>
+                  <td>{{ row.receita | currency:'BRL':'symbol' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Mapa grande em bloco separado, abaixo dos KPIs e da matriz -->
+    <div class="map-large card">
+      <div class="map-header">
+        <div class="map-header-left">
+          <div class="title">Localização de Veículos</div>
+        </div>
+      </div>
+      <iframe id="tc-map-iframe" title="Mapa Torre de Controle"
+              src="/assets/mockups/mapa.html?embed=1"
+              class="map-element map-area" style="border:0;"></iframe>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="selectedTab === 'kmVazio'" class="km-vazio-section">
+    <div class="card">
+      <div class="map-header">
+        <div class="map-header-left">
+          <div class="title">Custo Operacional em Viagens Vazias</div>
+          <div class="subtitle">Baseado em custo total vazio (pedágio + abastecimento), km vazio e consumo</div>
+        </div>
+        <div class="map-header-right kmv-controls">
+          <label class="label">Combustível atribuído ao km vazio</label>
+          <input type="range" min="0" max="80" step="5" [(ngModel)]="proporcaoCombustivelVazioPerc" (ngModelChange)="onParamsChanged()">
+          <span class="chip" [style.--chip-color]="'var(--brand-primary)'">{{ proporcaoCombustivelVazioPerc }}%</span>
+        </div>
+      </div>
+      <div class="kmv-body">
+        <app-kpi-section [title]="'Custo e Rendimento (Analítico)'" [kpis]="kpisKmVazioAnaliticos" [collapsed]="false"></app-kpi-section>
+        <app-kpi-section class="executivo-vazio" [title]="'Principais (Executivo)'" [kpis]="kpisKmVazioPrincipais" [collapsed]="false" [rowBreakIndex]="3"></app-kpi-section>
+
+        <div class="collapsible-section" [class.collapsed]="rankingsCollapsed">
+          <div class="section-header">
+            <h4>Rankings Operacionais</h4>
+            <button class="toggle-btn" (click)="toggleRankings()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline [attr.points]="rankingsCollapsed ? '6,9 12,15 18,9' : '18,15 12,9 6,15'"></polyline>
+              </svg>
+            </button>
+          </div>
+          <div class="section-content" [class.collapsed]="rankingsCollapsed">
+            <div class="table-wrapper">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Placa</th>
+                    <th>KM vazio</th>
+                    <th>R$/km (vazio)</th>
+                    <th>Consumo vazio (km/l)</th>
+                    <th>Pedágio vazio (R$)</th>
+                    <th>Abastecimento (R$)</th>
+                    <th>Custo total vazio (R$)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let r of rankingKmVazio; let i = index" [class.top-bad]="i < 5" [class.top-good]="i >= rankingKmVazio.length - 5">
+                    <td>{{ r.placa }}</td>
+                    <td>{{ r.kmVazio }}</td>
+                    <td>{{ r.custoPorKm | number:'1.2-2' }}</td>
+                    <td>{{ r.consumoVazio | number:'1.2-2' }}</td>
+                    <td>{{ r.pedagioVazio | currency:'BRL':'symbol' }}</td>
+                    <td>{{ r.abastecimentoVazio | currency:'BRL':'symbol' }}</td>
+                    <td>{{ r.custoVazioTotal | currency:'BRL':'symbol' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="collapsible-section" [class.collapsed]="tendenciasCollapsed">
+          <div class="section-header">
+            <h4>Tendências</h4>
+            <button class="toggle-btn" (click)="toggleTendencias()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline [attr.points]="tendenciasCollapsed ? '6,9 12,15 18,9' : '18,15 12,9 6,15'"></polyline>
+              </svg>
+            </button>
+          </div>
+          <div class="section-content" [class.collapsed]="tendenciasCollapsed">
+          <div class="trend-chips">
+            <span class="chip" [style.--chip-color]="variacaoPercentVazioMensal >= 0 ? 'var(--warning, #d97706)' : 'var(--success)'">
+              Variação mensal % vazio: {{ variacaoPercentVazioMensal }}%
+            </span>
+            <span class="chip" [style.--chip-color]="variacaoCustoPorKmMensal >= 0 ? 'var(--warning, #d97706)' : 'var(--success)'">
+              Variação custo por km: {{ variacaoCustoPorKmMensal | number:'1.2-2' }}
+            </span>
+            <span class="chip" [style.--chip-color]="'var(--info)'">
+              Custo vazio / receita: {{ relacaoCustoVazioReceitaPerc }}%
+            </span>
+          </div>
+
+          <!-- Gráfico principal comparativo -->
+          <app-trend-comparison-chart
+            [title]="'Visão Geral: % vazio vs R$/km'"
+            [subtitle]="'Últimos 6 meses — destaque no % vazio'"
+            [labels]="mesesUltimos6Labels"
+            [seriesA]="seriePercentTempoVazio6m"
+            [seriesB]="serieCustoPorKmVazio6m"
+            [meta]="24"
+            [colorA]="'#3b82f6'"
+            [colorB]="'#ef4444'"
+            [metaColor]="'#64748b'"
+            [yMin]="0"
+            [yMax]="100"
+            [height]="240">
+          </app-trend-comparison-chart>
+
+          <!-- Bloco colapsável: Tendências Detalhadas (Analítico) -->
+          <!-- (Bloco detalhado movido para fora desta seção para colapse independente) -->
+          </div>
+        </div>
+        </div>
+        <!-- Bloco colapsável: Tendências Detalhadas (Analítico) — agora independente -->
+        <div class="collapsible-section">
+          <div class="section-header">
+            <h4>Tendências Detalhadas (Analítico)</h4>
+            <button class="toggle-btn" (click)="toggleTendenciasDetalhadas()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline [attr.points]="tendenciasDetalhadasCollapsed ? '6,9 12,15 18,9' : '18,15 12,9 6,15'"></polyline>
+              </svg>
+            </button>
+          </div>
+          <div class="section-content" [class.collapsed]="tendenciasDetalhadasCollapsed">
+            <div class="comparatives-grid">
+              <app-mini-trend-card
+                [icon]="'pause-circle'"
+                [title]="'Percentual de KM Vazio'"
+                [value]="percentTempoVazio"
+                [delta]="deltaPercentTempoVazio"
+                [betterDirection]="'down'"
+                [format]="'percentage'"
+                [labels]="mesesUltimos6Labels"
+                [series]="seriePercentTempoVazio6m"
+                [color]="'#3b82f6'"
+                variant="area">
+              </app-mini-trend-card>
+
+              <app-mini-trend-card
+                [icon]="'currency'"
+                [title]="'Custo Total Vazio'"
+                [value]="custoVazioEstimado"
+                [delta]="deltaCustoVazioTotal"
+                [betterDirection]="'down'"
+                [format]="'currency'"
+                [labels]="mesesUltimos6Labels"
+                [series]="serieCustoVazioTotal6m"
+                [color]="'#7c3aed'"
+                variant="line">
+              </app-mini-trend-card>
+
+              <app-mini-trend-card
+                [icon]="'currency'"
+                [title]="'Custo por KM Vazio'"
+                [value]="custoPorKmVazio"
+                [delta]="deltaCustoPorKmVazio"
+                [betterDirection]="'down'"
+                [format]="'currency'"
+                [labels]="mesesUltimos6Labels"
+                [series]="serieCustoPorKmVazio6m"
+                [color]="'#ef4444'"
+                variant="line">
+              </app-mini-trend-card>
+
+              <app-mini-trend-card
+                [icon]="'refresh'"
+                [title]="'Consumo Médio (km/l)'"
+                [value]="consumoMedioVazioKmPorLitro"
+                [delta]="deltaConsumoMedioVazio"
+                [betterDirection]="'up'"
+                [format]="'number'"
+                [labels]="mesesUltimos6Labels"
+                [series]="serieConsumoMedioVazio6m"
+                [color]="'#22c55e'"
+                variant="area">
+              </app-mini-trend-card>
+
+              <app-mini-trend-card
+                [icon]="'clock'"
+                [title]="'Tempo Médio Vazio (h)'"
+                [value]="tempoMedioVazioPorViagem"
+                [delta]="deltaTempoMedioVazio"
+                [betterDirection]="'down'"
+                [format]="'number'"
+                [labels]="mesesUltimos6Labels"
+                [series]="seriePercentTempoVazio6m"
+                [color]="'#f59e0b'"
+                variant="line">
+              </app-mini-trend-card>
+            </div>
+          </div>
+        </div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="selectedTab === 'custoOperacional'" class="custo-operacional-section">
+    <div class="card">
+      <div class="map-header">
+        <div class="map-header-left">
+          <div class="title">Custo Operacional (Rodando)</div>
+          <div class="subtitle">Período considerando veículos carregados (normalidade da operação)</div>
+        </div>
+      </div>
+
+      <div class="kmv-body">
+        <app-kpi-section [title]="'Custos Diretos'" [kpis]="kpisCustoOperacionalAnaliticos" [collapsed]="false"></app-kpi-section>
+        <app-kpi-section class="principais-carregado" [title]="'Principais'" [kpis]="kpisCustoOperacionalPrincipais" [collapsed]="false" [rowBreakIndex]="3"></app-kpi-section>
+
+        <div class="collapsible-section" [class.collapsed]="rankingsCollapsed">
+          <div class="section-header">
+            <h4>Rankings Operacionais (Carregado)</h4>
+            <button class="toggle-btn" (click)="toggleRankings()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline [attr.points]="rankingsCollapsed ? '6,9 12,15 18,9' : '18,15 12,9 6,15'"></polyline>
+              </svg>
+            </button>
+          </div>
+          <div class="section-content" [class.collapsed]="rankingsCollapsed">
+            <div class="table-wrapper">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Placa</th>
+                    <th>KM carregado</th>
+                    <th>R$/km (carregado)</th>
+                    <th>Consumo (km/l)</th>
+                    <th>Pedágio (R$)</th>
+                    <th>Abastecimento (R$)</th>
+                    <th>Oficina (R$)</th>
+                    <th>Custo total (R$)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let r of rankingCustoOperacional; let i = index" [class.top-bad]="i < 5" [class.top-good]="i >= rankingCustoOperacional.length - 5">
+                    <td>{{ r.placa }}</td>
+                    <td>{{ r.kmCarregado }}</td>
+                    <td>{{ r.custoPorKm | number:'1.2-2' }}</td>
+                    <td>{{ r.consumoCarregado | number:'1.2-2' }}</td>
+                    <td>{{ r.pedagio | currency:'BRL':'symbol' }}</td>
+                    <td>{{ r.abastecimento | currency:'BRL':'symbol' }}</td>
+                    <td>{{ r.oficina | currency:'BRL':'symbol' }}</td>
+                    <td>{{ r.custoOperacionalTotal | currency:'BRL':'symbol' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="collapsible-section" [class.collapsed]="tendenciasCollapsed">
+          <div class="section-header">
+            <h4>Tendências (Carregado)</h4>
+            <button class="toggle-btn" (click)="toggleTendencias()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline [attr.points]="tendenciasCollapsed ? '6,9 12,15 18,9' : '18,15 12,9 6,15'"></polyline>
+              </svg>
+            </button>
+          </div>
+          <div class="section-content" [class.collapsed]="tendenciasCollapsed">
+            <div class="mini-trends-grid">
+              <app-mini-trend-card
+                [icon]="'currency'"
+                [title]="'Custo Total Operacional'"
+                [value]="custoOperacionalTotal"
+                [delta]="deltaCustoOperacionalTotal"
+                [betterDirection]="'down'"
+                [format]="'currency'"
+                [labels]="mesesUltimos6Labels"
+                [series]="serieCustoOperacionalTotal6m"
+                [color]="'#7c3aed'"
+                variant="line">
+              </app-mini-trend-card>
+
+              <app-mini-trend-card
+                [icon]="'currency'"
+                [title]="'Custo por KM (carregado)'"
+                [value]="custoPorKmCarregado"
+                [delta]="deltaCustoPorKmCarregado"
+                [betterDirection]="'down'"
+                [format]="'currency'"
+                [labels]="mesesUltimos6Labels"
+                [series]="serieCustoPorKmCarregado6m"
+                [color]="'#ef4444'"
+                variant="line">
+              </app-mini-trend-card>
+
+              <app-mini-trend-card
+                [icon]="'refresh'"
+                [title]="'Consumo Médio (km/l)'"
+                [value]="consumoMedioCarregadoKmPorLitro"
+                [delta]="deltaConsumoMedioCarregado"
+                [betterDirection]="'up'"
+                [format]="'number'"
+                [labels]="mesesUltimos6Labels"
+                [series]="serieConsumoMedioCarregado6m"
+                [color]="'#22c55e'"
+                variant="area">
+              </app-mini-trend-card>
+
+              <app-mini-trend-card
+                [icon]="'clock'"
+                [title]="'Tempo Médio Carregado (h)'"
+                [value]="tempoMedioCarregadoPorViagem"
+                [delta]="deltaTempoMedioCarregado"
+                [betterDirection]="'down'"
+                [format]="'number'"
+                [labels]="mesesUltimos6Labels"
+                [series]="serieTempoMedioCarregado6m"
+                [color]="'#f59e0b'"
+                variant="line">
+              </app-mini-trend-card>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Removido: faixa de resumo numérico duplicada (já coberta pelos KPIs principais) -->
+  </div>
+
+  <ng-container *ngIf="selectedTab === 'excecoes'" class="excecoes-section">
+    <div class="card">
+      <div class="map-header">
+        <div class="map-header-left">
+          <div class="title">Painel de Exceções</div>
+          <div class="subtitle">Atrasos, desvios de rota e excesso de tempo parado</div>
+        </div>
+      </div>
+
+      <div class="ex-body">
+        <app-kpi-section [title]="'Resumo de Ocorrências'" [kpis]="kpisOcorrenciasPrincipais" [collapsed]="false" [rowBreakIndex]="3" [highlightFirstValue]="true"></app-kpi-section>
+
+        <!-- Filtros e tabela devem vir logo após o resumo -->
+        <app-filter-section
+          [title]="'Filtros de Ocorrências'"
+          [filters]="excecoesFiltersConfig"
+          [collapsed]="excecoesFiltersCollapsed"
+          (collapsedChange)="excecoesFiltersCollapsed = $event"
+          (filtersChange)="onExcecoesFiltersChange($event)"
+          (applyFilters)="onExcecoesApplyFilters($event)"
+          (clearFilters)="onExcecoesClearFilters()">
+        </app-filter-section>
+
+        <app-grid-section
+          [title]="'Ocorrências Detalhadas'"
+          [columns]="excecoesGridColumns"
+          [rows]="ocorrenciasFiltradas"
+          [fullscreenToggle]="true"
+          [horizontalScroll]="true"
+          [verticalScroll]="true"
+          [pageSize]="25"
+          [pageSizeOptions]="[10,25,50]">
+        </app-grid-section>
+
+        <div class="charts-grid">
+          <div class="donut-card">
+            <div class="donut-header">
+              <div class="title">Ocorrências por tipo</div>
+              <div class="subtitle">Distribuição por categoria</div>
+            </div>
+            <div class="donut-chart">
+              <svg viewBox="0 0 120 120">
+                <g transform="translate(60,60) rotate(-90)">
+                  <circle r="50" cx="0" cy="0" fill="none" stroke="#e5e7eb" stroke-width="18"/>
+                  <ng-container *ngFor="let seg of donutSegmentsTipo; let i = index">
+                    <circle r="50" cx="0" cy="0" fill="none"
+                      [attr.stroke]="seg.color" stroke-width="18" stroke-linecap="butt"
+                      [attr.stroke-dasharray]="seg.dasharray"
+                      [attr.stroke-dashoffset]="seg.offset"/>
+                  </ng-container>
+                </g>
+              </svg>
+              <div class="donut-legend">
+                <div class="legend-item" *ngFor="let s of tipoDistribuicao">
+                  <span class="dot" [style.background]="s.color"></span>
+                  <span class="label">{{ s.label }}</span>
+                  <span class="value">{{ s.count }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          
+
+          <app-sparkline-chart
+            [title]="'Evolução de ocorrências'"
+            [subtitle]="'Últimos 8 dias'"
+            [labels]="ocorrenciasTimelineLabels"
+            [series]="ocorrenciasTimelineSeries"
+            [variant]="'area'"
+            [height]="120">
+          </app-sparkline-chart>
+        </div>
+      </div>
+    </div>
+  </ng-container>

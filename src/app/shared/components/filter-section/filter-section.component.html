@@ -1,0 +1,58 @@
+<div class="filters-section" [class.collapsed]="collapsed">
+  <div class="filters-header">
+    <h4>{{ title }}</h4>
+    <button class="toggle-btn" (click)="onToggle()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6,9 12,15 18,9"></polyline>
+      </svg>
+    </button>
+  </div>
+  
+  <div class="filters-container" [class.hidden]="collapsed">
+    <div class="filters-grid">
+      <div class="filter-item" *ngFor="let filter of filters">
+        <label>{{ filter.label }}</label>
+        
+        <!-- Select Filter -->
+        <select 
+          *ngIf="filter.type === 'select'" 
+          [value]="filter.value" 
+          (change)="onInputChange($event, filter.key)">
+          <option value="">{{ filter.placeholder || 'Selecione...' }}</option>
+          <option *ngFor="let option of filter.options" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+        
+        <!-- Date Filter -->
+        <input 
+          *ngIf="filter.type === 'date'" 
+          type="date" 
+          [value]="filter.value" 
+          [placeholder]="filter.placeholder"
+          (change)="onInputChange($event, filter.key)">
+        
+        <!-- Text Filter -->
+        <input 
+          *ngIf="filter.type === 'text'" 
+          type="text" 
+          [value]="filter.value" 
+          [placeholder]="filter.placeholder"
+          (input)="onInputChange($event, filter.key)">
+
+        <!-- Number Filter -->
+        <input 
+          *ngIf="filter.type === 'number'" 
+          type="number" 
+          [value]="filter.value" 
+          [placeholder]="filter.placeholder"
+          (input)="onInputChange($event, filter.key)">
+      </div>
+    </div>
+    
+    <div class="filters-actions" *ngIf="showActionButtons">
+      <button class="btn btn-primary" (click)="onApplyFilters()">{{ actionButtonText }}</button>
+      <button class="btn btn-secondary" (click)="onClearFilters()">{{ clearButtonText }}</button>
+    </div>
+  </div>
+</div>

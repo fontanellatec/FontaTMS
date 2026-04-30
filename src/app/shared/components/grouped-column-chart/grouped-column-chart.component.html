@@ -1,0 +1,28 @@
+<div class="chart-card">
+  <div class="header">
+    <div class="titles">
+      <div class="title">{{ title }}</div>
+      <div class="subtitle" *ngIf="subtitle">{{ subtitle }}</div>
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="dot" [style.background]="colorFuel"></span> Combustível</span>
+      <span class="legend-item"><span class="dot" [style.background]="colorToll"></span> Pedágio</span>
+      <span class="legend-item"><span class="line" [style.background]="colorOverlay"></span> % vazio</span>
+    </div>
+  </div>
+
+  <svg [attr.width]="width" [attr.height]="height">
+    <g>
+      <line [attr.x1]="padding.left" [attr.y1]="padding.top + innerH" [attr.x2]="padding.left + innerW" [attr.y2]="padding.top + innerH" stroke="#e5e7eb" />
+      <line [attr.x1]="padding.left" [attr.y1]="padding.top" [attr.x2]="padding.left" [attr.y2]="padding.top + innerH" stroke="#e5e7eb" />
+    </g>
+
+    <g *ngFor="let m of labels; let i = index">
+      <rect [attr.x]="fuelRect(i).x" [attr.y]="fuelRect(i).y" [attr.width]="fuelRect(i).w" [attr.height]="fuelRect(i).h" [attr.fill]="colorFuel" rx="4"></rect>
+      <rect [attr.x]="tollRect(i).x" [attr.y]="tollRect(i).y" [attr.width]="tollRect(i).w" [attr.height]="tollRect(i).h" [attr.fill]="colorToll" rx="4"></rect>
+      <text [attr.x]="x(i)" [attr.y]="padding.top + innerH + 16" text-anchor="middle" class="x-label">{{ m }}</text>
+    </g>
+
+    <polyline *ngIf="overlayPerc?.length" [attr.points]="overlayPoints()" [attr.stroke]="colorOverlay" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+</div>

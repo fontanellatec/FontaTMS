@@ -24,6 +24,7 @@
       </textarea>
       
       <div class="character-counter" 
+           *ngIf="config.showCounter !== false"
            [class.warning]="isNearLimit"
            [class.error]="isOverLimit">
         <span class="counter-text">{{ currentLength }}/{{ config.maxLength }}</span>

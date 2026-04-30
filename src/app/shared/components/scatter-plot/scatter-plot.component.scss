@@ -1,0 +1,6 @@
+.chart-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.title { font-weight: 600; color: #111827; }
+.subtitle { font-size: 12px; color: #6b7280; }
+.axis-label { font-size: 12px; fill: #6b7280; }
+.axis-label.rotate { transform: rotate(-90deg); transform-origin: center; }

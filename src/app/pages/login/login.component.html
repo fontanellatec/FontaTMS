@@ -2,16 +2,7 @@
   <div class="login-card card">
     <!-- Logo and Brand -->
     <div class="login-header">
-      <div class="login-logo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-          <polyline points="9,22 9,12 15,12 15,22"/>
-        </svg>
-      </div>
-      <h1 class="login-title">
-        <span class="brand-name">FontaTec</span>
-        <span class="brand-subtitle">ERP</span>
-      </h1>
+      <img src="/assets/brand/phoenix.png" alt="Phoenix" width="64" height="64" class="login-brand-img" />
     </div>
 
     <!-- Login Form -->
@@ -61,27 +52,19 @@
         </div>
       </div>
 
-      <div class="form-row">
-        <label class="checkbox-label">
-          <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" />
-          <span>Lembrar-me</span>
-        </label>
-        <button type="button" class="link-btn" (click)="onForgotPassword()">Esqueci a senha</button>
-      </div>
 
       <button type="submit" class="btn btn-primary w-full" [disabled]="f.invalid">
         Entrar
       </button>
 
       <div class="login-actions">
-        <span class="muted-text">Não tem conta?</span>
-        <button type="button" class="link-btn" (click)="onRegister()">Criar conta</button>
+        <button type="button" class="link-btn" (click)="onForgotPassword()">Esqueci a minha senha</button>
       </div>
     </form>
 
     <!-- Footer -->
     <div class="login-footer">
-      <p>&copy; 2024 FontaTec</p>
+      <p>&copy; 2024 Phoenix</p>
     </div>
   </div>
 </div>

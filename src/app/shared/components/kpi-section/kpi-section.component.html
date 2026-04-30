@@ -1,0 +1,47 @@
+<div class="kpi-section" [class.collapsed]="collapsed" [class.vertical]="vertical" [class.highlight-first]="highlightFirstValue" [class.compact-margin]="compactMargin">
+  <div class="kpi-header">
+    <h4>{{ title }}</h4>
+    <button class="toggle-btn" (click)="onToggle()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6,9 12,15 18,9"></polyline>
+      </svg>
+    </button>
+  </div>
+  
+  <div class="kpi-container" [class.hidden]="collapsed">
+    <div class="stats-cards" [class.hidden]="collapsed" [class.has-row-break]="rowBreakIndex !== null">
+      <ng-container *ngFor="let kpi of kpis; let i = index">
+        <!-- Card padrão -->
+        <div class="statistic-card" *ngIf="!kpi.children?.length" [class.row-break]="rowBreakIndex !== null && i === rowBreakIndex" [class.single-info]="isSingleInfo(kpi)">
+          <div class="stat-icon" [innerHTML]="getIconSvg(kpi.icon)" [style.color]="kpi.color"></div>
+          <div class="stat-content">
+            <div class="stat-line">
+              <div class="stat-value" [class.percentage]="kpi.format === 'percentage'">{{ formatValue(kpi) }}</div>
+              <div class="stat-delta" *ngIf="kpi.delta !== undefined" [class.good]="isDeltaGood(kpi)" [class.bad]="!isDeltaGood(kpi)">{{ formatDelta(kpi) }}</div>
+            </div>
+            <div class="stat-label">{{ kpi.label }}</div>
+            <div class="progress" *ngIf="kpi.format === 'percentage'">
+              <div class="bar" [style.width.%]="percentValue(kpi)" [style.background]="kpi.color || 'var(--brand-primary)'"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card com subtotais (ex.: Parados) -->
+        <div class="statistic-card has-children" *ngIf="kpi.children?.length" [class.row-break]="rowBreakIndex !== null && i === rowBreakIndex">
+          <div class="stat-header">
+            <div class="stat-label">{{ kpi.label }}</div>
+            <div class="stat-value big">{{ formatValue(kpi) }}</div>
+          </div>
+          <div class="subcards">
+            <div class="subcard" *ngFor="let child of kpi.children">
+              <div class="sub-label">{{ child.label }}</div>
+              <div class="sub-value" [style.color]="child.color">
+                {{ formatChildValue(child) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

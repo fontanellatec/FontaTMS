@@ -1,0 +1,12 @@
+.mini-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px; box-shadow: var(--shadow-sm); }
+.mini-card.improve { border-color: var(--success); }
+.mini-card.worse { border-color: #ef4444; }
+.top { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.icon { font-size: 16px; }
+.title { font-weight: 600; font-size: 13px; }
+.value-row { display: flex; align-items: baseline; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+.value { font-size: 16px; color: var(--text); font-weight: 700; }
+.delta { font-weight: 700; }
+.delta.improve { color: var(--success); }
+.delta.worse { color: #ef4444; }
+.spark { margin-top: 6px; }

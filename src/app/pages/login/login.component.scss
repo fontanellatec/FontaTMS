@@ -3,8 +3,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Fundo igual à cor do menu lateral */
-  background: var(--sidebar-bg);
+  /* Fundo fixo específico da tela de login */
+  background: #1e293b;
   padding: 24px;
 }
 
@@ -23,21 +23,47 @@
   margin-bottom: 32px;
 }
 
+/* Nova imagem de marca no login (sem wrapper) */
+/* Logo maior e ajuste de posição */
+.login-brand-img {
+  display: block;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 32px; /* mais distância do formulário */
+  object-fit: contain;
+}
+
+/* Subir um pouco o conteúdo do card no login */
+.login-card {
+  padding-top: 20px; /* aproximar da margem superior */
+}
+
+@media (max-width: 480px) {
+  .login-brand-img {
+    width: 140px;
+    height: 140px;
+    margin-bottom: 22px;
+  }
+  .login-card { padding-top: 20px; }
+}
 .login-logo {
   width: 64px;
   height: 64px;
-  background: var(--brand-primary);
+  /* Apenas a pastilha da logo no login */
+  background: #0f172a;
   border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 16px;
-  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.3);
+  /* Igual ao efeito da logo interna da sidebar */
+  box-shadow: 0 4px 12px rgba(3, 7, 18, 0.35);
 }
 
-.login-logo svg {
-  width: 32px;
-  height: 32px;
+.login-logo img, .login-logo svg {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
   color: white;
 }
 
@@ -119,7 +145,7 @@
 
 /* Paleta alternativa no tema escuro somente para a tela de Login */
 :host-context([data-theme="dark"]) .login-container {
-  background: var(--sidebar-bg);
+  background: #1e293b;
 }
 
 :host-context([data-theme="dark"]) .login-card {
@@ -159,3 +185,7 @@
     font-size: 24px;
   }
 }
+
+/* Fundo de página e painel de login devem seguir o tema */
+.page { background: var(--page-bg, #1e293b); }
+.login-panel { background: var(--panel-bg, #0f172a); }

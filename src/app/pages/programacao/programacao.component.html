@@ -1,135 +1,345 @@
 <div class="programacao-page">
-  <div class="header">
-    <h3>Programação</h3>
-    <span class="muted">Planejamento e operação de frota</span>
-  </div>
+  <!-- Seção de filtros usando o componente genérico -->
+  <app-filter-section
+    title="Filtros"
+    [filters]="filterConfigs"
+    [(collapsed)]="filtersCollapsed"
+    (filtersChange)="onFiltersChange($event)"
+    (applyFilters)="onApplyFilters($event)"
+    (clearFilters)="limparFiltros()">
+  </app-filter-section>
 
-  <!-- Filtros no padrão Motoristas (sem card) -->
-  <div class="filters">
-    <label class="filter">
-      <span>Frota:</span>
-      <input [(ngModel)]="filtroFrota" placeholder="ex.: 116" />
-    </label>
-    <label class="filter">
-      <span>Motorista:</span>
-      <input [(ngModel)]="filtroMotorista" placeholder="Nome" />
-    </label>
-    <label class="filter">
-      <span>Situação Veículo:</span>
-      <select [(ngModel)]="filtroSituacaoVeiculo">
-        <option value="">Todos</option>
-        <option>Em rota</option>
-        <option>Parado</option>
-      </select>
-    </label>
-    <label class="filter">
-      <span>Tipo Operação:</span>
-      <select [(ngModel)]="filtroTipoOperacaoFrota">
-        <option value="">Todas</option>
-        <option>Distribuição</option>
-        <option>Transferência</option>
-      </select>
-    </label>
-    <label class="filter grow">
-      <span>Cidade:</span>
-      <input [(ngModel)]="filtroCidade" placeholder="ex.: São Paulo" />
-    </label>
-    <div class="actions">
-      <button class="btn" (click)="mostrarParados()">Parados</button>
-      <button class="btn" (click)="mostrarPrincipal()">Principal</button>
-      <button class="btn btn-primary" (click)="pesquisar()">Pesquisar</button>
-    </div>
-  </div>
+  <!-- Seção de KPIs usando o componente genérico -->
+  <app-kpi-section
+    title="Métricas de Programação"
+    [kpis]="kpiConfigs"
+    [(collapsed)]="kpisCollapsed">
+  </app-kpi-section>
 
-  <!-- Listagem no padrão de Motoristas (grid dentro de card) -->
-  <div class="table card list-card">
-    <div class="row header">
-      <div class="cell-center">D.Parados</div>
-      <div class="cell-center">Tempo Fora</div>
-      <div class="cell-center">Frota</div>
-      <div>Localização</div>
-      <div>Motorista</div>
-      <div>Situação veiculo</div>
-      <div>Origem</div>
-      <div>Início viagem</div>
-      <div>Destino</div>
-      <div>P.Entrega</div>
-      <div class="cell-center">P.Viagem</div>
-      <div class="cell-right">Total Receitas</div>
-      <div class="cell-right">Total Diário</div>
-      <div>Observação</div>
-      <div class="cell-right">Receitas (PV + OR)</div>
-      <div>Situação Motorista</div>
-      <div>Tipo Conjunto Veículo</div>
-      <div>Tipo Operação Frota</div>
-      <div>Ult.Manutenção</div>
-      <div class="cell-center">Falta</div>
-      <div class="cell-center">Folga</div>
-      <div class="cell-center">Jornada</div>
-      <div class="cell-center">Entregas</div>
-      <div class="col-actions">Ações</div>
+  <!-- Seção de botões de ação usando o componente genérico -->
+  <app-action-button
+    [buttons]="actionButtonConfigs"
+    [collapsed]="false"
+    [showHeader]="false"
+    alignment="right"
+    (buttonClick)="onActionButtonClick($event)">
+  </app-action-button>
+
+  <!-- Grid padronizado com scroll horizontal interno -->
+  <app-grid-section
+    title="Listagem de Programação"
+    [columns]="gridColumns"
+    [rows]="gridRows"
+    [page]="page"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="pageSizeOptions"
+    [horizontalScroll]="true"
+    [verticalScroll]="true"
+    [bodyMaxHeight]="560"
+    [fullscreenToggle]="true"
+    (pageChange)="page = $event"
+    (pageSizeChange)="pageSize = $event"
+    (rowClick)="verRota($event)"
+    (actionClick)="onGridAction($event)">
+  </app-grid-section>
+
+  <!-- Modal de Entregas com abas -->
+  <app-tab-modal
+    [title]="'Entregas de Documentos'"
+    [(open)]="entregasModalOpen"
+    [size]="'lg'"
+    [tabs]="entregasTabs"
+    [(activeTabId)]="entregasActiveTabId">
+    <div modal-actions>
+      <button class="btn btn-secondary" (click)="fecharEntregas()">Cancelar</button>
+      <button class="btn btn-primary" (click)="confirmarEntregas()">Confirmar Entrega</button>
     </div>
-    <div class="table-body">
-      <div class="row" *ngFor="let r of paged; let idx = index">
-        <div class="cell-center">{{ r.dParados }}</div>
-        <div class="cell-center">{{ r.tempoFora }}</div>
-        <div class="cell-center">{{ r.frota }}</div>
-        <div class="localizacao">
-          <svg class="map-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M12 21s-6-4.35-6-10a6 6 0 1 1 12 0c0 5.65-6 10-6 10z"/>
-            <circle cx="12" cy="11" r="2.5"/>
-          </svg>
-          <span>{{ r.localizacao.cidade }}-{{ r.localizacao.uf }}</span>
+  </app-tab-modal>
+
+  <!-- Modal compacta: Encerrar Manifesto -->
+  <app-tab-modal
+    [title]="'Encerrar Manifesto'"
+    [(open)]="encerrarModalOpen"
+    [size]="'sm'"
+    [tabs]="encerrarTabs"
+    [(activeTabId)]="encerrarActiveTabId">
+    <div modal-actions>
+      <button class="btn btn-secondary" (click)="fecharEncerrarManifesto()">Cancelar</button>
+      <button class="btn btn-primary" (click)="confirmarEncerrarManifesto()">Encerrar</button>
+    </div>
+  </app-tab-modal>
+
+  <!-- Modal compacta: Cancelar Manifesto -->
+  <app-tab-modal
+    [title]="'Cancelar Manifesto'"
+    [(open)]="cancelarModalOpen"
+    [size]="'sm'"
+    [tabs]="cancelarTabs"
+    [(activeTabId)]="cancelarActiveTabId">
+    <div modal-actions>
+      <button class="btn btn-secondary" (click)="fecharCancelarManifesto()">Voltar</button>
+      <button class="btn btn-primary" (click)="confirmarCancelarManifesto()">Confirmar</button>
+    </div>
+  </app-tab-modal>
+
+  <!-- Templates das abas -->
+  <ng-template #conhecimentosTpl>
+    <div class="pv-list">
+      <div class="pv-card" *ngFor="let pv of entregasPVGroups; index as i">
+        <div class="pv-header">
+          <div class="pv-title">
+            <span class="pv-dot"></span>
+            <span class="pv-label">Plano de Viagem</span>
+            <span class="pv-num">{{ pv.pvNumero }}</span>
+          </div>
+          <div class="pv-emissao">Emissão: {{ pv.emissao | date:'dd/MM/yyyy' }}</div>
         </div>
-        <div>{{ r.motorista }}</div>
-        <div>{{ r.situacaoVeiculo }}</div>
-        <div>{{ r.origem }}</div>
-        <div>{{ r.inicioViagem }}</div>
-        <div>{{ r.destino }}</div>
-        <div>{{ r.pEntrega }}</div>
-        <div class="cell-center">{{ r.pViagem }}</div>
-        <div class="cell-right">{{ r.totalReceitas | currency:'BRL':'symbol-narrow' }}</div>
-        <div class="cell-right">{{ r.totalDiario | currency:'BRL':'symbol-narrow' }}</div>
-        <div class="obs">{{ r.observacao }}</div>
-        <div class="cell-right">{{ r.receitasPVOR | currency:'BRL':'symbol-narrow' }}</div>
-        <div>{{ r.situacaoMotorista }}</div>
-        <div>{{ r.tipoConjuntoVeiculo }}</div>
-        <div>{{ r.tipoOperacaoFrota }}</div>
-        <div>{{ r.ultManutencao }}</div>
-        <div class="cell-center">{{ r.falta }}</div>
-        <div class="cell-center">{{ r.folga }}</div>
-        <div class="cell-center">{{ r.jornada }}</div>
-        <div class="cell-center">{{ r.entregas }}</div>
-        <div class="actions-cell">
-          <button class="action-btn primary" (click)="operacionalizar(r)">Operacionalizar</button>
-          <button class="action-btn" (click)="verRota(r)">Ver rota</button>
-          <button class="action-btn" (click)="programarManutencao(r)">Programar manutenção</button>
-          <button class="action-btn" (click)="programarAcerto(r)">Programar Acerto</button>
+  
+        <div class="pv-table">
+          <div class="pv-row pv-head">
+            <div>Conhecimento</div>
+            <div>Armazém Previsão</div>
+            <div>Forma Entrega</div>
+            <div>Data Entrega</div>
+            <div>Armazém</div>
+            <div>Observação</div>
+            <div class="pv-acao">Ação</div>
+          </div>
+          <div class="pv-row" *ngFor="let c of pv.conhecimentos; index as j">
+            <div class="pv-col-num">
+              {{ c.numero }} / {{ j + 1 }}
+            </div>
+            <div>
+              <input class="pv-input" [(ngModel)]="c.armazemPrev" placeholder="Ex: A1" />
+            </div>
+            <div class="pv-entrega">
+              <label class="pv-check">
+                <input type="checkbox" [(ngModel)]="c.formaFinal" />
+                Final
+              </label>
+              <label class="pv-check">
+                <input type="checkbox" [(ngModel)]="c.armazenagem" />
+                Armazenagem
+              </label>
+            </div>
+            <div>
+              <input class="pv-input" [(ngModel)]="c.dataEntrega" placeholder="dd/mm/aaaa" />
+            </div>
+            <div>
+              <input class="pv-input" [(ngModel)]="c.armazem" />
+            </div>
+            <div>
+              <input class="pv-input" [(ngModel)]="c.observacao" placeholder="Observações" />
+            </div>
+            <div class="pv-acao">
+              <button class="pv-icon-btn" type="button" title="Remover">
+                ×
+              </button>
+            </div>
+          </div>
+        </div>
+  
+        <div class="pv-actions modal-actions" modal-actions>
+          <button class="btn btn-primary" type="button" (click)="salvarGrupo(i)">Salvar</button>
         </div>
       </div>
-      <div class="row empty" *ngIf="filtered.length === 0">
-        <div class="muted">Nenhum registro encontrado com os filtros atuais.</div>
+    </div>
+  </ng-template>
+  <ng-template #planoViagemTpl>
+    <div class="pv-list">
+      <div class="pv-card" *ngFor="let pv of planoViagemRows; index as i">
+        <div class="pv-header">
+          <div class="pv-title">
+            <span class="pv-dot"></span>
+            <span class="pv-label">Plano de Viagem</span>
+            <span class="pv-num">{{ pv.pvNumero }}</span>
+          </div>
+          <div class="pv-emissao">Emissão: {{ pv.emissao | date:'dd/MM/yyyy' }}</div>
+        </div>
+  
+        <div class="pv-table pv-table-viagem">
+          <div class="pv-row pv-head">
+            <div>Data Emissão</div>
+            <div>Origem</div>
+            <div>Destino</div>
+            <div>Valor</div>
+            <div>Data Entrega</div>
+            <div>Hora Entrega</div>
+          </div>
+          <div class="pv-row">
+            <div>
+              <input class="pv-input" [value]="pv.emissao | date:'dd/MM/yyyy'" disabled />
+            </div>
+            <div>
+              <input class="pv-input" [(ngModel)]="pv.origem" placeholder="Cidade - UF" />
+            </div>
+            <div>
+              <input class="pv-input" [(ngModel)]="pv.destino" placeholder="Cidade - UF" />
+            </div>
+            <div>
+              <input class="pv-input" [(ngModel)]="pv.valor" placeholder="R$0,00" />
+            </div>
+            <div>
+              <input class="pv-input" type="date" [(ngModel)]="pv.dataEntrega" />
+            </div>
+            <div>
+              <input class="pv-input" type="time" [(ngModel)]="pv.horaEntrega" />
+            </div>
+          </div>
+        </div>
+  
+        <div class="pv-actions modal-actions" modal-actions>
+          <button class="btn btn-primary" type="button" (click)="salvarPV(i)">Salvar</button>
+          <button class="btn btn-secondary" type="button" (click)="fecharEntregas()">Fechar</button>
+        </div>
       </div>
     </div>
-  </div>
+  </ng-template>
 
-  <!-- Rodapé de tabela com paginação -->
-  <div class="table-footer">
-    <div class="footer-left">
-      <button class="btn sm" (click)="firstPage()">«</button>
-      <button class="btn sm" (click)="prevPage()">‹</button>
-      <span>Página {{ page }} / {{ pageCount }}</span>
-      <button class="btn sm" (click)="nextPage()">›</button>
-      <button class="btn sm" (click)="lastPage()">»</button>
+  <ng-template #outrasReceitasTpl>
+    <div class="pv-list">
+      <div class="pv-card" *ngFor="let or of outrasReceitasRows; index as i">
+        <div class="pv-header">
+          <div class="pv-title">
+            <span class="pv-dot"></span>
+            <span class="pv-label">Outra Receita</span>
+            <span class="pv-num">{{ or.recNumero }}</span>
+          </div>
+          <div class="pv-emissao">Emissão: {{ or.emissao | date:'dd/MM/yyyy' }}</div>
+        </div>
+
+        <div class="pv-table pv-table-viagem">
+          <div class="pv-row pv-head">
+            <div>Data Emissão</div>
+            <div>Origem</div>
+            <div>Destino</div>
+            <div>Valor</div>
+            <div>Data Entrega</div>
+            <div>Hora Entrega</div>
+          </div>
+          <div class="pv-row">
+            <div>
+              <input class="pv-input" [value]="or.emissao | date:'dd/MM/yyyy'" disabled />
+            </div>
+            <div>
+              <input class="pv-input" [(ngModel)]="or.origem" placeholder="Cidade - UF" />
+            </div>
+            <div>
+              <input class="pv-input" [(ngModel)]="or.destino" placeholder="Cidade - UF" />
+            </div>
+            <div>
+              <input class="pv-input" [(ngModel)]="or.valor" placeholder="R$0,00" />
+            </div>
+            <div>
+              <input class="pv-input" type="date" [(ngModel)]="or.dataEntrega" />
+            </div>
+            <div>
+              <input class="pv-input" type="time" [(ngModel)]="or.horaEntrega" />
+            </div>
+          </div>
+        </div>
+
+        <div class="pv-actions modal-actions" modal-actions>
+          <button class="btn btn-primary" type="button" (click)="salvarOR(i)">Salvar</button>
+          <button class="btn btn-secondary" type="button" (click)="fecharEntregas()">Fechar</button>
+        </div>
+      </div>
     </div>
-    <div class="footer-right">
-      <div class="page-size">
-        <span>Itens:</span>
-        <select [(ngModel)]="pageSize">
-          <option *ngFor="let s of pageSizeOptions" [value]="s">{{ s }}</option>
+  </ng-template>
+
+  <!-- Template: Encerrar Manifesto -->
+  <ng-template #encerrarManifestoTpl>
+    <div class="encerrar-modal" *ngIf="encerrarCtx as ctx">
+      <div class="info-box">
+        <div class="info-row">
+          <span class="label">UN</span>
+          <span class="value">{{ encerrarGroup?.pvNumero }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Manifesto</span>
+          <span class="value">{{ encerrarManifestoSel?.numero }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Chave de Acesso</span>
+          <span class="value">{{ encerrarManifestoSel?.chaveAcesso }}</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="form-row">
+        <label class="pv-label">Data</label>
+        <input class="pv-input" type="date" [(ngModel)]="ctx.data" />
+      </div>
+      <div class="form-row">
+        <label class="pv-label">Estado</label>
+        <select class="pv-input" [(ngModel)]="ctx.estado" (change)="onChangeEstadoEncerrar()">
+          <option *ngFor="let uf of estadosUF" [value]="uf">{{ uf }}</option>
         </select>
       </div>
-      <span class="muted">Exibindo {{ (page - 1) * pageSize + 1 }} a {{ Math.min(page * pageSize, filtered.length) }} de {{ filtered.length }}</span>
+      <div class="form-row">
+        <label class="pv-label">Cidade</label>
+        <select class="pv-input" [(ngModel)]="ctx.cidade">
+          <option *ngFor="let c of encerrarCidades" [value]="c">{{ c }}</option>
+        </select>
+      </div>
     </div>
-  </div>
+  </ng-template>
+
+  <!-- Template: Cancelar Manifesto -->
+  <ng-template #cancelarManifestoTpl>
+    <div class="cancelar-modal" *ngIf="cancelarCtx as ctx">
+      <div class="pv-hint">Explique o motivo do cancelamento.</div>
+      <label class="pv-label block">
+        Justificativa
+        <textarea class="pv-input" rows="8" [(ngModel)]="ctx.justificativa" placeholder="Descreva a justificativa"></textarea>
+      </label>
+    </div>
+  </ng-template>
+
+  <ng-template #manifestosTpl>
+    <div class="pv-list">
+      <div class="pv-card" *ngFor="let g of manifestosGroups; index as i">
+        <div class="pv-header">
+          <div class="pv-title">
+            <span class="pv-dot"></span>
+            <span class="pv-label">Plano de Viagem</span>
+            <span class="pv-num">{{ g.pvNumero }}</span>
+          </div>
+          <div class="pv-emissao">Emissão: {{ g.emissao | date:'dd/MM/yyyy' }}</div>
+        </div>
+        <div class="pv-table pv-table-manifesto">
+          <div class="pv-row pv-head">
+            <div>Manifesto</div>
+            <div>Data Emissão</div>
+            <div>Origem</div>
+            <div>Destino</div>
+            <div>Status</div>
+            <div class="pv-acao">Encerrar</div>
+            <div class="pv-acao">Cancelar</div>
+            <div class="pv-acao">Imprimir</div>
+          </div>
+          <div class="pv-row" *ngFor="let m of g.manifestos; index as j">
+            <div class="pv-col-num">{{ m.numero }} / {{ j + 1 }}</div>
+            <div>{{ m.emissao | date:'dd/MM/yyyy' }}</div>
+            <div>{{ m.origem }}</div>
+            <div>{{ m.destino }}</div>
+            <div>{{ m.status }}</div>
+            <div class="pv-acao">
+              <button class="pv-icon-btn" type="button" title="Encerrar" (click)="abrirEncerrarManifesto(i, j)">✔</button>
+            </div>
+            <div class="pv-acao">
+              <button class="pv-icon-btn" type="button" title="Cancelar" (click)="abrirCancelarManifesto(i, j)">✖</button>
+            </div>
+            <div class="pv-acao">
+              <button class="pv-icon-btn" type="button" title="Imprimir" (click)="imprimirManifesto(i, j)">🖨</button>
+            </div>
+          </div>
+        </div>
+        <div class="pv-actions modal-actions" modal-actions>
+          <button class="btn btn-secondary" type="button" (click)="fecharEntregas()">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </ng-template>
 </div>

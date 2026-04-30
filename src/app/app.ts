@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { ThemeService } from './core/theme.service';
 import { filter, map } from 'rxjs/operators';
+import { MenuConfigService, MenuKey } from './core/menu-config.service';
 
 @Component({
   selector: 'app-root',
@@ -13,11 +14,13 @@ export class App implements OnInit {
   protected readonly title = signal('ERP');
   protected readonly isDark = signal<boolean>(false);
   protected readonly brandColor = signal<string>('#0d9488');
-  protected readonly pageTitle = signal<string>('Dashboard');
+  protected readonly pageTitle = signal<string>('Torre de Controle');
+  protected readonly userMenuOpen = signal<boolean>(false);
 
   constructor(
     private theme: ThemeService,
-    private router: Router
+    private router: Router,
+    private menu: MenuConfigService
   ) {}
 
   ngOnInit(): void {
@@ -46,21 +49,22 @@ export class App implements OnInit {
     if (url.includes('/financeiro')) return 'Financeiro';
     if (url.includes('/manutencao')) return 'Manutenção';
     if (url.includes('/producao-oficina')) return 'Produção Oficina';
-    if (url.includes('/shipments')) return 'Embarques';
+    if (url.includes('/shipments')) return 'Intenção de Viagem';
     if (url.includes('/vehicles')) return 'Veículos';
     if (url.includes('/drivers')) return 'Motoristas';
     if (url.includes('/gestao-motoristas')) return 'Gestão de Motoristas';
     if (url.includes('/rastreamento')) return 'Rastreamento';
+    if (url.includes('/torre-controle')) return 'Torre de Controle';
     if (url.includes('/programacao')) return 'Programação';
-    if (url.includes('/embarque')) return 'Intenção de Embarque';
-    if (url.includes('/controle-embarques')) return 'Controle de Embarques';
+    if (url.includes('/intencao-viagem')) return 'Intenção de Viagem';
+    if (url.includes('/controle-intencao-viagem')) return 'Controle Intenção de Viagem';
     if (url.includes('/controle-colaboradores')) return 'Controle de Colaboradores';
     if (url.includes('/contratos')) return 'Contratos';
     if (url.includes('/controle-frota')) return 'Controle de Frota';
-    if (url.includes('/precificacao-abastecimento')) return 'Precificação de Abastecimento';
+    if (url.includes('/precificacao-abastecimento')) return 'Abastecimento';
     if (url.includes('/acerto-viagem')) return 'Acerto de Viagem';
     if (url.includes('/frete-terceiro')) return 'Frete Terceiro';
-    return 'Dashboard';
+    return 'Torre de Controle';
   }
 
   getPageTitle(): string {
@@ -95,4 +99,8 @@ export class App implements OnInit {
     sessionStorage.removeItem('isAuthenticated');
     this.router.navigate(['/login']);
   }
+
+  isMenuEnabled(key: MenuKey): boolean { return this.menu.isEnabled(key); }
+  toggleUserMenu(): void { this.userMenuOpen.set(!this.userMenuOpen()); }
+  closeUserMenu(): void { this.userMenuOpen.set(false); }
 }

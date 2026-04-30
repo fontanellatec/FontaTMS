@@ -1,0 +1,96 @@
+<div class="grid-section" [class.collapsed]="collapsed" [class.fullscreen]="isFullscreen">
+  <div class="grid-header">
+    <h2>{{ title }}</h2>
+    <div class="actions">
+      <button class="toggle icon-btn" *ngIf="fullscreenToggle" (click)="toggleFullscreen()">
+        <span *ngIf="!isFullscreen">⤢</span>
+        <span *ngIf="isFullscreen">⤡</span>
+      </button>
+      <button *ngIf="collapsible"
+              (click)="onToggle()"
+              type="button"
+              class="btn btn-sm btn-secondary">
+        {{ collapsed ? 'Expandir' : 'Colapsar' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="grid-body">
+    <div class="table-scroll" [style.max-height.px]="isFullscreen ? null : bodyMaxHeight"
+         [style.overflow-x]="horizontalScroll ? 'auto' : 'hidden'"
+         [style.overflow-y]="verticalScroll ? 'auto' : 'hidden'">
+      <table class="grid-table" [style.width]="horizontalScroll ? 'max-content' : '100%'">
+        <thead>
+          <tr>
+            <th *ngFor="let col of columns" [style.width]="col.width || null"
+                [ngClass]="{'sticky-col': col.sticky, 'center': true}"
+                [style.left.px]="col.sticky ? col.stickyLeft : null">
+              <div class="th-wrapper">
+                <span class="th-title">{{ col.label }}</span>
+                <span class="th-sort" *ngIf="col.sortable">↕</span>
+              </div>
+            </th>
+            <th *ngIf="showActions" class="actions-col">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of pagedRows">
+            <td *ngFor="let col of columns" [ngClass]="{'sticky-col': col.sticky, 'left': (col.align || 'left') === 'left', 'center': col.align === 'center', 'right': col.align === 'right'}"
+                [style.width]="col.width || null"
+                [style.left.px]="col.sticky ? col.stickyLeft : null">
+              <ng-container *ngIf="col.template; else defaultCell">
+                <ng-container *ngTemplateOutlet="col.template; context: {$implicit: row}"></ng-container>
+              </ng-container>
+              <ng-template #defaultCell>
+                <ng-container [ngSwitch]="col.type">
+                  <button *ngSwitchCase="'button'" type="button"
+                          class="btn btn-sm"
+                          [ngClass]="'btn-' + (col.buttonType || 'secondary')"
+                          (click)="onAction(col.buttonAction || col.key, row)">
+                    {{ col.buttonLabel || 'Ação' }}
+                  </button>
+                  <span *ngSwitchCase="'date'">{{ cellValue(row, col) ? (cellValue(row, col) | date:(col.format || 'dd/MM/yyyy')) : '' }}</span>
+                  <span *ngSwitchDefault>{{ cellValue(row, col) }}</span>
+                </ng-container>
+              </ng-template>
+            </td>
+            <td *ngIf="showActions" class="actions-col">
+              <ng-container *ngFor="let a of actions">
+                <!-- Icon-only action when icon is provided -->
+                <button *ngIf="a.icon; else textAction"
+                        type="button"
+                        class="icon-btn action-icon"
+                        (click)="onAction(a.action, row)"
+                        [attr.title]="a.label">
+                  <span class="icon" [innerHTML]="getIconSvg(a.icon)"></span>
+                </button>
+                <!-- Fallback to text button -->
+                <ng-template #textAction>
+                  <button type="button"
+                          class="btn btn-sm"
+                          [ngClass]="'btn-' + (a.type || 'secondary')"
+                          (click)="onAction(a.action, row)">{{ a.label }}</button>
+                </ng-template>
+              </ng-container>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="grid-footer" [class.modern]="true">
+    <div class="footer-left">
+      <span class="page-indicator">Página {{ page }} de {{ pageCount }}</span>
+      <span class="muted">Itens por página</span>
+      <select [ngModel]="pageSize" (ngModelChange)="setPageSize($event)">
+        <option *ngFor="let opt of pageSizeOptions" [value]="opt">{{ opt }}</option>
+      </select>
+    </div>
+    <div class="footer-right">
+      <button class="icon-btn" (click)="firstPage()" [disabled]="page === 1" title="Primeira">«</button>
+      <button class="icon-btn" (click)="prevPage()" [disabled]="page === 1" title="Anterior">‹</button>
+      <button class="icon-btn" (click)="nextPage()" [disabled]="page === pageCount" title="Próxima">›</button>
+      <button class="icon-btn" (click)="lastPage()" [disabled]="page === pageCount" title="Última">»</button>
+    </div>
+  </div>
+</div>

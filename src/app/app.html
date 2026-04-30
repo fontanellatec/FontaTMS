@@ -4,17 +4,27 @@
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="brand">
-        <div class="logo"></div>
+        <img class="logo" src="/assets/brand/logoPhoenix.png" alt="Phoenix" width="32" height="32" />
         <div>
-          <div class="brand-name">FontaTec</div>
+          <div class="brand-name">Phoenix</div>
           <div class="brand-subtitle">ERP</div>
         </div>
       </div>
     </div>
     
     <nav class="sidebar-nav">
+      <!-- Torre de Controle (primeiro item) -->
+      <a class="nav-item" routerLink="/torre-controle" routerLinkActive="active" *ngIf="isMenuEnabled('torre-controle')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 3v6"/>
+          <circle cx="12" cy="12" r="2"/>
+          <path d="M5 20l7-16 7 16"/>
+        </svg>
+        <span>Torre de Controle</span>
+      </a>
+
       <!-- Dashboard -->
-      <a class="nav-item" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <a class="nav-item" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" *ngIf="isMenuEnabled('dashboard')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="7" height="7"/>
           <rect x="14" y="3" width="7" height="7"/>
@@ -25,7 +35,7 @@
       </a>
 
       <!-- Motoristas -->
-      <a class="nav-item" routerLink="/drivers" routerLinkActive="active">
+      <a class="nav-item" routerLink="/drivers" routerLinkActive="active" *ngIf="isMenuEnabled('drivers')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
           <circle cx="9" cy="7" r="4"/>
@@ -34,7 +44,7 @@
       </a>
 
       <!-- Gestão de Motoristas -->
-      <a class="nav-item" routerLink="/gestao-motoristas" routerLinkActive="active">
+      <a class="nav-item" routerLink="/gestao-motoristas" routerLinkActive="active" *ngIf="isMenuEnabled('gestao-motoristas')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M9 4h6a2 2 0 0 1 2 2v2h-2V6H9v12h6v-2h2v2a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
           <path d="M19 12h-8"/>
@@ -45,7 +55,7 @@
       </a>
 
       <!-- Jornada -->
-      <a class="nav-item" routerLink="/jornada" routerLinkActive="active">
+      <a class="nav-item" routerLink="/jornada" routerLinkActive="active" *ngIf="isMenuEnabled('jornada')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
           <circle cx="9" cy="7" r="4"/>
@@ -55,7 +65,7 @@
       </a>
 
       <!-- Veículos -->
-      <a class="nav-item" routerLink="/vehicles" routerLinkActive="active">
+      <a class="nav-item" routerLink="/vehicles" routerLinkActive="active" *ngIf="isMenuEnabled('vehicles')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="11" width="18" height="7" rx="2" ry="2"/>
           <circle cx="7" cy="19" r="2"/>
@@ -65,7 +75,7 @@
       </a>
 
       <!-- Controle de Frota -->
-      <a class="nav-item" routerLink="/controle-frota" routerLinkActive="active">
+      <a class="nav-item" routerLink="/controle-frota" routerLinkActive="active" *ngIf="isMenuEnabled('controle-frota')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="4" width="18" height="12" rx="2"/>
           <path d="M3 10h18"/>
@@ -74,18 +84,18 @@
         <span>Controle de Frota</span>
       </a>
 
-      <!-- Precificação de Abastecimento -->
-      <a class="nav-item" routerLink="/precificacao-abastecimento" routerLinkActive="active">
+      <!-- Abastecimento -->
+      <a class="nav-item" routerLink="/precificacao-abastecimento" routerLinkActive="active" *ngIf="isMenuEnabled('precificacao-abastecimento')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M4 20v-6a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v6"/>
           <path d="M7 7h10"/>
           <circle cx="12" cy="12" r="2"/>
         </svg>
-        <span>Precificação de Abastecimento</span>
+        <span>Abastecimento</span>
       </a>
 
       <!-- Acerto de Viagem -->
-      <a class="nav-item" routerLink="/acerto-viagem" routerLinkActive="active">
+      <a class="nav-item" routerLink="/acerto-viagem" routerLinkActive="active" *ngIf="isMenuEnabled('acerto-viagem')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="4" width="18" height="16" rx="2"/>
           <path d="M3 8h18"/>
@@ -95,7 +105,7 @@
       </a>
 
       <!-- Rastreamento -->
-      <a class="nav-item" routerLink="/rastreamento" routerLinkActive="active">
+      <a class="nav-item" routerLink="/rastreamento" routerLinkActive="active" *ngIf="isMenuEnabled('rastreamento')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/>
           <circle cx="12" cy="9" r="2"/>
@@ -103,8 +113,10 @@
         <span>Rastreamento</span>
       </a>
 
+      
+
       <!-- Programação -->
-      <a class="nav-item" routerLink="/programacao" routerLinkActive="active">
+      <a class="nav-item" routerLink="/programacao" routerLinkActive="active" *ngIf="isMenuEnabled('programacao')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="4" width="18" height="16" rx="2"/>
           <path d="M3 8h18"/>
@@ -114,7 +126,7 @@
       </a>
 
       <!-- Manutenção -->
-      <a class="nav-item" routerLink="/manutencao" routerLinkActive="active">
+      <a class="nav-item" routerLink="/manutencao" routerLinkActive="active" *ngIf="isMenuEnabled('manutencao')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M14.7 6.3a1 1 0  0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
         </svg>
@@ -122,7 +134,7 @@
       </a>
 
       <!-- Produção Oficina -->
-      <a class="nav-item" routerLink="/producao-oficina" routerLinkActive="active">
+      <a class="nav-item" routerLink="/producao-oficina" routerLinkActive="active" *ngIf="isMenuEnabled('producao-oficina')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 7h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>
           <path d="M7 7V5a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v2"/>
@@ -133,40 +145,40 @@
       </a>
 
 
-      <!-- Intenção de Embarques -->
-      <a class="nav-item" routerLink="/embarque" routerLinkActive="active">
+      <!-- Intenção de Viagem -->
+      <a class="nav-item" routerLink="/intencao-viagem" routerLinkActive="active" *ngIf="isMenuEnabled('intencao-viagem')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 6h13l5 5v7a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>
           <path d="M8 6v14"/>
           <path d="M3 12h20"/>
         </svg>
-        <span>Intenção de Embarques</span>
+        <span>Intenção de Viagem</span>
       </a>
 
-      <!-- Controle de Embarques -->
-      <a class="nav-item" routerLink="/controle-embarques" routerLinkActive="active">
+      <!-- Controle Intenção de Viagem -->
+      <a class="nav-item" routerLink="/controle-intencao-viagem" routerLinkActive="active" *ngIf="isMenuEnabled('controle-intencao-viagem')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="7" height="7" rx="1"/>
           <rect x="14" y="3" width="7" height="7" rx="1"/>
           <rect x="3" y="14" width="7" height="7" rx="1"/>
           <path d="M15 15h6M15 18h6M15 21h6"/>
         </svg>
-        <span>Controle de Embarques</span>
+        <span>Controle Intenção de Viagem</span>
       </a>
 
-      <!-- Embarques -->
-      <a class="nav-item" routerLink="/shipments" routerLinkActive="active">
+      <!-- Intenção de Viagem (Lista) -->
+      <a class="nav-item" routerLink="/shipments" routerLinkActive="active" *ngIf="isMenuEnabled('shipments')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="1" y="7" width="14" height="8" rx="2"/>
           <path d="M15 11h4l3 3v3a2 2 0 0 1-2 2h-3"/>
           <circle cx="6" cy="20" r="2"/>
           <circle cx="17" cy="20" r="2"/>
         </svg>
-        <span>Embarques</span>
+        <span>Intenção de Viagem</span>
       </a>
 
       <!-- Frete Terceiro -->
-      <a class="nav-item" routerLink="/frete-terceiro" routerLinkActive="active">
+      <a class="nav-item" routerLink="/frete-terceiro" routerLinkActive="active" *ngIf="isMenuEnabled('frete-terceiro')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M4 7h16"/>
           <path d="M4 12h10"/>
@@ -176,7 +188,7 @@
       </a>
 
       <!-- Controle de Colaboradores -->
-      <a class="nav-item" routerLink="/controle-colaboradores" routerLinkActive="active">
+      <a class="nav-item" routerLink="/controle-colaboradores" routerLinkActive="active" *ngIf="isMenuEnabled('controle-colaboradores')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="10" cy="7" r="4"/>
@@ -187,7 +199,7 @@
       </a>
 
       <!-- Contratos -->
-      <a class="nav-item" routerLink="/contratos" routerLinkActive="active">
+      <a class="nav-item" routerLink="/contratos" routerLinkActive="active" *ngIf="isMenuEnabled('contratos')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M4 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
           <path d="M8 7h8M8 11h8M8 15h5"/>
@@ -197,13 +209,15 @@
       </a>
 
       <!-- Financeiro -->
-      <a class="nav-item" routerLink="/financeiro" routerLinkActive="active">
+      <a class="nav-item" routerLink="/financeiro" routerLinkActive="active" *ngIf="isMenuEnabled('financeiro')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="1" x2="12" y2="23"/>
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
         </svg>
         <span>Financeiro</span>
       </a>
+
+      <!-- Link de Configuração de Menu movido para o dropdown do usuário -->
     </nav>
     
     <div class="sidebar-footer">
@@ -256,10 +270,17 @@
           }
         </label>
         
-        <div class="user-menu">
+        <div class="user-menu" (click)="toggleUserMenu()" tabindex="0">
           <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face" 
                alt="User" class="user-avatar">
           <span class="user-name">André</span>
+          <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          @if (userMenuOpen()) {
+            <div class="user-dropdown" (click)="$event.stopPropagation()">
+              <a class="dropdown-item" routerLink="/config-menu">Configuração de Menu</a>
+              <a class="dropdown-item" (click)="logout()">Sair</a>
+            </div>
+          }
         </div>
       </div>
     </header>

@@ -1,0 +1,306 @@
+.ctrl-intencao-card { padding: 16px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; }
+.actions { display: flex; gap: 8px; }
+
+/* Header padrão */
+.header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.header h3 { margin: 0; }
+.header .muted { color: var(--muted-color, #6b7280); font-size: 12px; }
+
+/* Ações alinhadas à direita dentro da barra de filtros */
+.filters .actions { margin-left: auto; display: flex; gap: 8px; }
+
+.filters { display: flex; align-items: center; gap: 12px; margin: 12px 0; }
+.filter { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+.filter input, .filter select { background: var(--surface-secondary); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 8px; }
+.filter.grow { flex: 1; display: flex; justify-content: flex-end; }
+
+/* Indicadores rápidos */
+.stats { display: grid; grid-template-columns: repeat(4, max-content); gap: 12px; margin: 8px 0 14px; }
+.stat { display: flex; align-items: baseline; gap: 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.stat-label { font-size: 12px; color: var(--text-secondary); }
+.stat-value { font-weight: 700; }
+
+.layout-grid { display: grid; grid-template-columns: 280px 1fr; gap: 16px; align-items: start; }
+.panel { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+
+/* Sidebar fina (cargas disponíveis) */
+.sidebar { padding: 8px 8px 10px; display: flex; flex-direction: column; }
+/* Lista de intenções com rolagem e scrollbar padrão do sistema */
+.sidebar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* Rolagem interna */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Permite que a rolagem funcione em layouts flex */
+  min-height: 0;
+  /* Altura máxima para ativar a rolagem sem estourar o painel */
+  max-height: min(70vh, 620px);
+
+  /* Padrão de scrollbar do sistema (tema-aware) */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(var(--text-rgb), 0.30) transparent; /* Firefox */
+}
+/* WebKit/Blink */
+.sidebar-list::-webkit-scrollbar { width: 10px; height: 10px; }
+.sidebar-list::-webkit-scrollbar-track { background: rgba(var(--text-rgb), 0.08); border-radius: 999px; }
+.sidebar-list::-webkit-scrollbar-thumb { background: rgba(var(--text-rgb), 0.30); border-radius: 999px; }
+.sidebar-list::-webkit-scrollbar-thumb:hover { background: rgba(var(--text-rgb), 0.40); }
+.sidebar .list-item { display: block; text-align: left; border: 1px solid var(--border); border-radius: 10px; background: color-mix(in oklab, var(--surface) 94%, var(--brand-primary)); padding: 10px; cursor: grab; }
+.sidebar .list-item:hover { background: color-mix(in oklab, var(--surface) 90%, var(--brand-primary)); }
+.sidebar .title { font-weight: 600; }
+.sidebar .subtitle { font-size: 12px; color: var(--text-secondary); }
+.sidebar .meta { font-size: 12px; color: var(--text-secondary); }
+
+/* Área principal: grid de cards de veículos */
+.main { padding: 12px; }
+.vehicles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.vehicle-card { display: grid; grid-template-columns: auto 56px; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid var(--border); border-radius: 14px; padding: 16px; background: color-mix(in oklab, var(--surface) 94%, var(--brand-primary)); cursor: pointer; transition: border-color .15s ease, transform .12s ease, background .15s ease; }
+.vehicle-card:hover, .vehicle-card.drag-over { border-color: var(--brand-primary); background: color-mix(in oklab, var(--surface) 90%, var(--brand-primary)); transform: translateY(-1px); }
+.vehicle-info { display: grid; gap: 6px; text-align: left; }
+.vehicle-title { font-size: 18px; font-weight: 700; letter-spacing: .4px; }
+/* High-contrast color for license plates in dark mode */
+:host-context([data-theme="dark"]) .vehicle-title { color: var(--brand-accent); }
+.vehicle-sub { font-size: 13px; color: var(--text-secondary); }
+.vehicle-icon { font-size: 24px; display: flex; align-items: center; justify-content: center; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.pill.success { background: rgba(34,197,94,.12); color: var(--success); }
+
+/* --- Confirmados: card pai do veículo com cards filhos de intenções --- */
+.vehicle-groups { padding: 12px; display: grid; gap: 24px; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); }
+.vehicle-group-card { position: relative; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-md); overflow: hidden; }
+.group-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; background: var(--surface-2); border-bottom: 1px solid var(--border); padding-right: 42px; }
+.group-header .vehicle { display: flex; align-items: center; gap: 10px; }
+.group-header .icon { font-size: 20px; }
+.group-header .labels .title { font-weight: 700; }
+.group-header .labels .subtitle { font-size: 12px; color: var(--text-secondary); }
+.group-header .right { display: inline-flex; align-items: center; gap: 10px; padding-right: 8px; }
+.chip { --chip-color: var(--brand-primary); padding: 4px 10px; border-radius: 999px; border: 1px solid var(--chip-color); color: var(--chip-color); background: var(--surface); font-weight: 600; font-size: 12px; }
+.chip.alt { --chip-color: #64748b; }
+
+/* Botão de fechar do card pai (balão discreto no canto) */
+.vehicle-group-card .icon-btn.group-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: color-mix(in oklab, var(--brand-primary) 22%, var(--surface));
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  z-index: 2;
+  box-shadow: var(--shadow-sm);
+}
+.vehicle-group-card .icon-btn.group-close:hover {
+  background: color-mix(in oklab, var(--brand-primary) 30%, var(--surface));
+}
+
+.group-body { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; padding: 14px; }
+.intencao-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: color-mix(in oklab, var(--surface) 94%, var(--brand-primary)); }
+.intencao-card .int-left { display: flex; align-items: center; gap: 10px; }
+.intencao-card .mini-icon { font-size: 18px; }
+.intencao-card .int-title { font-weight: 600; }
+.intencao-card .int-sub { font-size: 12px; color: var(--text-secondary); }
+.intencao-card .int-right { display: flex; align-items: center; gap: 8px; }
+.status-pill { border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; font-size: 12px; }
+.status.vinculado { background: rgba(99,102,241,.12); color: #6366f1; border-color: #6366f1; }
+.btn-sm { font-size: 12px; padding: 4px 8px; }
+.pill.info { background: rgba(59,130,246,.14); color: var(--brand-primary); }
+
+/* Discreto: botão de fechar no card de intenção (confirmados) igual à modal */
+.intencao-card { position: relative; }
+/* Removido: botão de fechar dentro da intenção não deve aparecer nos vínculos criados */
+
+/* Acessibilidade nas ações por teclado */
+.icon-btn:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
+
+/* Modal map */
+.modal-map { margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.modal-map-element { width: 100%; height: 220px; }
+.panel-title { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text-secondary); }
+.panel-actions { padding: 8px 12px; border-bottom: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+.table-container { overflow: auto; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+.table thead th { background: var(--surface-secondary); font-size: 12px; color: var(--text-secondary); }
+.table thead th:last-child,
+.table tbody td:last-child { width: 120px; }
+
+.status { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: capitalize; }
+.status.em-rota { background: rgba(34, 197, 94, 0.12); color: var(--success); }
+.status.pendente { background: rgba(251, 191, 36, 0.12); color: var(--warning); }
+.status.concluido { background: rgba(2, 132, 199, 0.12); color: var(--info); }
+.status.vinculado { background: rgba(106, 90, 205, 0.12); color: #6a5acd; }
+
+.map-card { position: relative; }
+.map-legend { position: absolute; top: 10px; left: 10px; display: flex; gap: 10px; z-index: 2000; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; }
+.map-legend .item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.map-legend .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid rgba(0,0,0,0.12); }
+.map-legend .swatch.em-rota { background: #22c55e; }
+.map-legend .swatch.vinculado { background: #3b82f6; }
+.map-legend .swatch.concluido { background: #64748b; }
+.map-legend .swatch.pendente { background: #a3a3a3; }
+.map-toolbar { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; z-index: 2000; }
+.icon-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.icon-btn:hover { background: color-mix(in oklab, var(--surface) 92%, var(--brand-primary)); }
+.icon-btn.sm { width: 28px; height: 28px; font-size: 13px; }
+.icon-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.icon { width: 16px; height: 16px; display: inline-block; }
+.icon-success { color: var(--success, #22c55e); }
+.icon-danger { color: var(--danger, #ef4444); }
+.icon-info { color: var(--info, #2563eb); }
+.icon-btn:disabled .icon { color: var(--text-secondary); }
+
+.icon { transition: transform .12s ease, filter .12s ease; }
+.icon-btn:hover .icon-success, .icon-btn:focus .icon-success { transform: scale(1.12); filter: drop-shadow(0 2px 6px rgba(34,197,94,.3)); }
+.icon-btn:hover .icon-danger, .icon-btn:focus .icon-danger { transform: scale(1.12); filter: drop-shadow(0 2px 6px rgba(239,68,68,.3)); }
+.map-canvas { height: 560px; background: var(--surface-secondary); border-top: 1px solid var(--border); }
+.map-element { width: 100%; height: 100%; }
+
+.icon-btn { position: relative; }
+.icon-btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: -36px;
+  right: 0;
+  background: rgba(17, 24, 39, 0.92);
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity .15s ease, transform .15s ease;
+  z-index: 3000;
+}
+.icon-btn[data-tooltip]::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: 10px;
+  border-width: 6px 6px 0 6px;
+  border-style: solid;
+  border-color: rgba(17, 24, 39, 0.92) transparent transparent transparent;
+  opacity: 0;
+  transition: opacity .15s ease;
+  z-index: 3000;
+}
+.icon-btn:hover::after, .icon-btn:focus::after,
+.icon-btn:hover::before, .icon-btn:focus::before {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.leaflet-div-icon.truck-marker-icon { background: transparent; border: none; }
+.truck-marker { font-size: 20px; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35)); }
+.leaflet-div-icon.poi-icon { background: transparent; border: none; }
+.poi-bubble { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+.origin-icon .poi-bubble { background: #3b82f6; }
+.dest-icon .poi-bubble { background: #f59e0b; }
+.list { display: flex; flex-direction: column; padding: 8px; gap: 6px; }
+.list-item { position: relative; text-align: left; width: 100%; border: 1px solid var(--border); background: var(--surface-secondary); color: var(--text); border-radius: var(--radius); padding: 8px 10px; cursor: pointer; }
+.list-item .card-icon { width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+.list-item .title { font-weight: 600; font-size: 13px; color: var(--text); }
+.list-item .subtitle { font-size: 12px; color: var(--text-secondary); }
+.list-item.selected { outline: 2px solid var(--brand-primary); border-color: var(--brand-primary); background: color-mix(in oklab, var(--brand-primary) 12%, var(--surface-secondary)); }
+.list-item.dragging { opacity: .65; }
+.list-item.drag-over { outline: 2px dashed var(--brand-primary); background: color-mix(in oklab, var(--brand-primary) 8%, var(--surface-secondary)); }
+.empty { padding: 12px; }
+
+/* Botão de fechar discreto no card de intenção dentro da modal */
+.list-item .icon-btn.close { position: absolute; top: 8px; right: 8px; background: transparent; border-color: var(--border); }
+.list-item .icon-btn.close:hover { background: var(--surface); }
+
+.op-actions { display: flex; justify-content: flex-end; margin: 12px 0; }
+.panel .list { max-height: 560px; overflow: auto; }
+.table tr.highlight td { background: color-mix(in oklab, var(--brand-primary) 14%, var(--surface)); }
+
+/* Modal local do Controle Intenção de Viagem */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(2px); z-index: 6000; }
+.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.98); width: 720px; max-width: 96vw; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.18); z-index: 6100; border-radius: var(--radius); transition: transform 0.15s ease; }
+.modal.vinculos-modal { width: 1040px; }
+.modal.open { transform: translate(-50%, -50%) scale(1); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.modal-title { font-size: 16px; font-weight: 700; color: var(--text); }
+.modal-headings { display: flex; flex-direction: column; gap: 4px; }
+.modal-subtitle { font-size: 12px; color: var(--text-secondary); }
+.modal-body { padding: 16px; max-height: 60vh; overflow: auto; }
+.modal.vinculos-modal .modal-body { max-height: 70vh; overflow: hidden; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--border); }
+
+/* Layout duas colunas na modal de vínculos */
+.vinculos-layout { display: grid; grid-template-columns: 360px 1fr; gap: 12px; align-items: stretch; }
+.vinculos-left { display: flex; flex-direction: column; gap: 10px; min-height: 0; max-height: 70vh; }
+/* Rolagem interna e scrollbar padrão na lista de pré-vínculos */
+.vinculos-left .vinculos-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(var(--text-rgb), 0.30) transparent; /* Firefox */
+}
+.vinculos-left .vinculos-list::-webkit-scrollbar { width: 10px; height: 10px; }
+.vinculos-left .vinculos-list::-webkit-scrollbar-track { background: rgba(var(--text-rgb), 0.08); border-radius: 999px; }
+.vinculos-left .vinculos-list::-webkit-scrollbar-thumb { background: rgba(var(--text-rgb), 0.30); border-radius: 999px; }
+.vinculos-left .vinculos-list::-webkit-scrollbar-thumb:hover { background: rgba(var(--text-rgb), 0.40); }
+.vinculos-right { min-height: 0; }
+.modal.vinculos-modal .modal-map-element { height: 520px; }
+
+/* Capacidade na modal de vínculos */
+.capacity-block { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.capacity-header { font-weight: 700; font-size: 13px; color: var(--text); }
+.capacity-meta { font-size: 12px; color: var(--text-secondary); }
+.capacity-bar { height: 8px; background: var(--surface-secondary); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+.capacity-fill { height: 100%; background: color-mix(in oklab, var(--brand-primary) 35%, var(--surface)); }
+.capacity-warning { font-size: 12px; color: var(--text-secondary); }
+
+/* Ícone discreto quando excedido */
+.capacity-alert { font-size: 12px; margin-left: 6px; color: #ef4444; opacity: .9; }
+.capacity-block.exceeded { border: 1px solid var(--border); border-radius: 8px; padding: 8px; background: var(--surface); }
+.capacity-meta.exceeded { color: var(--text-secondary); }
+/* Barra em vermelho suave quando excedida */
+.capacity-fill.exceeded { background: color-mix(in oklab, #ef4444 65%, var(--surface)); }
+
+.actions-cell { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+
+.badge-link { display: inline-flex; align-items: center; gap: 6px; border: none; background: transparent; color: var(--brand-primary); cursor: pointer; font-weight: 600; }
+.badge-link:hover { text-decoration: underline; }
+
+.title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.link-chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; padding: 4px 8px; border-radius: 999px; font-size: 12px; }
+.link-chip .count { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 12px; background: color-mix(in oklab, var(--brand-primary) 14%, var(--surface-secondary)); color: var(--brand-primary); font-weight: 700; border: 1px solid color-mix(in oklab, var(--brand-primary) 40%, var(--border)); }
+.link-chip:hover { background: color-mix(in oklab, var(--surface) 88%, var(--brand-primary)); }
+
+/* Chip verde para vínculos pendentes */
+.link-chip.pending { border-color: color-mix(in oklab, var(--success) 38%, var(--border)); background: color-mix(in oklab, #22c55e 12%, var(--surface)); color: var(--text); }
+.link-chip.pending .count { background: #22c55e; color: #fff; border: 1px solid color-mix(in oklab, var(--success) 50%, var(--border)); }
+
+.undo-toast { position: fixed; right: 16px; bottom: 16px; z-index: 6200; display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 10px 24px rgba(0,0,0,0.18); padding: 10px 12px; border-radius: 10px; }
+.undo-toast .msg { font-size: 13px; color: var(--text); }
+.undo-toast .btn { padding: 6px 8px; }
+.undo-toast .icon-btn.close { width: 28px; height: 28px; line-height: 1; }
+.success-toast { position: fixed; right: 16px; bottom: 62px; z-index: 6200; display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 10px 24px rgba(0,0,0,0.18); padding: 10px 12px; border-radius: 10px; }
+.success-toast .msg { font-size: 13px; color: var(--text); font-weight: 600; }
+.success-toast .icon-btn.close { width: 28px; height: 28px; line-height: 1; }
+.modal-intro { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; }
+.vinculos-list { display: flex; flex-direction: column; gap: 10px; }
+.vinculo-card { border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.vinculo-meta { display: grid; grid-template-columns: 1fr max-content max-content; align-items: center; gap: 8px; }
+.vinculo-meta .route { font-weight: 600; color: var(--text); }
+.vinculo-meta .peso { font-size: 12px; color: var(--text-secondary); }
+.status-pill { padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; text-transform: capitalize; }
+.vinculo-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* Tabs styles (aligned with torre-controle) */
+.tabs { display: flex; gap: 8px; margin: 12px 0 16px; }
+.tab-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: all .15s ease-in-out; }
+.tab-btn:hover { background: var(--surface-secondary); }
+.tab-btn.active { background: var(--brand-primary); color: var(--on-primary, #fff); border-color: var(--brand-primary); }
+.btn-danger { background: color-mix(in oklab, var(--danger) 14%, var(--surface)); border: 1px solid color-mix(in oklab, var(--danger) 40%, var(--border)); color: var(--danger); }
+.btn-danger:hover { background: color-mix(in oklab, var(--surface) 88%, var(--danger)); }

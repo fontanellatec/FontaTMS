@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rastreamento</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <style>
+        :root {
+            --main-green: #086A54;
+            --header-height: 56px;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #f5f6fa;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .header-fixed {
+            background: var(--main-green);
+            color: #fff;
+            padding: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            height: 48px;
+        }
+        .header-logo { display: flex; align-items: center; }
+        .header-logo img { height: 28px; margin-right: 12px; }
+        .header-title { font-size: 1rem; font-weight: 600; letter-spacing: 1px; }
+        .header-user { display: flex; align-items: center; gap: 16px; }
+        .header-user img { height: 28px; border-radius: 50%; }
+
+        .main-content {
+            margin-top: var(--header-height);
+            padding: 12px 24px;
+            height: calc(100vh - var(--header-height));
+            box-sizing: border-box;
+            overflow: auto;
+        }
+        .filtros-gerais {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            padding: 12px 16px 6px 16px;
+            margin-bottom: 10px;
+        }
+        .filtros-gerais .form-control, .filtros-gerais .form-select {
+            height: 28px;
+            font-size: 0.9rem;
+            padding: 2px 6px;
+        }
+        .filtros-gerais .form-label {
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+        .btn-main, .btn-main:active, .btn-main:focus {
+            background: var(--main-green) !important;
+            color: #fff !important;
+            border: none !important;
+        }
+        .btn-main:hover { background: #06513e !important; color: #fff !important; }
+        .rast-area { display: flex; gap: 12px; height: calc(100vh - var(--header-height) - 180px); min-height: 360px; }
+        .col-veiculos { width: 35%; min-width: 280px; background: #fff; border-radius: 10px; border: 1px solid #e0e0e0; box-shadow: 0 2px 8px rgba(8,106,84,0.07); display: flex; flex-direction: column; }
+        .col-veiculos .header { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+        .veiculos-lista { flex: 1 1 0; overflow-y: auto; padding: 10px; }
+/* Scrollbar padrão do sistema (tema-aware) */
+.veiculos-lista, .suggest-list, body { scrollbar-width: thin; scrollbar-color: rgba(var(--text-rgb), 0.30) transparent; }
+.veiculos-lista::-webkit-scrollbar, .suggest-list::-webkit-scrollbar, body::-webkit-scrollbar { width: 10px; height: 10px; }
+.veiculos-lista::-webkit-scrollbar-track, .suggest-list::-webkit-scrollbar-track, body::-webkit-scrollbar-track { background: rgba(var(--text-rgb), 0.08); border-radius: 999px; }
+.veiculos-lista::-webkit-scrollbar-thumb, .suggest-list::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb { background: rgba(var(--text-rgb), 0.30); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+.veiculos-lista::-webkit-scrollbar-thumb:hover, .suggest-list::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover { background: rgba(var(--text-rgb), 0.40); }
+        .card-veiculo { border: 1px solid #e0e0e0; border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; cursor: pointer; box-shadow: 0 1px 3px rgba(8,106,84,0.04); transition: border 0.2s, box-shadow 0.2s, background 0.2s; }
+        .card-veiculo:hover { border-color: #086A54; box-shadow: 0 4px 12px rgba(8,106,84,0.12); }
+        .card-veiculo.selected { border-color: #086A54; box-shadow: 0 0 0 2px rgba(8,106,84,0.12); background: #f6fbf9; }
+        .col-mapa { flex: 1 1 0; background: #fff; border-radius: 10px; border: 1px solid #e0e0e0; box-shadow: 0 2px 8px rgba(8,106,84,0.07); position: relative; overflow: hidden; }
+        .map-wrapper { position: absolute; inset: 0; }
+        .map-wrapper iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+        .map-controls { position: absolute; top: 10px; right: 10px; z-index: 5; display: flex; gap: 6px; }
+        /* Modo expandido: esconde filtros e ocupa a tela toda abaixo do header */
+        body.expanded-view .filtros-gerais { display: none !important; }
+        body.expanded-view .rast-area { height: calc(100vh - var(--header-height)); position: relative; }
+        body.expanded-view .col-mapa { width: 100% !important; }
+        body.expanded-view .col-veiculos {
+          position: absolute; top: 10px; left: 10px; bottom: 10px; width: 360px; max-width: 90vw;
+          background: #fff; border-radius: 10px; border: 1px solid #e0e0e0; box-shadow: 0 2px 12px rgba(8,106,84,0.12);
+          transform: translateX(-110%); transition: transform 0.2s ease-in-out; z-index: 2500;
+        }
+        body.expanded-view.drawer-open .col-veiculos { transform: translateX(0); }
+        /* Modal Roteirização */
+        #modalRoteirizacao .modal-dialog { max-width: 96vw; width: 96vw; }
+        #modalRoteirizacao .modal-body { height: 80vh; padding: 0; }
+        #map-roteiro { width: 100%; height: 100%; }
+        .roteiro-toolbar { position: absolute; top: 10px; right: 10px; left: auto; z-index: 3000; display: flex; gap: 6px; }
+        .roteiro-resumo { position: absolute; bottom: 10px; left: 10px; z-index: 3000; background: rgba(255,255,255,0.95); border-radius: 8px; border: 1px solid #e0e0e0; padding: 8px 10px; font-size: 0.95rem; }
+        .roteiro-waypoints { position: absolute; bottom: 10px; right: 10px; z-index: 3000; background: rgba(255,255,255,0.95); border-radius: 8px; border: 1px solid #e0e0e0; padding: 8px 10px; font-size: 0.95rem; max-width: 40vw; }
+        .roteiro-waypoints .waypoint-item { display: flex; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px dashed #eee; }
+        .roteiro-waypoints .waypoint-item:last-child { border-bottom: 0; }
+        .route-tooltip { background: rgba(255,255,255,0.95); border: 1px solid #e0e0e0; color:#2e2e2e; padding: 2px 6px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        /* Autocomplete inputs (modal roteirização) */
+        .autocomplete { position: relative; }
+        .suggest-list { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 3500; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-height: 220px; overflow: auto; }
+        .suggest-item { padding: 6px 8px; cursor: pointer; font-size: 0.9rem; }
+        .suggest-item small { color: #666; }
+        .suggest-item:hover, .suggest-item.active { background: #f2f7f6; }
+        /* Modal de ajuda */
+        #helpModal .modal-dialog { max-width: 980px; }
+        #helpModal .modal-body { max-height: 70vh; overflow:auto; }
+    /* Embedded mode: hide header and reset spacing */
+    body.embedded .header-fixed { display: none !important; }
+     body.embedded .main-content { margin-top: 0; height: 100vh; }
+     body.embedded .col-veiculos .header { display: none !important; }
+     /* Remover molduras em embed para aparência nativa */
+     body.embedded .rast-area { height: 100vh; gap: 12px; }
+body.embedded .container-fluid, body.embedded .container { padding: 0 !important; margin: 0 !important; }
+     body.embedded .col-veiculos,
+     body.embedded .col-mapa { background: transparent; border: none; box-shadow: none; border-radius: 0; }
+     /* Ocultar filtros nativos quando embedado */
+     body.embedded .filtros-gerais { display: none !important; }
+     /* Ocultar KPIs internos quando embedado (Angular renderiza a seção de métricas) */
+     body.embedded #KPIS, body.embedded .kpis-area { display: none !important; }
+ 
+      </style>
+    <script>
+    (function() {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var embedded = params.has('embed') || params.get('hideHeader') === '1';
+        if (embedded) {
+          document.documentElement.style.setProperty('--header-height', '0px');
+          document.addEventListener('DOMContentLoaded', function() {
+            document.body.classList.add('embedded');
+          });
+        }
+      } catch (e) {
+        // no-op
+      }
+    })();
+    </script>
+    <style>
+      /* Design tokens (aligned with ERP global styles) */
+      :root {
+        --bg: #f8fafc;
+        --surface: #ffffff;
+        --surface-secondary: #f8fafc;
+        --text: #1e293b;
+        --text-secondary: #64748b;
+        --text-rgb: 30, 41, 59;
+        --border: #e2e8f0;
+        --border-hover: #cbd5e1;
+
+        --brand-primary: #0d9488;
+        --brand-primary-hover: #0f766e;
+        --brand-primary-dark: #134e4a;
+        --brand-primary-rgb: 13, 148, 136;
+      }
+      [data-theme="dark"] {
+        --bg: #0f172a;
+        --surface: #1e293b;
+        --surface-secondary: #334155;
+        --text: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --text-rgb: 241, 245, 249;
+        --border: #475569;
+        --border-hover: #64748b;
+
+        --brand-primary: #14b8a6;
+        --brand-primary-hover: #0d9488;
+        --brand-primary-dark: #0f766e;
+        --brand-primary-rgb: 20, 184, 166;
+      }
+
+      /* Theme overrides for mockup components */
+      html, body { background: var(--bg); color: var(--text); }
+      .filtros-gerais { background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-card, 0 1px 4px rgba(0,0,0,0.04)); }
+      .filtros-gerais .form-control, .filtros-gerais .form-select { background: var(--surface-secondary); border: 1px solid var(--border); color: var(--text); }
+      .filtros-gerais .form-control::placeholder { color: var(--text-secondary); }
+      .filtros-gerais .form-label { color: var(--text-secondary); }
+
+      .col-veiculos, .col-mapa { background: var(--surface); border-color: var(--border); }
+      .col-veiculos .header { border-bottom-color: var(--border); }
+      .veiculos-lista { color: var(--text); }
+
+      .card-veiculo { background: var(--surface-secondary); border-color: var(--border); color: var(--text); }
+      .card-veiculo.selected { border-color: var(--brand-primary); box-shadow: 0 0 0 2px rgba(var(--brand-primary-rgb), 0.12); background: rgba(var(--brand-primary-rgb), 0.08); }
+
+      .map-controls .btn.btn-light { background: var(--surface-secondary); border: 1px solid var(--border); color: var(--text); }
+
+      .route-tooltip,
+      .roteiro-resumo,
+      .roteiro-waypoints,
+      .suggest-list { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+      .suggest-item small { color: var(--text-secondary); }
+
+      /* KPIs da tela (contêiner dedicado) */
+      .kpis-area { margin: 10px 0 12px; }
+      .kpi-bar { display: flex; gap: 10px; flex-wrap: wrap; }
+      .kpi-item { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px 10px; min-width: 150px; box-shadow: var(--shadow-card, 0 1px 4px rgba(0,0,0,0.04)); }
+      .kpi-label { font-size: 12px; color: var(--text-secondary); }
+      .kpi-value { font-size: 18px; font-weight: 600; }
+      .kpi-sub { font-size: 12px; color: var(--text-secondary); }
+
+      /* Modal Roteirização alinhada ao tema */
+      #modalRoteirizacao .modal-content { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+      #modalRoteirizacao .modal-header { background: var(--surface-secondary); color: var(--text); border-bottom: 1px solid var(--border); }
+      #modalRoteirizacao .modal-title { color: var(--text); }
+      #modalRoteirizacao .btn-close { filter: none; opacity: 0.8; }
+      #modalRoteirizacao .modal-body { background: var(--surface); color: var(--text); }
+      #modalRoteirizacao .modal-footer { background: var(--surface-secondary); border-top: 1px solid var(--border); }
+      #modalRoteirizacao .btn.btn-light { background: var(--surface-secondary); border: 1px solid var(--border); color: var(--text); }
+      #modalRoteirizacao .btn.btn-primary, #modalRoteirizacao .btn.btn-success { background: var(--brand-primary); border-color: var(--brand-primary); }
+       #modalRoteirizacao .btn.btn-primary:hover, #modalRoteirizacao .btn.btn-success:hover { background: var(--brand-primary-hover); border-color: var(--brand-primary-hover); }
+       #modalRoteirizacao .form-control, #modalRoteirizacao .form-control-sm { background: var(--surface-secondary) !important; border: 1px solid var(--border) !important; color: var(--text) !important; }
+        #modalRoteirizacao .form-control::placeholder, #modalRoteirizacao .form-control-sm::placeholder { color: var(--text-secondary) !important; }
+        #modalRoteirizacao .form-control:focus, #modalRoteirizacao .form-control-sm:focus { background: var(--surface-secondary) !important; color: var(--text) !important; border-color: var(--brand-primary) !important; box-shadow: 0 0 0 0.2rem rgba(var(--brand-primary-rgb), 0.15) !important; }
+        #modalRoteirizacao .suggest-list { background: var(--surface) !important; border: 1px solid var(--border) !important; color: var(--text) !important; }
+        #modalRoteirizacao .suggest-item.active { background: rgba(var(--brand-primary-rgb), 0.10) !important; }
+        #modalRoteirizacao .leaflet-top.leaflet-right { top: 50px; right: 10px; }
+  
+        .btn-main, .btn-main:active, .btn-main:focus { background: var(--brand-primary) !important; color: var(--text) !important; border: 1px solid var(--brand-primary) !important; }
+       .btn-main:hover { background: var(--brand-primary-hover) !important; }
+
+      /* Dark-friendly native selects */
+      select.form-select { color-scheme: dark; }
+
+      /* Vehicle card field colors */
+      .card-veiculo > div:not(.d-flex) b { color: var(--text-secondary); font-weight: 600; }
+      .card-veiculo .text-muted { color: var(--text-secondary) !important; }
+
+    </style>
+    <script>
+      (function(){
+        try {
+          var params = new URLSearchParams(window.location.search);
+          var themeParam = params.get('theme');
+          var darkParam = params.get('dark');
+          var parentTheme = null;
+          try { parentTheme = window.parent && window.parent.document && window.parent.document.documentElement.getAttribute('data-theme'); } catch(e) { /* cross-origin or access blocked */ }
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var isDark = (themeParam === 'dark') || (darkParam === '1') || (parentTheme === 'dark') || prefersDark;
+          if (isDark) { document.documentElement.setAttribute('data-theme', 'dark'); }
+
+          // Listen for theme messages from parent
+          window.addEventListener('message', function(ev){
+            var d = ev.data;
+            if (d && d.type === 'theme') {
+              var next = d.value === 'dark' ? 'dark' : 'light';
+              document.documentElement.setAttribute('data-theme', next);
+            }
+          });
+        } catch (e) { /* no-op */ }
+      })();
+    </script>
+    </head>
+<body>
+    <div class="header-fixed">
+        <div class="header-content">
+            <div class="header-logo">
+                <img src="../Nova Programação/img/logo_header.png" alt="Fontanella Transportes">
+                <span class="header-title">65 - FONTANELLA LOGISTICA - SC</span>
+            </div>
+            <div class="header-user">
+                <span>Suporte TI</span>
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Usuário">
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container-fluid p-0">
+            <div class="filtros-gerais mb-2">
+                <form class="row g-3 align-items-end" id="filtros-gerais-form">
+                    <div class="col-md-2">
+                        <label class="form-label">Origem</label>
+                        <select class="form-select" id="filtro-origem-geral">
+                            <option value="">Todas</option>
+                            <option value="AC">AC</option>
+                            <option value="AL">AL</option>
+                            <option value="AP">AP</option>
+                            <option value="AM">AM</option>
+                            <option value="BA">BA</option>
+                            <option value="CE">CE</option>
+                            <option value="DF">DF</option>
+                            <option value="ES">ES</option>
+                            <option value="GO">GO</option>
+                            <option value="MA">MA</option>
+                            <option value="MT">MT</option>
+                            <option value="MS">MS</option>
+                            <option value="MG">MG</option>
+                            <option value="PA">PA</option>
+                            <option value="PB">PB</option>
+                            <option value="PR">PR</option>
+                            <option value="PE">PE</option>
+                            <option value="PI">PI</option>
+                            <option value="RJ">RJ</option>
+                            <option value="RN">RN</option>
+                            <option value="RS">RS</option>
+                            <option value="RO">RO</option>
+                            <option value="RR">RR</option>
+                            <option value="SC">SC</option>
+                            <option value="SP">SP</option>
+                            <option value="SE">SE</option>
+                            <option value="TO">TO</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Destino</label>
+                        <select class="form-select" id="filtro-destino-geral">
+                            <option value="">Todas</option>
+                            <option value="AC">AC</option>
+                            <option value="AL">AL</option>
+                            <option value="AP">AP</option>
+                            <option value="AM">AM</option>
+                            <option value="BA">BA</option>
+                            <option value="CE">CE</option>
+                            <option value="DF">DF</option>
+                            <option value="ES">ES</option>
+                            <option value="GO">GO</option>
+                            <option value="MA">MA</option>
+                            <option value="MT">MT</option>
+                            <option value="MS">MS</option>
+                            <option value="MG">MG</option>
+                            <option value="PA">PA</option>
+                            <option value="PB">PB</option>
+                            <option value="PR">PR</option>
+                            <option value="PE">PE</option>
+                            <option value="PI">PI</option>
+                            <option value="RJ">RJ</option>
+                            <option value="RN">RN</option>
+                            <option value="RS">RS</option>
+                            <option value="RO">RO</option>
+                            <option value="RR">RR</option>
+                            <option value="SC">SC</option>
+                            <option value="SP">SP</option>
+                            <option value="SE">SE</option>
+                            <option value="TO">TO</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Gestor</label>
+                        <select class="form-select" id="filtro-gestor-geral">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Coordenador</label>
+                        <select class="form-select" id="filtro-coordenador-geral">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Frota</label>
+                        <input type="text" class="form-control" id="filtro-frota-geral" placeholder="Nº Frota">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Tipo Veículo</label>
+                        <select class="form-select" id="filtro-tipo-geral">
+                            <option value="">Todos</option>
+                            <option>TRUCK</option>
+                            <option>TOCO</option>
+                            <option>VANDERLEIA</option>
+                            <option>BITREM</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Situação Veículo</label>
+                        <select class="form-select" id="filtro-situacao-geral">
+                            <option value="">Todas</option>
+                            <option value="Carregando">Carregando</option>
+                            <option value="Descarregando">Descarregando</option>
+                            <option value="Em Viagem">Em Viagem</option>
+                            <option value="Manutenção">Manutenção</option>
+                            <option value="Ativo">Ativo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Peso da Carga</label>
+                        <input type="number" class="form-control" id="filtro-peso-geral" placeholder="Peso (kg)">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Data início</label>
+                        <input type="date" class="form-control" id="filtro-data-inicio">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Data fim</label>
+                        <input type="date" class="form-control" id="filtro-data-fim">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-main w-100"><i class="fa fa-search"></i> Pesquisar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="KPIS" class="kpis-area" aria-label="Indicadores da operação">
+              <div id="kpi-bar" class="kpi-bar">
+                <div class="kpi-item"><div class="kpi-label">Utilização</div><div class="kpi-value" id="kpi-utilizacao">—</div><div class="kpi-sub" id="kpi-utilizacao-sub">—</div></div>
+                <div class="kpi-item"><div class="kpi-label">Rotas ativas</div><div class="kpi-value" id="kpi-ativas">—</div><div class="kpi-sub" id="kpi-ativas-sub">—</div></div>
+                <div class="kpi-item"><div class="kpi-label">Km restantes</div><div class="kpi-value" id="kpi-km-restantes">—</div><div class="kpi-sub" id="kpi-km-restantes-sub">—</div></div>
+                <div class="kpi-item"><div class="kpi-label">ETA médio</div><div class="kpi-value" id="kpi-eta-medio">—</div><div class="kpi-sub" id="kpi-eta-medio-sub">—</div></div>
+                <div class="kpi-item"><div class="kpi-label">Sem rota</div><div class="kpi-value" id="kpi-sem-rota">—</div><div class="kpi-sub" id="kpi-sem-rota-sub">—</div></div>
+              </div>
+            </div>
+
+            <div class="rast-area">
+                <div class="col-veiculos">
+                    <div class="header">
+                        <div class="d-flex align-items-center">
+                            <i class="fa fa-truck me-2"></i>
+                            <b>Veículos da Frota</b>
+                        </div>
+                        <span class="badge text-bg-light" id="badge-veiculos-count">0</span>
+                    </div>
+                    <div class="veiculos-lista" id="cards-veiculos"></div>
+                </div>
+                <div class="col-mapa">
+                    <div class="map-wrapper">
+                        <div class="map-controls">
+                            <button id="btn-toggle-routes" class="btn btn-light btn-sm active" title="Mostrar/ocultar rotas confirmadas"><i class="fa fa-map"></i></button>
+                            <button id="btn-toggle-drawer" class="btn btn-light btn-sm" title="Mostrar/Ocultar veículos (modo expandido)"><i class="fa fa-bars"></i></button>
+                            <button id="btn-toggle-expand" class="btn btn-light btn-sm" title="Expandir/Restaurar"><i class="fa fa-arrows-alt"></i></button>
+                            <button id="btn-open-help" class="btn btn-light btn-sm" title="Ajuda"><i class="fa fa-question-circle"></i></button>
+                        </div>
+                        <iframe id="mapa-iframe" src="mapa.html" title="Mapa de Rastreamento"></iframe>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-2" id="resultado-filtros"></div>
+        </div>
+    </div>
+
+    <!-- Modal Roteirização de Viagem -->
+    <div class="modal fade" id="modalRoteirizacao" tabindex="-1" aria-labelledby="modalRoteirizacaoLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalRoteirizacaoLabel"><i class="fa fa-road"></i> Roteirização de Viagem</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body position-relative">
+            <!-- Toasts -->
+            <div class="position-absolute" style="top:10px; right: 50%; transform: translateX(50%); z-index:3500;">
+              <div id="toastArea" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true" style="display:none;">
+                <div class="d-flex">
+                  <div class="toast-body" id="toastMsg">Ação concluída com sucesso.</div>
+                  <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+              </div>
+            </div>
+            <div class="roteiro-toolbar">
+              <button id="btn-roteiro-origem-veiculo" class="btn btn-sm btn-light" title="Usar veículo selecionado como origem"><i class="fa fa-truck"></i></button>
+              <button id="btn-roteiro-limpar" class="btn btn-sm btn-light" title="Limpar rota"><i class="fa fa-trash"></i></button>
+              <button id="btn-roteiro-inverter" class="btn btn-sm btn-light" title="Inverter origem/destino"><i class="fa fa-exchange"></i></button>
+              <button id="btn-roteiro-confirmar" class="btn btn-sm btn-success" title="Confirmar rota"><i class="fa fa-check"></i></button>
+              <button id="btn-roteiro-exportar" class="btn btn-sm btn-primary" title="Enviar rota por e-mail"><i class="fa fa-envelope"></i></button>
+            </div>
+            <!-- Inputs de busca por endereço/cidade -->
+            <div class="position-absolute" style="top: 50px; left: 10px; right: auto; z-index: 3000; display:flex; flex-direction: column; align-items: stretch; gap:6px;">
+              <div class="autocomplete" style="width:260px;">
+                <input id="input-origem" class="form-control form-control-sm" placeholder="Origem (cidade/UF)" autocomplete="off">
+                <div id="sug-origem" class="suggest-list" style="display:none;"></div>
+              </div>
+              <div class="autocomplete" style="width:260px;">
+                <input id="input-destino" class="form-control form-control-sm" placeholder="Destino (cidade/UF)" autocomplete="off">
+                <div id="sug-destino" class="suggest-list" style="display:none;"></div>
+              </div>
+              <div class="autocomplete" style="width:260px;">
+                <input id="input-waypoint" class="form-control form-control-sm" placeholder="Ponto intermediário" autocomplete="off">
+                <div id="sug-waypoint" class="suggest-list" style="display:none;"></div>
+              </div>
+              <button id="btn-add-waypoint" class="btn btn-sm btn-light" title="Adicionar ponto"><i class="fa fa-plus"></i></button>
+            </div>
+            <div id="map-roteiro"></div>
+            <div class="roteiro-resumo" id="roteiro-resumo">Clique no mapa para definir origem (1º clique), destino (2º clique) e pontos intermediários (cliques seguintes).</div>
+            <div class="roteiro-waypoints" id="roteiro-waypoints" style="display:none;">
+              <div class="fw-bold mb-1 d-flex align-items-center"><span><i class="fa fa-map-marker"></i> Pontos da Rota</span><button id="btn-toggle-waypoint-view" class="btn btn-sm btn-light ms-2" title="Ver coordenadas (lat,lng)"><i class="fa fa-map-marker"></i></button></div>
+              <div id="roteiro-waypoints-list"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Ajuda/Documentação -->
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="helpModalLabel"><i class="fa fa-question-circle me-2"></i> Ajuda — Como usar a tela de Rastreamento e Roteirização</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <h6>Filtros</h6>
+            <ul>
+              <li>Use Gestor/Coordenador para ver apenas a equipe desejada.</li>
+              <li>Os veículos exibidos na lista serão exatamente os mesmos mostrados no mapa.</li>
+            </ul>
+            <h6>Cards de veículos</h6>
+            <ul>
+              <li>Clique no card para focar/defocar o veículo no mapa.</li>
+              <li>Botão de rota no card abre a modal de roteirização daquele veículo.</li>
+              <li>O selo “Rota confirmada” indica que já existe uma rota salva para o veículo.</li>
+            </ul>
+            <h6>Mapa</h6>
+            <ul>
+              <li>Mostrar/ocultar rotas confirmadas: alterna a visualização das polylines no mapa.</li>
+              <li>Expandir: esconde filtros e deixa mapa em tela cheia; a lista vira um painel retrátil.</li>
+            </ul>
+            <h6>Roteirização</h6>
+            <ul>
+              <li>Adicione pontos clicando no mapa ou usando os campos com autocomplete “Cidade - UF”.</li>
+              <li>1º clique: Origem; 2º: Destino; seguintes: intermediários (inseridos antes do destino).</li>
+              <li>Inverter: troca origem e destino; Limpar: reinicia; Confirmar: salva a rota do veículo.</li>
+              <li>Caixa “Pontos da Rota”: botão com ícone alterna entre nomes e coordenadas.</li>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <script>
+    // --------- Dados e utilitários ---------
+    // Gestores e Coordenadores
+    var gestores = {
+        Everton: ['Pacheco', 'Ismael Novaski', 'Danilo Tournier', 'Eudes Rodrigo', 'Jucinei Zapelini'],
+        Ramiris: ['Paulo Jeremias', 'Ramon Macalossi', 'Saimon Scaratti', 'Jonathan Alves', 'Paulo Roberto Rech']
+    };
+
+    // Frota mockada com coordenador e gestor vinculados
+    var veiculos = [
+        // Gestor Everton
+        { id: 101, frota: 101, placa: 'ABC1D23', cidade: 'São Paulo', uf: 'SP', coordenador: 'Pacheco', gestor: 'Everton' },
+        { id: 102, frota: 102, placa: 'DEF4G56', cidade: 'Rio de Janeiro', uf: 'RJ', coordenador: 'Ismael Novaski', gestor: 'Everton' },
+        { id: 103, frota: 103, placa: 'HIJ7K89', cidade: 'Belo Horizonte', uf: 'MG', coordenador: 'Danilo Tournier', gestor: 'Everton' },
+        { id: 104, frota: 104, placa: 'LMN0P12', cidade: 'Curitiba', uf: 'PR', coordenador: 'Eudes Rodrigo', gestor: 'Everton' },
+        { id: 105, frota: 105, placa: 'QRS3T45', cidade: 'Porto Alegre', uf: 'RS', coordenador: 'Jucinei Zapelini', gestor: 'Everton' },
+        { id: 106, frota: 106, placa: 'UVW6X78', cidade: 'Florianópolis', uf: 'SC', coordenador: 'Pacheco', gestor: 'Everton' },
+        { id: 107, frota: 107, placa: 'YZA9B01', cidade: 'Salvador', uf: 'BA', coordenador: 'Ismael Novaski', gestor: 'Everton' },
+        { id: 108, frota: 108, placa: 'CDE2F34', cidade: 'Recife', uf: 'PE', coordenador: 'Danilo Tournier', gestor: 'Everton' },
+        { id: 109, frota: 109, placa: 'GHI5J67', cidade: 'Goiânia', uf: 'GO', coordenador: 'Eudes Rodrigo', gestor: 'Everton' },
+        { id: 110, frota: 110, placa: 'KLM8N90', cidade: 'Cuiabá', uf: 'MT', coordenador: 'Jucinei Zapelini', gestor: 'Everton' },
+        { id: 111, frota: 111, placa: 'OPQ1R23', cidade: 'Fortaleza', uf: 'CE', coordenador: 'Pacheco', gestor: 'Everton' },
+        { id: 112, frota: 112, placa: 'STU4V56', cidade: 'Brasília', uf: 'DF', coordenador: 'Ismael Novaski', gestor: 'Everton' },
+
+        // Gestor Ramiris
+        { id: 113, frota: 113, placa: 'AAA1A11', cidade: 'Campinas', uf: 'SP', coordenador: 'Paulo Jeremias', gestor: 'Ramiris' },
+        { id: 114, frota: 114, placa: 'BBB2B22', cidade: 'Santos', uf: 'SP', coordenador: 'Ramon Macalossi', gestor: 'Ramiris' },
+        { id: 115, frota: 115, placa: 'CCC3C33', cidade: 'Niterói', uf: 'RJ', coordenador: 'Saimon Scaratti', gestor: 'Ramiris' },
+        { id: 116, frota: 116, placa: 'DDD4D44', cidade: 'Juiz de Fora', uf: 'MG', coordenador: 'Jonathan Alves', gestor: 'Ramiris' },
+        { id: 117, frota: 117, placa: 'EEE5E55', cidade: 'Joinville', uf: 'SC', coordenador: 'Paulo Roberto Rech', gestor: 'Ramiris' },
+        { id: 118, frota: 118, placa: 'FFF6F66', cidade: 'Caxias do Sul', uf: 'RS', coordenador: 'Paulo Jeremias', gestor: 'Ramiris' },
+        { id: 119, frota: 119, placa: 'GGG7G77', cidade: 'Londrina', uf: 'PR', coordenador: 'Ramon Macalossi', gestor: 'Ramiris' },
+        { id: 120, frota: 120, placa: 'HHH8H88', cidade: 'Vitória', uf: 'ES', coordenador: 'Saimon Scaratti', gestor: 'Ramiris' },
+        { id: 121, frota: 121, placa: 'III9I99', cidade: 'Maceió', uf: 'AL', coordenador: 'Jonathan Alves', gestor: 'Ramiris' },
+        { id: 122, frota: 122, placa: 'JJJ0J00', cidade: 'Vitória', uf: 'ES', coordenador: 'Paulo Roberto Rech', gestor: 'Ramiris' },
+        { id: 123, frota: 123, placa: 'KKA1K11', cidade: 'Campo Grande', uf: 'MS', coordenador: 'Paulo Jeremias', gestor: 'Ramiris' },
+        { id: 124, frota: 124, placa: 'LLB2L22', cidade: 'Natal', uf: 'RN', coordenador: 'Ramon Macalossi', gestor: 'Ramiris' },
+
+        // Em outras praças
+        { id: 125, frota: 125, placa: 'MMC3M33', cidade: 'Aracaju', uf: 'SE', coordenador: 'Eudes Rodrigo', gestor: 'Everton' },
+        { id: 126, frota: 126, placa: 'NND4N44', cidade: 'Campo Grande', uf: 'MS', coordenador: 'Danilo Tournier', gestor: 'Everton' },
+        { id: 127, frota: 127, placa: 'OOE5O55', cidade: 'Teresina', uf: 'PI', coordenador: 'Saimon Scaratti', gestor: 'Ramiris' },
+        { id: 128, frota: 128, placa: 'PPF6P66', cidade: 'João Pessoa', uf: 'PB', coordenador: 'Jonathan Alves', gestor: 'Ramiris' },
+        { id: 129, frota: 129, placa: 'QQG7Q77', cidade: 'Maringá', uf: 'PR', coordenador: 'Ismael Novaski', gestor: 'Everton' },
+        { id: 130, frota: 130, placa: 'RRG8R88', cidade: 'Porto Seguro', uf: 'BA', coordenador: 'Jucinei Zapelini', gestor: 'Everton' },
+        { id: 131, frota: 131, placa: 'SSH9S99', cidade: 'Uberlândia', uf: 'MG', coordenador: 'Paulo Roberto Rech', gestor: 'Ramiris' },
+        { id: 132, frota: 132, placa: 'TTI0T00', cidade: 'Ribeirão Preto', uf: 'SP', coordenador: 'Paulo Jeremias', gestor: 'Ramiris' },
+        { id: 133, frota: 133, placa: 'UUA1U11', cidade: 'Blumenau', uf: 'SC', coordenador: 'Pacheco', gestor: 'Everton' },
+        { id: 134, frota: 134, placa: 'VVB2V22', cidade: 'Canoas', uf: 'RS', coordenador: 'Eudes Rodrigo', gestor: 'Everton' },
+        { id: 135, frota: 135, placa: 'WWC3W33', cidade: 'Sorocaba', uf: 'SP', coordenador: 'Ramon Macalossi', gestor: 'Ramiris' },
+        { id: 136, frota: 136, placa: 'XXD4X44', cidade: 'São José dos Campos', uf: 'SP', coordenador: 'Saimon Scaratti', gestor: 'Ramiris' }
+    ];
+
+    var ufToLatLng = {
+      AC: [-9.0238, -70.8120], AL: [-9.5713, -36.7820], AP: [1.3730, -51.9160], AM: [-3.4168, -65.8561],
+      BA: [-12.5797, -41.7007], CE: [-5.4984, -39.3206], DF: [-15.7998, -47.8645], ES: [-19.1834, -40.3089],
+      GO: [-15.8270, -49.8362], MA: [-5.4096, -45.0022], MT: [-12.6819, -56.9211], MS: [-20.7722, -54.7852],
+      MG: [-18.5122, -44.5550], PA: [-3.9656, -54.9710], PB: [-7.2399, -36.7819], PR: [-24.4842, -51.8625],
+      PE: [-8.8137, -36.9541], PI: [-7.7183, -42.7289], RJ: [-22.9068, -43.1729], RN: [-5.4026, -36.9541],
+      RS: [-30.0346, -51.2177], RO: [-10.9445, -62.8278], RR: [2.7376, -62.0751], SC: [-27.2423, -50.2189],
+      SE: [-10.5741, -37.3857], SP: [-22.4666, -48.4972], TO: [-10.1753, -48.2982]
+    };
+    function getLatLngFromUF(uf) { return ufToLatLng[uf] || [-14.2350, -51.9253]; }
+    // Mapa de estado (nome) -> UF para padronizar rótulos
+    var brStateToUF = {
+      'Acre':'AC','Alagoas':'AL','Amapá':'AP','Amazonas':'AM','Bahia':'BA','Ceará':'CE','Distrito Federal':'DF','Espírito Santo':'ES','Goiás':'GO','Maranhão':'MA','Mato Grosso':'MT','Mato Grosso do Sul':'MS','Minas Gerais':'MG','Pará':'PA','Paraíba':'PB','Paraná':'PR','Pernambuco':'PE','Piauí':'PI','Rio de Janeiro':'RJ','Rio Grande do Norte':'RN','Rio Grande do Sul':'RS','Rondônia':'RO','Roraima':'RR','Santa Catarina':'SC','São Paulo':'SP','Sergipe':'SE','Tocantins':'TO'
+    };
+    // Coordenadas aproximadas para cidades usadas nos cards (cidade,UF)
+    var cityToLatLng = {
+        'São Paulo,SP': [-23.5505, -46.6333],
+        'Campinas,SP': [-22.9056, -47.0608],
+        'Santos,SP': [-23.9608, -46.3336],
+        'Ribeirão Preto,SP': [-21.1775, -47.8103],
+        'Sorocaba,SP': [-23.5015, -47.4526],
+        'São José dos Campos,SP': [-23.2237, -45.9009],
+        'Rio de Janeiro,RJ': [-22.9068, -43.1729],
+        'Niterói,RJ': [-22.8832, -43.1034],
+        'Belo Horizonte,MG': [-19.9167, -43.9345],
+        'Juiz de Fora,MG': [-21.7642, -43.3496],
+        'Uberlândia,MG': [-18.9113, -48.2622],
+        'Curitiba,PR': [-25.4284, -49.2733],
+        'Londrina,PR': [-23.3045, -51.1696],
+        'Maringá,PR': [-23.4205, -51.9333],
+        'Porto Alegre,RS': [-30.0346, -51.2177],
+        'Caxias do Sul,RS': [-29.1678, -51.1794],
+        'Canoas,RS': [-29.9178, -51.1836],
+        'Florianópolis,SC': [-27.5949, -48.5482],
+        'Joinville,SC': [-26.3045, -48.8487],
+        'Blumenau,SC': [-26.9155, -49.0709],
+        'Salvador,BA': [-12.9777, -38.5016],
+        'Porto Seguro,BA': [-16.4444, -39.0642],
+        'Recife,PE': [-8.0476, -34.8770],
+        'Goiânia,GO': [-16.6869, -49.2648],
+        'Cuiabá,MT': [-15.6010, -56.0974],
+        'Campo Grande,MS': [-20.4697, -54.6201],
+        'Fortaleza,CE': [-3.7319, -38.5267],
+        'Brasília,DF': [-15.7939, -47.8828],
+        'Vitória,ES': [-20.3155, -40.3128],
+        'Maceió,AL': [-9.6498, -35.7089],
+        'Aracaju,SE': [-10.9472, -37.0731],
+        'Teresina,PI': [-5.0892, -42.8016],
+        'João Pessoa,PB': [-7.1153, -34.8610],
+        'Natal,RN': [-5.7945, -35.2110]
+    };
+    // Coordenadas aproximadas por cidade+UF para alinhar com os cards
+    function getLatLngFromVehicle(v) {
+        try {
+            var key = (v.cidade && v.uf) ? (v.cidade + ',' + v.uf) : '';
+            if (key && cityToLatLng[key]) return cityToLatLng[key];
+        } catch(e) {}
+        return getLatLngFromUF(v.uf);
+    }
+
+    // Utilitários de distância e busca da cidade mais próxima (fallback instantâneo)
+    function haversineKm(a, b) {
+        var toRad = function(d){ return d * Math.PI/180; };
+        var R = 6371;
+        var dLat = toRad(b[0]-a[0]); var dLon = toRad(b[1]-a[1]);
+        var lat1 = toRad(a[0]); var lat2 = toRad(b[0]);
+        var h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+        return 2*R*Math.asin(Math.sqrt(h));
+    }
+    function nearestCityLabel(latlng) {
+        try {
+            var best = null, bestD = Infinity;
+            for (var key in cityToLatLng) {
+                var c = cityToLatLng[key];
+                var d = haversineKm([latlng.lat, latlng.lng], c);
+                if (d < bestD) { bestD = d; best = key; }
+            }
+            if (best) {
+                var parts = best.split(',');
+                var city = parts[0]; var uf = parts[1] ? parts[1] : '';
+                return city + (uf ? ' - ' + uf : '');
+            }
+        } catch(e) {}
+        return 'Ponto';
+    }
+
+    var selectedVehicleId = null;
+    var mapFocusMode = 'all'; // 'all' | 'focus'
+    var filteredVehicles = veiculos.slice();
+    var confirmedRoutesByVehicleId = {}; // { [vehicleId]: { coords: [[lat,lng],...], distanceKm, durationMin } }
+    var showConfirmedRoutes = true;
+    function updateRoteiroButtonState() {
+        var b = document.getElementById('btn-abrir-roteiro');
+        if (!b) return;
+        if (selectedVehicleId) { b.classList.remove('disabled'); b.removeAttribute('aria-disabled'); }
+        else { b.classList.add('disabled'); b.setAttribute('aria-disabled', 'true'); }
+    }
+
+    // Função global para abrir a modal de roteirização
+    function openRoteirizacaoModal() {
+        if (!selectedVehicleId) { return; }
+        try {
+            var el = document.getElementById('modalRoteirizacao');
+            var inst = bootstrap.Modal.getOrCreateInstance(el);
+            inst.show();
+        } catch(e) {}
+    }
+
+    function renderVeiculos() {
+        var area = document.getElementById('cards-veiculos');
+        if (!area) return;
+        area.innerHTML = '';
+        var filtros = {
+            destino: document.getElementById('filtro-destino-geral')?.value || '',
+            frota: document.getElementById('filtro-frota-geral')?.value || '',
+            tipo: document.getElementById('filtro-tipo-geral')?.value || '',
+            situacao: document.getElementById('filtro-situacao-geral')?.value || '',
+            gestor: document.getElementById('filtro-gestor-geral')?.value || '',
+            coordenador: document.getElementById('filtro-coordenador-geral')?.value || ''
+        };
+        filteredVehicles = veiculos.filter(function(v){
+            if (filtros.destino && v.uf !== filtros.destino) return false;
+            if (filtros.frota && String(v.frota).indexOf(String(filtros.frota)) === -1) return false;
+            if (filtros.gestor && v.gestor !== filtros.gestor) return false;
+            if (filtros.coordenador && v.coordenador !== filtros.coordenador) return false;
+            return true;
+        });
+        document.getElementById('badge-veiculos-count').textContent = String(filteredVehicles.length);
+        if (filteredVehicles.length === 0) {
+            area.innerHTML = '<div class="text-muted text-center">Nenhum veículo encontrado</div>';
+            return;
+        }
+        filteredVehicles.forEach(function(v){
+            var div = document.createElement('div');
+            div.className = 'card-veiculo' + (selectedVehicleId === v.id ? ' selected' : '');
+            var hasRoute = !!confirmedRoutesByVehicleId[v.id];
+            var progressHtml = '';
+            if (hasRoute) {
+                var p = computeVehicleProgress(v.id);
+                if (p && p.percent != null) {
+                    var pctStr = Math.round(p.percent*100);
+                    var etaStr = p.etaLabel || '-';
+                    var restStr = (p.kmRestante != null) ? p.kmRestante.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' km' : '-';
+                    progressHtml = '<div class="mt-1">' +
+                                   '<div class="progress" style="height:6px;">' +
+                                   '<div class="progress-bar bg-success" role="progressbar" style="width:' + pctStr + '%" aria-valuenow="' + pctStr + '" aria-valuemin="0" aria-valuemax="100"></div>' +
+                                   '</div>' +
+                                   '<div class="d-flex justify-content-between"><small class="text-muted">' + pctStr + '%</small><small class="text-muted">Restante ' + restStr + '</small><small class="text-muted">ETA ' + etaStr + '</small></div>' +
+                                   '</div>';
+                }
+            }
+            div.innerHTML = '<div class="d-flex align-items-center"><i class="fa fa-truck me-2"></i><b>Frota ' + v.frota + '</b>' + (hasRoute ? '<span class="badge bg-success ms-2">Rota confirmada</span>' : '') + '<button type="button" class="btn btn-sm btn-light ms-auto card-roteiro-btn" title="Roteirizar viagem" data-vid="' + v.id + '"><i class="fa fa-road"></i></button></div>' +
+                            '<div><b>Placa:</b> ' + v.placa + '</div>' +
+                            '<div><b>Localização:</b> ' + v.cidade + ' - ' + v.uf + '</div>' + progressHtml +
+                            '<div class="text-muted"><b>Coordenador:</b> ' + (v.coordenador || '-') + ' &middot; <b>Gestor:</b> ' + (v.gestor || '-') + '</div>';
+            div.addEventListener('click', function(){
+                if (selectedVehicleId === v.id) {
+                    selectedVehicleId = null;
+                    mapFocusMode = 'all';
+                } else {
+                    selectedVehicleId = v.id;
+                    mapFocusMode = 'focus';
+                }
+                renderVeiculos();
+                updateRoteiroButtonState();
+                sendMapData();
+                updateKpis();
+            });
+            area.appendChild(div);
+            // Botão de roteirização no card
+            var rbtn = div.querySelector('.card-roteiro-btn');
+            if (rbtn) {
+                rbtn.addEventListener('click', function(ev){
+                    ev.stopPropagation();
+                    selectedVehicleId = v.id;
+                    mapFocusMode = 'focus';
+                    renderVeiculos();
+                    updateRoteiroButtonState();
+                    sendMapData();
+                    openRoteirizacaoModal();
+                });
+            }
+        });
+        updateRoteiroButtonState();
+    }
+
+    // ---- Progresso: cálculo com base na rota confirmada e posição atual ----
+    function computeVehicleProgress(vehicleId) {
+        try {
+            var route = confirmedRoutesByVehicleId[vehicleId];
+            if (!route || !Array.isArray(route.coords) || route.coords.length < 2) return null;
+            var totalKm = (typeof route.distanceKm === 'number') ? route.distanceKm : computeRouteTotalKm(route.coords);
+            if (!(totalKm > 0)) return null;
+            // posição atual do veículo
+            var v = filteredVehicles.find(function(x){ return x.id === vehicleId; }) || veiculos.find(function(x){ return x.id === vehicleId; });
+            if (!v) return null;
+            var current = { lat: getLatLngFromVehicle(v)[0], lng: getLatLngFromVehicle(v)[1] };
+            // índice do ponto mais próximo (aproximação)
+            var nearestIdx = 0; var best = Infinity;
+            for (var i = 0; i < route.coords.length; i++) {
+                var p = route.coords[i];
+                var d = Math.hypot(p[0]-current.lat, p[1]-current.lng);
+                if (d < best) { best = d; nearestIdx = i; }
+            }
+            // distância acumulada até o ponto mais próximo
+            var cumKm = 0;
+            for (var j = 1; j <= nearestIdx; j++) {
+                cumKm += haversineKm(route.coords[j-1], route.coords[j]);
+            }
+            var percent = Math.max(0, Math.min(1, cumKm / totalKm));
+            var kmRest = Math.max(0, totalKm - cumKm);
+            var etaMin = null; var etaLabel = '';
+            if (typeof route.durationMin === 'number') {
+                etaMin = Math.max(0, route.durationMin * (1 - percent));
+                var h = Math.floor(etaMin/60), m = Math.round(etaMin%60);
+                etaLabel = h > 0 ? (h + ' h ' + (m>0? (m + ' min') : '')) : (m + ' min');
+            }
+            return { percent: percent, kmTotal: totalKm, kmFeito: cumKm, kmRestante: kmRest, etaMin: etaMin, etaLabel: etaLabel };
+        } catch(e) { return null; }
+    }
+    function computeRouteTotalKm(coords) {
+        try {
+            var sum = 0;
+            for (var i = 1; i < coords.length; i++) { sum += haversineKm(coords[i-1], coords[i]); }
+            return sum;
+        } catch(e) { return 0; }
+    }
+
+    function buildProgressHtml(percent, kmRestante, etaLabel) {
+        try {
+            var pctStr = Math.round(percent * 100);
+            var restStr = (kmRestante != null) ? kmRestante.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' km' : '-';
+            var etaStr = etaLabel || '-';
+            return '<div class="mt-1">' +
+                   '<div class="progress" style="height:6px;">' +
+                   '<div class="progress-bar bg-success" role="progressbar" style="width:' + pctStr + '%" aria-valuenow="' + pctStr + '" aria-valuemin="0" aria-valuemax="100"></div>' +
+                   '</div>' +
+                   '<div class="d-flex justify-content-between"><small class="text-muted">' + pctStr + '%</small><small class="text-muted">Restante ' + restStr + '</small><small class="text-muted">ETA ' + etaStr + '</small></div>' +
+                   '</div>';
+        } catch(e) { return ''; }
+    }
+
+    function sendMapData() {
+        var iframe = document.getElementById('mapa-iframe');
+        if (!iframe || !iframe.contentWindow) return;
+        var vehiclesForMap = filteredVehicles.map(function(v){
+            var center = getLatLngFromVehicle(v);
+            return { id: v.id, nome: 'Frota ' + v.frota + ' - ' + v.placa + ' (' + v.cidade + '/' + v.uf + ')', placa: v.placa, uf: v.uf, lat: center[0], lng: center[1] };
+        });
+        var filter = (mapFocusMode === 'focus' && selectedVehicleId) ? 'focus' : 'all';
+        var focusVehicle = null;
+        if (filter === 'focus' && selectedVehicleId) {
+            var fv = filteredVehicles.find(function(x){ return x.id === selectedVehicleId; }) || veiculos.find(function(x){ return x.id === selectedVehicleId; });
+            if (fv) {
+                var fc = getLatLngFromVehicle(fv);
+                focusVehicle = { id: fv.id, placa: fv.placa, uf: fv.uf, lat: fc[0], lng: fc[1] };
+            }
+        }
+        var confirmedRoutes = [];
+        if (showConfirmedRoutes) {
+            try {
+                confirmedRoutes = Object.keys(confirmedRoutesByVehicleId).map(function(k){
+                    var vid = isNaN(Number(k)) ? k : Number(k);
+                    var r = confirmedRoutesByVehicleId[k];
+                    return { vehicleId: vid, coords: r.coords, distanceKm: r.distanceKm, durationMin: r.durationMin, waypoints: r.waypoints };
+                });
+            } catch(e) {}
+        }
+        iframe.contentWindow.postMessage({ type: 'MAP_DATA', filter: filter, vehicles: vehiclesForMap, loads: [], historicos: [], confirmedRoutes: confirmedRoutes, focusVehicle: focusVehicle, loadsFocus: [], focusLoad: null, vehiclesFocus: [] }, '*');
+    }
+
+    // ----- KPIs da operação -----
+    function formatMinutes(min) {
+        try {
+            var m = Math.round(min);
+            var h = Math.floor(m/60);
+            var rem = Math.round(m%60);
+            if (h <= 0) return rem + ' min';
+            return h + ' h ' + (rem > 0 ? (rem + ' min') : '');
+        } catch(e) { return '-'; }
+    }
+
+    function updateKpis() {
+        try {
+            var total = Array.isArray(filteredVehicles) ? filteredVehicles.length : 0;
+            var active = (Array.isArray(filteredVehicles) ? filteredVehicles : []).filter(function(v){ return !!confirmedRoutesByVehicleId[v.id]; });
+            var activeCount = active.length;
+            var utilPct = total > 0 ? Math.round((activeCount / total) * 100) : 0;
+
+            var kmRestSum = 0;
+            var etaList = [];
+            active.forEach(function(v){
+                try {
+                    var prog = computeVehicleProgress(v.id);
+                    if (prog) {
+                        if (typeof prog.kmRestante === 'number') kmRestSum += prog.kmRestante;
+                        if (typeof prog.etaMin === 'number') etaList.push(prog.etaMin);
+                    }
+                } catch(_) {}
+            });
+            var etaAvgMin = etaList.length ? (etaList.reduce(function(a,b){ return a+b; }, 0) / etaList.length) : null;
+
+            var set = function(id, txt){ try { var el = document.getElementById(id); if (el) el.textContent = String(txt); } catch(_) {} };
+            // Utilização
+            set('kpi-utilizacao', total ? (utilPct + '%') : '—');
+            set('kpi-utilizacao-sub', total ? (activeCount + ' de ' + total) : '—');
+            // Rotas ativas
+            set('kpi-ativas', activeCount);
+            set('kpi-ativas-sub', total ? 'em operação' : '—');
+            // Km restantes total
+            set('kpi-km-restantes', activeCount ? (kmRestSum.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' km') : '—');
+            set('kpi-km-restantes-sub', activeCount ? ('em ' + activeCount + (activeCount > 1 ? ' rotas' : ' rota')) : '—');
+            // ETA médio
+            set('kpi-eta-medio', etaAvgMin != null ? formatMinutes(etaAvgMin) : '—');
+            set('kpi-eta-medio-sub', etaAvgMin != null ? 'com previsão' : '—');
+            // Sem rota
+            var semRota = Math.max(0, total - activeCount);
+            set('kpi-sem-rota', semRota);
+            set('kpi-sem-rota-sub', total ? 'sem confirmação' : '—');
+            // Enviar KPIs ao host Angular (quando embedado)
+            try {
+              var msg = { type: 'OP_KPIS', kpis: { utilPct: utilPct, activeCount: activeCount, kmRestSum: kmRestSum, etaAvgMin: etaAvgMin, semRota: semRota, total: total } };
+              if (window.parent && window.parent !== window) {
+                window.parent.postMessage(msg, '*');
+              }
+            } catch(_) {}
+        } catch(e) {}
+    }
+
+    // --------- Inicialização e filtros ---------
+    document.addEventListener('DOMContentLoaded', function() {
+        // Botão para abrir modal de roteirização (apenas nos cards agora)
+        var btnRoteiro = null;
+        // Popular Gestor/Coordenador
+        var selGestor = document.getElementById('filtro-gestor-geral');
+        var selCoord = document.getElementById('filtro-coordenador-geral');
+        if (selGestor) {
+            Object.keys(gestores).forEach(function(g){
+                var opt = document.createElement('option'); opt.value = g; opt.textContent = g; selGestor.appendChild(opt);
+            });
+        }
+        function refreshCoordenadores() {
+            if (!selCoord) return;
+            var g = selGestor?.value || '';
+            selCoord.innerHTML = '<option value="">Todos</option>';
+            var list = [];
+            if (g && gestores[g]) list = gestores[g];
+            else {
+                // todos coordenadores únicos
+                var set = new Set();
+                Object.values(gestores).forEach(function(arr){ arr.forEach(function(c){ set.add(c); }); });
+                list = Array.from(set);
+            }
+            list.forEach(function(c){ var o = document.createElement('option'); o.value = c; o.textContent = c; selCoord.appendChild(o); });
+        }
+        refreshCoordenadores();
+        selGestor?.addEventListener('change', function(){ refreshCoordenadores(); });
+        // (removido no topo do mapa)
+
+        // Expandir/Restaurar área de operação
+        var btnExpand = document.getElementById('btn-toggle-expand');
+        if (btnExpand) {
+            btnExpand.addEventListener('click', function(){
+                var isExpanded = document.body.classList.toggle('expanded-view');
+                // Atualiza ícone
+                try {
+                    btnExpand.innerHTML = isExpanded ? '<i class="fa fa-compress"></i>' : '<i class="fa fa-arrows-alt"></i>';
+                } catch(e) {}
+                // Após alterar layout, garantir reflow do mapa e reenviar dados
+                setTimeout(function(){
+                    try { document.getElementById('mapa-iframe')?.contentWindow?.postMessage({ type: 'MAP_READY' }, '*'); } catch(e) {}
+                }, 50);
+            });
+        }
+
+        // Drawer lateral de veículos (somente no modo expandido)
+        var btnDrawer = document.getElementById('btn-toggle-drawer');
+        if (btnDrawer) {
+            btnDrawer.addEventListener('click', function(){
+                if (!document.body.classList.contains('expanded-view')) {
+                    // ao abrir o drawer sem estar expandido, expande primeiro
+                    document.body.classList.add('expanded-view');
+                }
+                document.body.classList.toggle('drawer-open');
+                setTimeout(function(){
+                    try { document.getElementById('mapa-iframe')?.contentWindow?.postMessage({ type: 'MAP_READY' }, '*'); } catch(e) {}
+                }, 50);
+            });
+        }
+
+        // Filtro: Mostrar/Ocultar rotas confirmadas no mapa
+        var btnRoutes = document.getElementById('btn-toggle-routes');
+        if (btnRoutes) {
+            btnRoutes.addEventListener('click', function(){
+                showConfirmedRoutes = !showConfirmedRoutes;
+                try {
+                    if (showConfirmedRoutes) btnRoutes.classList.add('active'); else btnRoutes.classList.remove('active');
+                } catch(e) {}
+                sendMapData();
+            });
+        }
+
+        // Abrir ajuda/documentação
+        document.getElementById('btn-open-help')?.addEventListener('click', function(){
+            try {
+                var el = document.getElementById('helpModal');
+                var inst = bootstrap.Modal.getOrCreateInstance(el);
+                inst.show();
+            } catch(e) {}
+        });
+
+        // Alternar nome/coordenadas dos pontos
+        document.getElementById('btn-toggle-waypoint-view')?.addEventListener('click', function(){
+            showWaypointLabels = !showWaypointLabels;
+            // Ícone: nomes = fa-map-signs; coordenadas = fa-map-marker
+            try {
+                var icon = document.querySelector('#btn-toggle-waypoint-view i');
+                if (icon) icon.className = showWaypointLabels ? 'fa fa-map-marker' : 'fa fa-map-signs';
+                var btn = document.getElementById('btn-toggle-waypoint-view');
+                if (btn) btn.title = showWaypointLabels ? 'Ver coordenadas (lat,lng)' : 'Ver nomes (cidade/UF)';
+            } catch(e) {}
+            renderWaypointsList();
+        });
+
+        // Inicialização do mapa de roteirização na abertura da modal
+        var roteiroMap = null;
+        var routingControl = null;
+        var waypoints = [];
+        var routeDraftByVehicleId = {}; // rascunho por veículo: { [vid]: { waypoints: [{lat,lng,label}] } }
+        var resumoEl = document.getElementById('roteiro-resumo');
+        var waypointsBox = document.getElementById('roteiro-waypoints');
+        var waypointsList = document.getElementById('roteiro-waypoints-list');
+
+        var showWaypointLabels = true; // alterna entre nome e coordenadas (inicia mostrando nomes)
+        function renderWaypointsList() {
+            if (!waypointsBox || !waypointsList) return;
+            if (!waypoints || waypoints.length === 0) { waypointsBox.style.display = 'none'; waypointsList.innerHTML = ''; return; }
+            waypointsBox.style.display = 'block';
+            waypointsList.innerHTML = '';
+            waypoints.forEach(function(wp, idx){
+                var div = document.createElement('div');
+                div.className = 'waypoint-item';
+                var label = (idx === 0 ? 'Origem' : (idx === waypoints.length - 1 ? 'Destino' : 'Ponto ' + idx));
+                var coords = (wp.lat || wp.lng) ? { lat: wp.lat, lng: wp.lng } : { lat: wp.latLng?.lat, lng: wp.latLng?.lng };
+                var lat = (coords.lat !== undefined) ? coords.lat : (wp.latLng ? wp.latLng.lat : null);
+                var lng = (coords.lng !== undefined) ? coords.lng : (wp.latLng ? wp.latLng.lng : null);
+                var place = showWaypointLabels && (wp && wp._label) ? wp._label : '(' + (lat? lat.toFixed(5): '-') + ', ' + (lng? lng.toFixed(5): '-') + ')';
+                div.innerHTML = '<span class="badge bg-light text-dark">' + label + '</span>' +
+                                '<span class="text-muted"> ' + place + '</span>' +
+                                '<button class="btn btn-sm btn-outline-danger ms-auto" title="Remover" data-rm-idx="' + idx + '"><i class="fa fa-times"></i></button>';
+                waypointsList.appendChild(div);
+            });
+            waypointsList.querySelectorAll('[data-rm-idx]').forEach(function(btn){
+                btn.addEventListener('click', function(){
+                    var i = parseInt(btn.getAttribute('data-rm-idx'));
+                    if (!Number.isFinite(i)) return;
+                    // Remove índice e atualiza
+                    waypoints.splice(i, 1);
+                    updateRouting();
+                    renderWaypointsList();
+                });
+            });
+        }
+
+        function formatKm(m) { return (m/1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' km'; }
+        function formatDur(s) {
+            var h = Math.floor(s/3600), m = Math.round((s%3600)/60);
+            if (h <= 0) return m + ' min';
+            return h + ' h ' + (m>0? (m + ' min') : '');
+        }
+
+        function updateRouting() {
+            if (!roteiroMap) return;
+            if (!routingControl) {
+                routingControl = L.Routing.control({
+                    waypoints: waypoints.slice(),
+                    router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+                    routeWhileDragging: true,
+                    addWaypoints: true,
+                    draggableWaypoints: true,
+                    show: false,
+                    collapsible: true
+                }).addTo(roteiroMap);
+                routingControl.on('routesfound', function(e){
+                    try {
+                        var r = e.routes[0];
+                        if (r && resumoEl) {
+                            var base = '<b>Distância:</b> ' + formatKm(r.summary.totalDistance) + ' · <b>Tempo:</b> ' + formatDur(r.summary.totalTime);
+                            // Se existir rota confirmada e veículo selecionado, mostra progresso na modal
+                            var progHtml = '';
+                            try {
+                                if (selectedVehicleId && confirmedRoutesByVehicleId[selectedVehicleId]) {
+                                    var prog = computeVehicleProgress(selectedVehicleId);
+                                    if (prog) { progHtml = buildProgressHtml(prog.percent, prog.kmRestante, prog.etaLabel); }
+                                }
+                            } catch(_) {}
+                            resumoEl.innerHTML = base + progHtml;
+                        }
+                        // Mostrar tooltip com resumo no meio da rota
+                        try {
+                            var mid = r.coordinates[Math.floor(r.coordinates.length/2)];
+                            if (mid) {
+                                var popup = L.popup({ autoClose: false, closeOnClick: false, className: 'route-tooltip' })
+                                  .setLatLng([mid.lat, mid.lng])
+                                  .setContent('Rota · ' + formatKm(r.summary.totalDistance) + ' · ' + formatDur(r.summary.totalTime));
+                                popup.addTo(roteiroMap);
+                                setTimeout(function(){ try { roteiroMap.removeLayer(popup); } catch(e){} }, 4000);
+                            }
+                        } catch(_){}
+                    } catch(err) {}
+                });
+                routingControl.on('waypointschanged', function(){
+                    try {
+                        var wps = routingControl.getWaypoints();
+                        waypoints = wps.map(function(x){ var ll = L.latLng(x.latLng.lat, x.latLng.lng); attachWaypointLabel(ll); return ll; });
+                        renderWaypointsList();
+                    } catch(e) {}
+                });
+            } else {
+                routingControl.setWaypoints(waypoints.slice());
+            }
+            renderWaypointsList();
+        }
+
+        // Geocodificação simples via Nominatim (uso leve, sem chave)
+        function geocode(query, cb) {
+            if (!query) return;
+            var url = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query + ', Brasil');
+            fetch(url, { headers: { 'Accept': 'application/json' } })
+              .then(function(r){ return r.json(); })
+              .then(function(arr){
+                  if (Array.isArray(arr) && arr.length > 0) {
+                      var p = arr[0];
+                      var ll = L.latLng(parseFloat(p.lat), parseFloat(p.lon));
+                      // Usa o display_name como rótulo inicial
+                      ll._label = (p.display_name ? p.display_name.split(',').slice(0,3).join(', ') : query);
+                      cb(ll);
+                  }
+              })
+              .catch(function(){});
+        }
+
+        function fetchSuggestions(q, cb) {
+            if (!q || q.length < 2) { cb([]); return; }
+            var norm = (q || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+            window._acCache = window._acCache || {};
+            if (window._acCache[norm]) { cb(window._acCache[norm]); return; }
+            try { if (window._acCtr && window._acCtr.abort) window._acCtr.abort(); } catch(e){}
+            window._acCtr = new AbortController();
+            var signal = window._acCtr.signal;
+            var base = 'https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=8&countrycodes=br&accept-language=pt-BR&dedupe=1';
+            var urlCity = base + '&city=' + encodeURIComponent(q);
+            var urlQ = base + '&q=' + encodeURIComponent(q);
+            fetch(urlCity, { headers: { 'Accept': 'application/json' }, signal: signal })
+              .then(function(r){ return r.json(); })
+              .then(function(arr){
+                  if (!Array.isArray(arr) || arr.length === 0) {
+                      return fetch(urlQ, { headers: { 'Accept': 'application/json' }, signal: signal }).then(function(r){ return r.json(); });
+                  }
+                  return arr;
+              })
+              .then(function(arr){
+                  var items = (arr || []).map(function(p){
+                      var a = p.address || {};
+                      var city = a.city || a.town || a.village || a.hamlet || '';
+                      var stateName = a.state || '';
+                      var uf = a.state_code || brStateToUF[stateName] || '';
+                      var label = (city && uf) ? (city + ' - ' + uf) : (p.display_name ? p.display_name.split(',')[0] : 'Local');
+                      return { label: label, lat: parseFloat(p.lat), lon: parseFloat(p.lon) };
+                  }).filter(Boolean);
+                  var seen = {}; items = items.filter(function(it){ var k = it.label; if (seen[k]) return false; seen[k] = 1; return true; });
+                  window._acCache[norm] = items;
+                  cb(items);
+              })
+              .catch(function(err){ if (err && err.name === 'AbortError') return; cb([]); });
+        }
+
+        function bindAutocomplete(inputId, listId, onPick) {
+            var input = document.getElementById(inputId);
+            var list = document.getElementById(listId);
+            if (!input || !list) return;
+            var hide = function(){ list.style.display = 'none'; list.innerHTML = ''; };
+            var show = function(items){
+                if (!items || items.length === 0) { hide(); return; }
+                list.innerHTML = '';
+                items.forEach(function(it, idx){
+                    var div = document.createElement('div');
+                    div.className = 'suggest-item' + (idx === 0 ? ' active' : '');
+                    div.innerHTML = it.label + (it.details ? (' <small>' + it.details + '</small>') : '');
+                    div.addEventListener('click', function(){ pick(it); });
+                    list.appendChild(div);
+                });
+                list.style.display = 'block';
+            };
+            var pick = function(it){ hide(); input.value = it.label; onPick(it); };
+            var debounceTimer = null;
+            input.addEventListener('input', function(){
+                clearTimeout(debounceTimer);
+                var q = input.value.trim();
+                if (q.length >= 2) { list.innerHTML = '<div class="suggest-item">Carregando...</div>'; list.style.display = 'block'; }
+                debounceTimer = setTimeout(function(){ fetchSuggestions(q, show); }, 200);
+            });
+            input.addEventListener('keydown', function(e){
+                var items = Array.from(list.querySelectorAll('.suggest-item'));
+                var active = list.querySelector('.suggest-item.active');
+                var idx = active ? items.indexOf(active) : -1;
+                if (e.key === 'ArrowDown') { e.preventDefault(); if (idx < items.length-1) { if (active) active.classList.remove('active'); items[idx+1]?.classList.add('active'); } }
+                else if (e.key === 'ArrowUp') { e.preventDefault(); if (idx > 0) { if (active) active.classList.remove('active'); items[idx-1]?.classList.add('active'); } }
+                else if (e.key === 'Enter') { e.preventDefault(); if (idx >= 0) { items[idx].click(); } }
+                else if (e.key === 'Escape') { hide(); }
+            });
+            document.addEventListener('click', function(ev){ if (!list.contains(ev.target) && ev.target !== input) hide(); });
+        }
+
+        // Reverse geocoding para nomear pontos clicados/arrastados
+        // Cache + debounce para reverse geocoding
+        var reverseCache = {}; // key "lat:lng" -> label
+        var reverseQueue = []; var reverseInFlight = false;
+        function keyForLL(latlng) { return latlng.lat.toFixed(5) + ':' + latlng.lng.toFixed(5); }
+        function reverseGeocode(latlng) {
+            var key = keyForLL(latlng);
+            if (reverseCache[key]) { latlng._label = reverseCache[key]; renderWaypointsList(); return; }
+            // fallback instantâneo com cidade mais próxima
+            if (!latlng._label) { latlng._label = nearestCityLabel(latlng); renderWaypointsList(); }
+            // fila para evitar múltiplas requisições simultâneas
+            reverseQueue.push({ latlng: latlng, key: key });
+            processReverseQueue();
+        }
+        function processReverseQueue() {
+            if (reverseInFlight || reverseQueue.length === 0) return;
+            reverseInFlight = true;
+            var job = reverseQueue.shift();
+            var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + job.latlng.lat + '&lon=' + job.latlng.lng;
+            setTimeout(function(){
+                fetch(url, { headers: { 'Accept': 'application/json' } })
+                  .then(function(r){ return r.json(); })
+                  .then(function(obj){
+                      if (obj && obj.address) {
+                          var a = obj.address;
+                          var city = a.city || a.town || a.village || a.hamlet || '';
+                          var uf = a.state_code || (a.state ? a.state.replace('Estado de ','') : '');
+                          var label = city ? (uf ? (city + ' - ' + uf) : city) : (obj.display_name ? obj.display_name.split(',')[0] : 'Ponto');
+                          reverseCache[job.key] = label;
+                          job.latlng._label = label;
+                          renderWaypointsList();
+                      }
+                  })
+                  .catch(function(){})
+                  .finally(function(){ reverseInFlight = false; processReverseQueue(); });
+            }, 150); // leve atraso para debouncing (evita flooding durante arraste)
+        }
+
+        function attachWaypointLabel(latlng, providedText) {
+            if (providedText && !latlng._label) latlng._label = providedText;
+            if (!latlng._label) reverseGeocode(latlng);
+        }
+
+        function resetRouting() {
+            waypoints = [];
+            if (routingControl) {
+                try { routingControl.setWaypoints([]); } catch(e) {}
+            }
+            if (resumoEl) resumoEl.textContent = 'Clique no mapa para definir origem (1º clique), destino (2º clique) e pontos intermediários (cliques seguintes).';
+            renderWaypointsList();
+        }
+
+        document.getElementById('modalRoteirizacao')?.addEventListener('shown.bs.modal', function(){
+            // Ao abrir, carregar rascunho/confirmada do veículo atual
+            try {
+                var vid = selectedVehicleId;
+                var draft = routeDraftByVehicleId[vid];
+                var initial = [];
+                if (draft && Array.isArray(draft.waypoints) && draft.waypoints.length) {
+                    initial = draft.waypoints.map(function(w){ var ll = L.latLng(w.lat, w.lng); if (w.label) ll._label = w.label; return ll; });
+                } else if (confirmedRoutesByVehicleId[vid]) {
+                    var conf = confirmedRoutesByVehicleId[vid];
+                    if (Array.isArray(conf.waypoints) && conf.waypoints.length >= 2) {
+                        initial = conf.waypoints.map(function(p){ return L.latLng(p[0], p[1]); });
+                    } else if (Array.isArray(conf.coords) && conf.coords.length >= 2) {
+                        // se não tiver waypoints salvos, usa início e fim da geometria
+                        var start = conf.coords[0]; var end = conf.coords[conf.coords.length-1];
+                        initial = [ L.latLng(start[0], start[1]), L.latLng(end[0], end[1]) ];
+                    }
+                    initial.forEach(function(ll){ attachWaypointLabel(ll); });
+                }
+                waypoints = initial;
+                if (routingControl) { try { routingControl.setWaypoints(waypoints.slice()); } catch(e) {} }
+                renderWaypointsList();
+            } catch(e) {}
+            if (!roteiroMap) {
+                roteiroMap = L.map('map-roteiro').setView([-14.2350, -51.9253], 4);
+                try { roteiroMap.zoomControl && roteiroMap.zoomControl.setPosition('topright'); } catch(e) {}
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(roteiroMap);
+                roteiroMap.on('click', function(ev){
+                    var latlng = ev.latlng;
+                    // 1º clique: origem; 2º: destino; demais: intermediários
+                    attachWaypointLabel(latlng);
+                    if (waypoints.length === 0) waypoints.push(latlng);
+                    else if (waypoints.length === 1) waypoints.push(latlng);
+                    else waypoints.splice(waypoints.length - 1, 0, latlng);
+                    updateRouting();
+                    renderWaypointsList();
+                    // Marcador temporário com nome do local
+                    if (latlng._label) {
+                        var m = L.marker(latlng).bindPopup('<b>' + latlng._label + '</b>');
+                        m.addTo(roteiroMap).openPopup();
+                        setTimeout(function(){ try { roteiroMap.removeLayer(m); } catch(e){} }, 4000);
+                    }
+                });
+                // Inputs de origem/destino/waypoints
+                bindAutocomplete('input-origem', 'sug-origem', function(it){
+                    var ll = L.latLng(it.lat, it.lon); attachWaypointLabel(ll, it.label);
+                    if (waypoints.length === 0) waypoints.push(ll); else waypoints[0] = ll;
+                    roteiroMap.setView(ll, 10); updateRouting(); renderWaypointsList();
+                });
+                bindAutocomplete('input-destino', 'sug-destino', function(it){
+                    var ll = L.latLng(it.lat, it.lon); attachWaypointLabel(ll, it.label);
+                    if (waypoints.length < 2) waypoints.push(ll); else waypoints[waypoints.length-1] = ll;
+                    roteiroMap.setView(ll, 10); updateRouting(); renderWaypointsList();
+                });
+                document.getElementById('btn-add-waypoint')?.addEventListener('click', function(){
+                    var el = document.getElementById('input-waypoint'); if (!el) return; var q = el.value.trim(); if (!q) return;
+                    geocode(q, function(latlng){
+                        attachWaypointLabel(latlng, q);
+                        if (waypoints.length <= 1) { waypoints.push(latlng); }
+                        else { waypoints.splice(waypoints.length - 1, 0, latlng); }
+                        el.value = ''; roteiroMap.setView(latlng, 10); updateRouting(); renderWaypointsList();
+                    });
+                });
+                bindAutocomplete('input-waypoint', 'sug-waypoint', function(it){
+                    var ll = L.latLng(it.lat, it.lon); attachWaypointLabel(ll, it.label);
+                    if (waypoints.length <= 1) { waypoints.push(ll); }
+                    else { waypoints.splice(waypoints.length - 1, 0, ll); }
+                    document.getElementById('input-waypoint').value='';
+                    roteiroMap.setView(ll, 10); updateRouting(); renderWaypointsList();
+                });
+            }
+            setTimeout(function(){ roteiroMap.invalidateSize(); }, 50);
+        });
+
+        // Ao fechar a modal, salvar rascunho por veículo
+        document.getElementById('modalRoteirizacao')?.addEventListener('hidden.bs.modal', function(){
+            try {
+                var vid = selectedVehicleId;
+                routeDraftByVehicleId[vid] = {
+                    waypoints: (waypoints || []).map(function(w){ return { lat: w.lat, lng: w.lng, label: w._label || '' }; })
+                };
+            } catch(e) {}
+        });
+
+        // Toolbar ações
+        document.getElementById('btn-roteiro-limpar')?.addEventListener('click', function(){ resetRouting(); });
+        document.getElementById('btn-roteiro-inverter')?.addEventListener('click', function(){
+            if (waypoints.length >= 2) {
+                waypoints.reverse();
+                updateRouting();
+                renderWaypointsList();
+            }
+        });
+        document.getElementById('btn-roteiro-origem-veiculo')?.addEventListener('click', function(){
+            if (!roteiroMap) return;
+            if (!selectedVehicleId) {
+                if (resumoEl) resumoEl.textContent = 'Selecione um veículo na lista para usar sua localização como origem.';
+                return;
+            }
+            var v = (filteredVehicles.find(function(x){ return x.id === selectedVehicleId; }) || veiculos.find(function(x){ return x.id === selectedVehicleId; }));
+            if (!v) return;
+            var c = getLatLngFromVehicle(v);
+            var latlng = L.latLng(c[0], c[1]);
+            if (waypoints.length === 0) waypoints.push(latlng); else waypoints[0] = latlng;
+            roteiroMap.setView(latlng, 7);
+            updateRouting();
+            renderWaypointsList();
+        });
+        // Confirmar rota: fixa para o veículo selecionado
+        document.getElementById('btn-roteiro-confirmar')?.addEventListener('click', function(){
+            if (!selectedVehicleId || !waypoints || waypoints.length < 2) return;
+            // Tenta obter dados da rota atual do LRM
+            var distanceKm = null, durationMin = null;
+            var routeCoordsFull = null;
+            try {
+                var rts = routingControl && routingControl._routes && routingControl._routes[0];
+                if (rts && rts.summary) {
+                    distanceKm = (rts.summary.totalDistance/1000);
+                    durationMin = (rts.summary.totalTime/60);
+                }
+                if (rts && Array.isArray(rts.coordinates)) {
+                    routeCoordsFull = rts.coordinates.map(function(c){ return [c.lat, c.lng]; });
+                }
+            } catch(e) {}
+            var wps = waypoints.map(function(w){ return [w.lat, w.lng]; });
+            confirmedRoutesByVehicleId[selectedVehicleId] = {
+                coords: Array.isArray(routeCoordsFull) && routeCoordsFull.length >= 2 ? routeCoordsFull : wps,
+                distanceKm: distanceKm,
+                durationMin: durationMin,
+                waypoints: wps
+            };
+            try { delete routeDraftByVehicleId[selectedVehicleId]; } catch(e) {}
+            renderVeiculos();
+            sendMapData();
+            updateKpis();
+            // toast sucesso
+            try {
+                var toastEl = document.getElementById('toastArea');
+                var toastMsg = document.getElementById('toastMsg');
+                if (toastEl && toastMsg) {
+                    toastMsg.textContent = 'Rota confirmada com sucesso!';
+                    toastEl.style.display = 'block';
+                    var t = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 2000 });
+                    t.show();
+                    setTimeout(function(){ try { t.hide(); toastEl.style.display = 'none'; } catch(e){} }, 2200);
+                }
+            } catch(e) {}
+        });
+
+        // Enviar rota por e-mail (toast de exemplo)
+        document.getElementById('btn-roteiro-exportar')?.addEventListener('click', function(){
+            try {
+                var toastEl = document.getElementById('toastArea');
+                var toastMsg = document.getElementById('toastMsg');
+                if (toastEl && toastMsg) {
+                    toastMsg.textContent = 'Rota enviada por e-mail!';
+                    toastEl.style.display = 'block';
+                    var t = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 2000 });
+                    t.show();
+                    setTimeout(function(){ try { t.hide(); toastEl.style.display = 'none'; } catch(e){} }, 2200);
+                }
+            } catch(e) {}
+        });
+        var form = document.getElementById('filtros-gerais-form');
+        if (!form) return;
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var filtros = {
+                origem: document.getElementById('filtro-origem-geral').value,
+                destino: document.getElementById('filtro-destino-geral').value,
+                gestor: document.getElementById('filtro-gestor-geral').value,
+                coordenador: document.getElementById('filtro-coordenador-geral').value,
+                frota: document.getElementById('filtro-frota-geral').value,
+                tipo: document.getElementById('filtro-tipo-geral').value,
+                situacao: document.getElementById('filtro-situacao-geral').value,
+                peso: document.getElementById('filtro-peso-geral').value,
+                dataInicio: document.getElementById('filtro-data-inicio').value,
+                dataFim: document.getElementById('filtro-data-fim').value
+            };
+            var resumo = Object.entries(filtros)
+                .filter(function(entry){ return entry[1] !== null && entry[1] !== undefined && String(entry[1]).trim() !== ''; })
+                .map(function(entry){ return '<span class="badge bg-light text-dark me-1 mb-1">' + entry[0] + ': <b>' + entry[1] + '</b></span>'; })
+                .join(' ');
+            var alvo = document.getElementById('resultado-filtros');
+            if (alvo) {
+                if (resumo) {
+                    alvo.innerHTML = '<div><b>Filtros aplicados:</b></div><div class="mt-1">' + resumo + '</div>';
+                } else {
+                    alvo.innerHTML = '<div class="text-muted">Nenhum filtro aplicado.</div>';
+                }
+            }
+            // Atualiza lista e mapa segundo os filtros
+            renderVeiculos();
+            sendMapData();
+            updateKpis();
+        });
+        // Render inicial
+        renderVeiculos();
+        updateKpis();
+        // Ao carregar, enviar dados ao mapa quando ele estiver pronto
+        window.addEventListener('message', function(ev){
+            var d = ev.data || {};
+            if (d.type === 'MAP_READY') {
+                sendMapData();
+            } else if (d.type === 'THEME' && (d.theme === 'dark' || d.theme === 'light')) {
+                try { document.documentElement.setAttribute('data-theme', d.theme); } catch(e) {}
+            } else if (d.type === 'MAP_DATA') {
+                try { document.getElementById('mapa-iframe')?.contentWindow?.postMessage(d, '*'); } catch(e) {}
+            }
+        });
+        // Fallback: enviar após pequeno delay
+        setTimeout(sendMapData, 500);
+    });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,40 @@
+<div class="chart-card">
+  <div class="header">
+    <div class="titles">
+      <div class="title">{{ title }}</div>
+      <div class="subtitle" *ngIf="subtitle">{{ subtitle }}</div>
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="dot" [style.background]="colorA"></span> Combustível vazio</span>
+      <span class="legend-item"><span class="dot" [style.background]="colorB"></span> Pedágio vazio</span>
+      <span class="legend-item"><span class="line" [style.background]="colorOverlay"></span> Receita</span>
+    </div>
+  </div>
+
+  <svg [attr.width]="width" [attr.height]="height">
+    <defs>
+      <linearGradient id="gradA" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" [attr.stop-color]="colorA" stop-opacity="0.5" />
+        <stop offset="100%" [attr.stop-color]="colorA" stop-opacity="0.1" />
+      </linearGradient>
+      <linearGradient id="gradB" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" [attr.stop-color]="colorB" stop-opacity="0.6" />
+        <stop offset="100%" [attr.stop-color]="colorB" stop-opacity="0.15" />
+      </linearGradient>
+    </defs>
+
+    <g>
+      <line [attr.x1]="padding.left" [attr.y1]="padding.top + innerH" [attr.x2]="padding.left + innerW" [attr.y2]="padding.top + innerH" stroke="#e5e7eb" />
+      <line [attr.x1]="padding.left" [attr.y1]="padding.top" [attr.x2]="padding.left" [attr.y2]="padding.top + innerH" stroke="#e5e7eb" />
+    </g>
+
+    <polygon [attr.points]="areaPath(seriesB, seriesA)" fill="url(#gradB)" stroke="none"></polygon>
+    <polygon [attr.points]="areaPath(seriesA)" fill="url(#gradA)" stroke="none"></polygon>
+
+    <polyline *ngIf="overlay?.length" [attr.points]="overlayPoints()" [attr.stroke]="colorOverlay" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+
+    <g *ngFor="let m of labels; let i = index">
+      <text [attr.x]="x(i)" [attr.y]="padding.top + innerH + 16" text-anchor="middle" class="x-label">{{ m }}</text>
+    </g>
+  </svg>
+</div>

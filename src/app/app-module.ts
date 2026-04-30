@@ -15,8 +15,8 @@ import { JornadaComponent } from './pages/jornada/jornada.component';
 import { AuthInterceptor } from './core/auth.interceptor';
 import { MaintenanceComponent } from './pages/maintenance/maintenance.component';
 import { TrackingComponent } from './pages/tracking/tracking.component';
-import { EmbarqueComponent } from './pages/embarque/embarque.component';
-import { ControleEmbarquesComponent } from './pages/controle-embarques/controle-embarques.component';
+import { IntencaoViagemComponent } from './pages/intencao-viagem/intencao-viagem.component';
+import { ControleIntencaoViagemComponent } from './pages/controle-intencao-viagem/controle-intencao-viagem.component';
 import { GestaoMotoristasComponent } from './pages/gestao-motoristas/gestao-motoristas.component';
 import { ProgramacaoComponent } from './pages/programacao/programacao.component';
 import { ContratosComponent } from './pages/contratos/contratos.component';
@@ -26,6 +26,8 @@ import { AcertoViagemComponent } from './pages/acerto-viagem/acerto-viagem.compo
 import { ProducaoOficinaComponent } from './pages/producao-oficina/producao-oficina.component';
 import { PrecificacaoAbastecimentoComponent } from './pages/precificacao-abastecimento/precificacao-abastecimento.component';
 import { FreteTerceiroComponent } from './pages/frete-terceiro/frete-terceiro.component';
+import { MenuConfigComponent } from './pages/menu-config/menu-config.component';
+import { TorreControleComponent } from './pages/torre-controle/torre-controle.component';
 
 @NgModule({
   declarations: [
@@ -45,9 +47,10 @@ import { FreteTerceiroComponent } from './pages/frete-terceiro/frete-terceiro.co
     JornadaComponent
     ,MaintenanceComponent
     ,TrackingComponent
-    ,EmbarqueComponent
-    ,ControleEmbarquesComponent
+    ,IntencaoViagemComponent
+    ,ControleIntencaoViagemComponent
     ,GestaoMotoristasComponent
+    ,CadastroMotoristaComponent
     ,ProgramacaoComponent
     ,ContratosComponent
     ,ControleColaboradoresComponent
@@ -56,6 +59,8 @@ import { FreteTerceiroComponent } from './pages/frete-terceiro/frete-terceiro.co
     ,ProducaoOficinaComponent
     ,PrecificacaoAbastecimentoComponent
     ,FreteTerceiroComponent
+    ,MenuConfigComponent
+    ,TorreControleComponent
   ],
   providers: [
     provideBrowserGlobalErrorListeners(),
@@ -64,3 +69,4 @@ import { FreteTerceiroComponent } from './pages/frete-terceiro/frete-terceiro.co
   bootstrap: [App]
 })
 export class AppModule { }
+import { CadastroMotoristaComponent } from './pages/gestao-motoristas/cadastro-motorista.component';

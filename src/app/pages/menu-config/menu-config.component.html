@@ -1,0 +1,23 @@
+<div class="menu-config">
+  <div class="header">
+    <h3>Configuração de Menu</h3>
+    <span class="muted">Escolha quais telas aparecem no menu lateral</span>
+  </div>
+
+  <div class="actions">
+    <button class="btn" (click)="showAll()">Mostrar tudo</button>
+    <button class="btn" (click)="hideAll()">Ocultar tudo</button>
+  </div>
+
+  <div class="card">
+    <div class="grid">
+      <label class="item" *ngFor="let it of items">
+        <input type="checkbox" [checked]="isEnabled(it.key)" (change)="onToggle(it.key, $any($event.target).checked)" />
+        <span class="label">{{ it.label }}</span>
+        <span class="path">{{ it.path }}</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="hint">As alterações são aplicadas imediatamente no menu lateral.</div>
+</div>

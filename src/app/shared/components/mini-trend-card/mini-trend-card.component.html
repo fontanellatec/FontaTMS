@@ -1,0 +1,25 @@
+<div class="mini-card" [class.improve]="colorClass === 'improve'" [class.worse]="colorClass === 'worse'">
+  <div class="top">
+    <span class="icon" [innerHTML]="getIconSvg(icon)"></span>
+    <span class="title">{{ title }}</span>
+  </div>
+  <div class="value-row">
+    <span class="value">{{ formatValue(value) }}</span>
+    <span class="delta" [class.improve]="colorClass === 'improve'" [class.worse]="colorClass === 'worse'">
+      {{ arrow }} {{ formatValue(abs(delta)) }}
+    </span>
+  </div>
+  <div class="spark">
+    <app-sparkline-chart
+      [labels]="labels"
+      [series]="series"
+      [color]="color"
+      [height]="70"
+      [yMin]="variant === 'area' ? 0 : undefined"
+      [yMax]="undefined"
+      [title]="''"
+      [subtitle]="''"
+      [variant]="variant">
+    </app-sparkline-chart>
+  </div>
+</div>

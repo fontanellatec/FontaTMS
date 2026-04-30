@@ -14,7 +14,7 @@ interface EnderecoCompleto extends EnderecoParcial {
   complemento?: string;
 }
 
-interface IntencaoEmbarque {
+interface IntencaoViagem {
   origem: EnderecoCompleto;
   destino: EnderecoCompleto;
   pesoKg: number;
@@ -25,15 +25,15 @@ interface IntencaoEmbarque {
 }
 
 @Component({
-  selector: 'app-embarque-intencao',
-  templateUrl: './embarque.component.html',
-  styleUrls: ['./embarque.component.scss'],
+  selector: 'app-intencao-viagem',
+  templateUrl: './intencao-viagem.component.html',
+  styleUrls: ['./intencao-viagem.component.scss'],
   standalone: true,
   imports: [CommonModule, FormsModule]
 })
-export class EmbarqueComponent {
+export class IntencaoViagemComponent {
   // Form model
-  form: IntencaoEmbarque = {
+  form: IntencaoViagem = {
     origem: { uf: '', cidade: '' },
     destino: { uf: '', cidade: '' },
     pesoKg: 0,
@@ -52,7 +52,7 @@ export class EmbarqueComponent {
   ufs = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
   tiposCarga = ['Geral', 'Frigorificada', 'Perigosa', 'Granel', 'Container'];
 
-  private storageKey = 'intencoesEmbarque';
+  private storageKey = 'intencoesViagem';
 
   onSubmit(): void {
     this.enviadoComSucesso = false;
@@ -87,10 +87,10 @@ export class EmbarqueComponent {
     };
   }
 
-  getStorage(): IntencaoEmbarque[] {
+  getStorage(): IntencaoViagem[] {
     try {
       const raw = localStorage.getItem(this.storageKey);
-      return raw ? JSON.parse(raw) as IntencaoEmbarque[] : [];
+      return raw ? JSON.parse(raw) as IntencaoViagem[] : [];
     } catch {
       return [];
     }
