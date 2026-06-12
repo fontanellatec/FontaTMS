@@ -1,0 +1,38 @@
+<div class="fixed inset-0 bg-[rgba(2,6,23,0.55)] backdrop-blur-[2px] z-[1000]" *ngIf="open" (click)="close()"></div>
+<div class="fixed inset-0 grid place-items-center p-5 z-[1001] transition-all duration-150 ease-out" 
+     *ngIf="open" 
+     [class.opacity-100]="open" [class.translate-y-0]="open" [class.scale-100]="open"
+     [class.opacity-0]="!open" [class.translate-y-2]="!open" [class.scale-[0.98]]="!open"
+     role="dialog" aria-modal="true" tabindex="-1">
+  <div class="bg-surface text-text border border-border rounded-2xl shadow-xl flex flex-col overflow-visible w-full transition-all duration-200"
+       [class.max-w-[560px]]="size==='sm'" 
+       [class.max-w-[640px]]="size==='md'" 
+       [class.max-w-[840px]]="size==='lg'" 
+       [class.max-w-[1040px]]="size==='xl'">
+    <div class="w-full flex items-center justify-between gap-3 py-4 px-5 border-b border-border">
+      <h2 class="m-0 text-[18px] font-bold text-text">{{ title }}</h2>
+      <button class="btn btn-ghost w-9 h-9 p-0 inline-flex items-center justify-center text-text-secondary hover:bg-bg border-none rounded-lg cursor-pointer close" (click)="close()" aria-label="Fechar">✕</button>
+    </div>
+
+    <div class="inline-flex gap-1.5 py-1.5 px-2 my-2.5 mx-4 items-center bg-[rgba(var(--text-rgb),0.06)] border border-[rgba(var(--text-rgb),0.18)] rounded-full self-center overflow-auto max-w-[calc(100%-32px)]" role="tablist" *ngIf="hasMultipleTabs">
+      <button *ngFor="let t of tabs" 
+              class="border border-transparent bg-transparent text-text-secondary py-1.5 px-3 rounded-full cursor-pointer font-semibold transition-all duration-150 ease-out whitespace-nowrap hover:border-border-hover hover:text-text hover:bg-[rgba(var(--text-rgb),0.08)] active:bg-brand-primary active:text-white" 
+              [class.bg-brand-primary]="(activeTabId || tabs[0]?.id)===t.id"
+              [class.text-white]="(activeTabId || tabs[0]?.id)===t.id"
+              [class.border-brand-primary]="(activeTabId || tabs[0]?.id)===t.id"
+              (click)="setActive(t.id)" 
+              role="tab" 
+              [attr.aria-selected]="((activeTabId||tabs[0]?.id)===t.id)">
+        {{ t.label }}
+      </button>
+    </div>
+
+    <div class="modal-body py-4 px-5 max-h-[min(74vh,720px)] overflow-y-auto overflow-x-visible max-w-full bg-transparent text-text">
+      <ng-container *ngIf="currentTab" [ngTemplateOutlet]="currentTab.template"></ng-container>
+    </div>
+
+    <div class="flex gap-3 justify-end py-3 px-5 border-t border-[rgba(var(--text-rgb),0.18)] bg-[rgba(var(--text-rgb),0.06)] rounded-b-2xl [&_.btn]:h-8 [&_.btn]:px-3 [&_.btn]:text-[13px] [&_.btn]:rounded-md [&_.btn]:leading-none [&_[modal-actions]]:inline-flex [&_[modal-actions]]:items-center [&_[modal-actions]]:gap-3 [&_.btn_svg]:w-4 [&_.btn_svg]:h-4 [&_[modal-actions]>*:first-child:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning)]:bg-surface-secondary [&_[modal-actions]>*:first-child:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning)]:text-text [&_[modal-actions]>*:first-child:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning)]:border-border [&_[modal-actions]>*:last-child:not(.btn-secondary):not(.btn-ghost):not(.btn-outline)]:bg-brand-primary [&_[modal-actions]>*:last-child:not(.btn-secondary):not(.btn-ghost):not(.btn-outline)]:text-white [&_[modal-actions]>*:last-child:not(.btn-secondary):not(.btn-ghost):not(.btn-outline)]:border-brand-primary [&_[modal-actions]>*:last-child:hover:not(.btn-secondary):not(.btn-ghost):not(.btn-outline)]:bg-[#0c857a]">
+      <ng-content select="[modal-actions]"></ng-content>
+    </div>
+  </div>
+</div>

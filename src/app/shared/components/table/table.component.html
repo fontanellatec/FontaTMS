@@ -1,0 +1,105 @@
+<div class="flex flex-col w-full h-full min-h-0 bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
+  
+  <!-- Tabela com scroll interno -->
+  <div class="flex-1 min-h-0 overflow-auto" [style.max-height]="bodyMaxHeight">
+    <table class="w-full border-collapse text-left text-sm text-text">
+      <thead class="sticky top-0 bg-surface-secondary text-text-secondary font-semibold uppercase text-[10px] tracking-wider border-b border-border z-10 select-none">
+        <tr>
+          <th
+            *ngFor="let col of columns"
+            [style.width]="col.width || null"
+            [class.text-center]="col.align === 'center'"
+            [class.text-right]="col.align === 'right'"
+            [class.cursor-pointer]="col.sortable"
+            [class.hover:bg-black/5]="col.sortable"
+            [class.dark:hover:bg-white/5]="col.sortable"
+            (click)="onSort(col)"
+            class="px-6 py-3.5 transition-colors">
+            
+            <div class="inline-flex items-center gap-1.5" [class.justify-center]="col.align === 'center'" [class.justify-end]="col.align === 'right'">
+              <span>{{ col.header }}</span>
+              <span *ngIf="col.sortable" class="text-xs text-text-secondary/40 font-normal">
+                <ng-container *ngIf="sortKey === col.sortable; else unsorted">
+                  {{ sortDir === 'asc' ? '↑' : '↓' }}
+                </ng-container>
+                <ng-template #unsorted>↕</ng-template>
+              </span>
+            </div>
+
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border/60">
+        <tr
+          *ngFor="let row of pagedData"
+          (click)="onRowClick(row)"
+          class="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] active:bg-black/[0.04] transition-colors cursor-pointer">
+          
+          <td
+            *ngFor="let col of columns"
+            [class.text-center]="col.align === 'center'"
+            [class.text-right]="col.align === 'right'"
+            class="px-6 py-3.5 align-middle">
+            
+            <!-- Se tiver template customizado, renderiza o template -->
+            <ng-container *ngIf="col.cellTemplate; else defaultCell">
+              <ng-container *ngTemplateOutlet="col.cellTemplate; context: { $implicit: row }"></ng-container>
+            </ng-container>
+            
+            <!-- Senão, exibe o valor do campo -->
+            <ng-template #defaultCell>
+              <span class="text-text font-normal">{{ getFieldValue(row, col.field) }}</span>
+            </ng-template>
+
+          </td>
+
+        </tr>
+        
+        <!-- Estado Vazio (Sem registros) -->
+        <tr *ngIf="data.length === 0">
+          <td [attr.colspan]="columns.length" class="px-6 py-12 text-center">
+            <div class="flex flex-col items-center justify-center gap-2">
+              <span class="text-3xl">📭</span>
+              <span class="text-sm font-medium text-text-secondary">Nenhum registro encontrado</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Barra de Paginação (Footer) -->
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-surface-secondary border-t border-border select-none z-10">
+    
+    <!-- Lado Esquerdo: Indicador e Seleção de Itens -->
+    <div class="flex items-center gap-4 text-xs text-text-secondary">
+      <span>Página <strong>{{ page }}</strong> de <strong>{{ pageCount }}</strong> (Total: {{ data.length }})</span>
+      
+      <div class="flex items-center gap-2">
+        <span>Itens por página</span>
+        <select
+          [ngModel]="pageSize"
+          (ngModelChange)="setPageSize($event)"
+          class="h-7 px-2 bg-surface border border-border rounded-md text-xs text-text focus:outline-none focus:border-brand-primary">
+          <option *ngFor="let opt of pageSizeOptions" [value]="opt">{{ opt }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Lado Direito: Navegação de Páginas -->
+    <div class="flex items-center gap-1.5">
+      <app-btn variant="icon" icon="«" [disabled]="page === 1" (click)="setPage(1)" title="Primeira"></app-btn>
+      <app-btn variant="icon" icon="‹" [disabled]="page === 1" (click)="setPage(page - 1)" title="Anterior"></app-btn>
+      
+      <!-- Indicadores numéricos curtos -->
+      <span class="px-2 text-xs font-semibold text-text-secondary">
+        {{ page }} / {{ pageCount }}
+      </span>
+
+      <app-btn variant="icon" icon="›" [disabled]="page === pageCount" (click)="setPage(page + 1)" title="Próxima"></app-btn>
+      <app-btn variant="icon" icon="»" [disabled]="page === pageCount" (click)="setPage(pageCount)" title="Última"></app-btn>
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,19 @@
+<div class="p-5 max-w-none mx-auto w-full flex flex-col">
+  <!-- Cabeçalho Principal -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-2xl font-bold text-text tracking-tight m-0">{{ title() }}</h1>
+      <p *ngIf="subtitle()" class="text-sm text-text-secondary m-0">{{ subtitle() }}</p>
+    </div>
+
+    <!-- Slot para os botões alinhados à direita -->
+    <div class="flex items-center gap-2">
+      <ng-content select="[actions]"></ng-content>
+    </div>
+  </div>
+
+  <!-- Conteúdo Principal da Página -->
+  <div class="flex flex-col">
+    <ng-content></ng-content>
+  </div>
+</div>

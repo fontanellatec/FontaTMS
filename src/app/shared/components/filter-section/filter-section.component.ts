@@ -23,7 +23,7 @@ export class FilterSectionComponent {
   @Input() filters: FilterConfig[] = [];
   @Input() collapsed: boolean = true;
   @Input() showActionButtons: boolean = true;
-  @Input() actionButtonText: string = 'Aplicar Filtros';
+  @Input() actionButtonText: string = 'Pesquisar';
   @Input() clearButtonText: string = 'Limpar';
 
   @Output() filtersChange = new EventEmitter<any>();

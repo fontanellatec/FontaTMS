@@ -1,0 +1,322 @@
+<app-page-layout title="Controle de Pré-Carga" subtitle="Monitoramento e vínculos de pré-carga.">
+
+<!-- Filtros usando componente reutilizável -->
+<app-filter-section
+  [title]="'Filtros'"
+  [filters]="filterConfigs"
+  [collapsed]="filtersCollapsed"
+  (filtersChange)="onFiltersChange($event)"
+  (applyFilters)="onApplyFilters($event)"
+  (clearFilters)="onClearFilters()"
+></app-filter-section>
+
+<!-- Indicadores rápidos -->
+<app-kpi-section
+  [title]="'Indicadores'"
+  [kpis]="kpiConfigs"
+  [compactMargin]="true"
+></app-kpi-section>
+
+<div class="flex gap-2 my-3">
+  <app-btn [variant]="selectedTab === 'criar' ? 'primary' : 'secondary'" (click)="selectedTab = 'criar'">Criar vínculos</app-btn>
+  <app-btn [variant]="selectedTab === 'confirmados' ? 'primary' : 'secondary'" (click)="selectedTab = 'confirmados'">Vínculos criados</app-btn>
+</div>
+
+<ng-container *ngIf="selectedTab === 'criar'">
+  <div class="grid grid-cols-1 xl:grid-cols-[865px_1fr] gap-4 items-start">
+    <!-- Sidebar: Pré-Cargas disponíveis -->
+    <div class="border border-border rounded-lg bg-surface flex flex-col p-2.5">
+      <div class="flex items-center justify-between px-3 py-2 border-b border-border mb-2.5">
+        <div class="font-bold text-sm text-text">Pré-Cargas Disponíveis</div>
+        <app-btn variant="primary" size="sm" (click)="addIntencoesExemplo()">Adicionar pré-cargas de exemplo</app-btn>
+      </div>
+      <div class="grid grid-cols-3 gap-2 overflow-y-auto max-h-[560px]">
+        <button class="relative block text-left w-full border border-border bg-surface-secondary text-text rounded-lg p-2.5 cursor-pointer hover:bg-surface-secondary/80 focus-visible:outline-2 focus-visible:outline-brand-primary transition-all duration-150" 
+                *ngFor="let i of preCargasDisponiveis; let idx = index"
+                [class.outline]="selecionadaIntencaoIndex === intencoes.indexOf(i)"
+                [class.outline-2]="selecionadaIntencaoIndex === intencoes.indexOf(i)"
+                [class.outline-brand-primary]="selecionadaIntencaoIndex === intencoes.indexOf(i)"
+                [class.border-brand-primary]="selecionadaIntencaoIndex === intencoes.indexOf(i)"
+                [class.bg-brand-primary/10]="selecionadaIntencaoIndex === intencoes.indexOf(i)"
+                [class.opacity-65]="dragIntencaoIndex === intencoes.indexOf(i)"
+                draggable="true"
+                (dragstart)="onIntencaoDragStart(intencoes.indexOf(i), $event)"
+                (dragend)="onIntencaoDragEnd()"
+                (click)="onSelecionarOuLockarIntencao(intencoes.indexOf(i))">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="w-4.5 h-4.5 inline-flex items-center justify-center text-base" aria-hidden="true">📦</span>
+            <span class="font-semibold text-xs text-text">
+              Pré-Carga
+              {{
+                i.codigo
+                  ? (i.codigo | slice:-2)
+                  : (idx + 1) | number:'2.0-0'
+              }}
+            </span>
+          </div>
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-1 text-[11px] mt-0.5">
+              <span class="font-semibold text-text">
+                {{ i.origem.cidade }} → {{ i.destino.cidade }}
+              </span>
+            </div>
+            <div class="flex items-center gap-1 text-[11px]">
+              <span class="w-4 text-center">📅</span>
+              <span class="text-text truncate">
+                Coleta: {{ i.dataColeta || '—' }} → Entrega: {{ i.dataEntrega || '—' }}
+              </span>
+            </div>
+            <div class="flex items-center gap-1 text-[11px]">
+              <span class="w-4 text-center">💰</span>
+              <span class="text-text truncate">{{ formatValorPreCarga(i.valorPreCarga) }}</span>
+            </div>
+            <div class="flex items-center gap-1 text-[11px]">
+              <span class="w-4 text-center" title="Usuario de Lancamento" data-tooltip="Usuario de Lancamento">👤</span>
+              <span class="text-text truncate">{{ i.usuarioLancador || '—' }}</span>
+            </div>
+          </div>
+        </button>
+        <div class="col-span-3 text-center text-xs text-text-secondary py-8" *ngIf="intencoes.length === 0">Nenhuma pré-carga cadastrada.</div>
+      </div>
+    </div>
+
+    <!-- Veículos: cards grandes e dropzones -->
+    <div class="border border-border rounded-lg bg-surface p-3 flex flex-col">
+      <div class="font-bold text-sm text-text border-b border-border pb-2 mb-3">Veículos Disponíveis</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <button class="relative block border border-border rounded-xl p-4 bg-brand-primary/5 hover:border-brand-primary hover:bg-brand-primary/10 active:scale-[0.99] transition-all duration-150 text-left cursor-pointer"
+                *ngFor="let v of veiculosDisponiveis"
+                [class.outline]="selecionadoVeiculoIndex === veiculos.indexOf(v)"
+                [class.outline-2]="selecionadoVeiculoIndex === veiculos.indexOf(v)"
+                [class.outline-brand-primary]="selecionadoVeiculoIndex === veiculos.indexOf(v)"
+                [class.border-brand-primary]="selecionadoVeiculoIndex === veiculos.indexOf(v)"
+                [class.bg-brand-primary/15]="selecionadoVeiculoIndex === veiculos.indexOf(v) || dragOverVeiculoIndex === veiculos.indexOf(v)"
+                (click)="onSelecionarOuLockarVeiculo(veiculos.indexOf(v))"
+                (dragover)="onVeiculoDragOver($event)"
+                (dragenter)="onVeiculoDragEnter(veiculos.indexOf(v))"
+                (dragleave)="onVeiculoDragLeave(veiculos.indexOf(v))"
+                (drop)="onVeiculoDrop(veiculos.indexOf(v))">
+          <div class="flex flex-col gap-1 text-left">
+            <app-btn
+              class="absolute top-2 right-2 z-10 w-7 h-7 !p-0"
+              [variant]="lockedVeiculoIndex === veiculos.indexOf(v) ? 'primary' : 'icon'"
+              icon="search"
+              (click)="onToggleFiltroPorVeiculo(veiculos.indexOf(v), $event)"
+              aria-label="Filtrar pré-cargas pelo destino deste veículo"
+              data-tooltip="Filtrar pré-cargas"
+            ></app-btn>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-lg">🚚</span>
+              <span class="text-sm font-bold text-text">
+                Frota {{ v.frotaNumero || '—' }} • {{ v.tipoConjunto || v.tipo || 'Veículo' }}
+              </span>
+            </div>
+            <div class="flex items-center gap-1 text-xs">
+              <span class="w-4 text-center">📍</span>
+              <span class="font-semibold text-text-secondary">Destino:</span>
+              <span class="text-text truncate max-w-[200px]">
+                <ng-container *ngIf="v.destinoCidade; else semDestino">
+                  {{ v.destinoCidade }}<span *ngIf="v.destinoUf"> - {{ v.destinoUf }}</span>
+                </ng-container>
+                <ng-template #semDestino>—</ng-template>
+              </span>
+            </div>
+            <div class="flex items-center gap-1 text-xs">
+              <span class="w-4 text-center">📅</span>
+              <span class="font-semibold text-text-secondary">Previsão Chegada:</span>
+              <span class="text-text truncate max-w-[200px]">{{ v.ultimaDescarga || '—' }}</span>
+            </div>
+            <div class="flex items-center gap-1 text-xs">
+              <span class="w-4 text-center" title="Coordenador" data-tooltip="Coordenador">👤</span>
+              <span class="font-semibold text-text-secondary">Coord:</span>
+              <span class="text-text truncate max-w-[200px]">{{ v.coordenador || '—' }}</span>
+            </div>
+            <div class="flex items-center gap-1 text-xs">
+              <span class="font-semibold text-text-secondary">Pré vínculo:</span>
+              <span class="text-text truncate max-w-[200px]">
+                {{ getPreVinculadosCountForVehicleIndex(veiculos.indexOf(v)) }}
+              </span>
+            </div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<ng-container *ngIf="selectedTab === 'confirmados'">
+  <!-- Vínculos confirmados: visão geral -->
+  <div class="border border-border rounded-lg bg-surface">
+    <div class="p-2.5 font-bold text-sm text-text border-b border-border">Vínculos Confirmados</div>
+    <div class="p-3 grid gap-6 grid-cols-1 md:grid-cols-2">
+      <div class="relative border border-border rounded-xl bg-surface shadow-md overflow-hidden" *ngFor="let group of confirmedGroups">
+        <div class="flex items-center justify-between gap-3 px-3 py-2.5 bg-surface-secondary border-b border-border pr-10">
+          <div class="flex items-center gap-2.5">
+            <span class="text-lg" aria-hidden="true">🚚</span>
+            <div>
+              <div class="font-bold text-sm text-text">{{ group.veiculo.placa }} · {{ group.veiculo.tipo || 'Veículo' }}</div>
+              <div class="text-xs text-text-secondary">Localização: {{ group.veiculo.localizacao }}</div>
+            </div>
+          </div>
+          <div class="inline-flex items-center gap-2.5">
+            <span class="border border-brand-primary text-brand-primary bg-surface font-semibold text-xs px-2.5 py-1 rounded-full">{{ group.items.length }} pré-cargas</span>
+            <span class="border border-slate-500 text-slate-500 bg-surface font-semibold text-xs px-2.5 py-1 rounded-full">{{ getPesoTotalGrupo(group.items) | number:'1.0-0' }} kg</span>
+          </div>
+        </div>
+        <app-btn class="absolute top-2.5 right-2.5 z-[2] w-7 h-7 !p-0 text-brand-primary bg-brand-primary/20 hover:bg-brand-primary/30 border-brand-primary" variant="icon" icon="x" (click)="excluirGrupoConfirmado(group.veiculo)" aria-label="Remover vínculos do veículo" data-tooltip="Remover grupo"></app-btn>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-3.5">
+          <div class="relative flex items-center justify-between gap-3 border border-border rounded-lg p-3 bg-brand-primary/5" *ngFor="let item of group.items">
+            <div class="flex items-center gap-2.5">
+              <span class="text-lg" aria-hidden="true">📦</span>
+              <div>
+                <div class="font-semibold text-sm text-text">{{ item.v.intencao.origem.uf }}/{{ item.v.intencao.origem.cidade }} → {{ item.v.intencao.destino.uf }}/{{ item.v.intencao.destino.cidade }}</div>
+                <div class="text-xs text-text-secondary">{{ item.v.intencao.pesoKg | number:'1.0-0' }} kg · {{ item.v.intencao.tipoCarga || 'Carga' }}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span [class]="getStatusClass(item.v.status)">{{ item.v.status }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-span-2 text-center text-xs text-text-secondary py-8" *ngIf="confirmedGroups.length === 0">Nenhum vínculo confirmado.</div>
+    </div>
+  </div>
+</ng-container>
+
+<!-- Modal: vínculos do veículo -->
+<div class="fixed inset-0 bg-black/35 backdrop-blur-[2px] z-[6000]" *ngIf="veiculoVinculosModalOpen" (click)="fecharModalVinculosVeiculo()"></div>
+<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-100 bg-surface border border-border shadow-2xl z-[6100] rounded-lg transition-transform duration-150 w-[1040px] max-w-[96vw]" *ngIf="veiculoVinculosModalOpen">
+  <div class="flex items-center justify-between px-4 py-3 border-b border-border">
+    <div class="flex flex-col gap-1">
+      <div class="text-base font-bold text-text">
+        Vinculando Pré-Carga ao veículo {{ veiculos[veiculoVinculosModalForIndex!]?.placa }}
+      </div>
+      <div class="text-xs text-text-secondary">Selecione, confirme ou remova as intenções vinculadas a este veículo.</div>
+    </div>
+    <app-btn variant="secondary" size="sm" (click)="fecharModalVinculosVeiculo()">Fechar</app-btn>
+  </div>
+  <div class="p-4 max-h-[70vh] overflow-hidden">
+    <div class="grid grid-cols-[360px_1fr] gap-3 items-stretch">
+      <div class="flex flex-col gap-2.5 min-h-0 max-h-[70vh]">
+        <div class="border border-border rounded-lg bg-brand-primary/5 p-3 shadow-sm">
+          <div class="font-bold text-xs text-text-secondary uppercase mb-2">Resumo do vínculo</div>
+          <div class="flex items-center gap-2 font-bold text-lg text-text">
+            <span>💰</span>
+            <span>{{ formatValorPreCarga(modalResumoValorTotal) }}</span>
+          </div>
+          <div class="font-semibold text-text text-sm mt-1.5">
+            <span>{{ modalResumoOrigemInicial }} → {{ modalResumoDestinoFinal }}</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-xs text-text-secondary mt-1">
+            <span>📅</span>
+            <span>Coleta: {{ modalResumoDataColetaInicial }} → Entrega: {{ modalResumoDataEntregaFinal }}</span>
+          </div>
+        </div>
+        <div class="flex-1 overflow-y-auto min-h-0 flex flex-col gap-2.5 pr-1">
+          <div class="relative block text-left w-full border border-border bg-surface-secondary text-text rounded-lg p-3 pt-4" *ngFor="let item of modalVinculos">
+            <app-btn class="absolute top-2 right-2 w-6 h-6 !p-0" variant="icon" icon="x" (click)="removerVinculo(item.i)" aria-label="Remover pré-carga"></app-btn>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="w-4.5 h-4.5 inline-flex items-center justify-center text-base" aria-hidden="true">📦</span>
+              <span class="font-semibold text-xs text-text">
+                Pré-Carga
+                {{
+                  item.v.intencao.codigo
+                    ? (item.v.intencao.codigo | slice:-2)
+                    : '—'
+                }}
+              </span>
+            </div>
+            <div class="flex flex-col gap-1 text-[11px]">
+              <div class="flex items-center gap-1 mt-0.5">
+                <span class="font-semibold text-text">
+                  {{ item.v.intencao.origem.cidade }} → {{ item.v.intencao.destino.cidade }}
+                </span>
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="w-4 text-center">📅</span>
+                <span class="text-text truncate">
+                  Coleta: {{ item.v.intencao.dataColeta || '—' }} → Entrega: {{ item.v.intencao.dataEntrega || '—' }}
+                </span>
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="w-4 text-center">💰</span>
+                <span class="text-text truncate">{{ formatValorPreCarga(item.v.intencao.valorPreCarga) }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="text-center text-xs text-text-secondary py-8" *ngIf="modalVinculos.length === 0">Nenhum vínculo para este veículo.</div>
+        </div>
+      </div>
+      <div class="min-h-0 relative">
+        <div class="flex gap-4 mb-2 p-2 border border-border rounded-lg bg-surface-secondary text-xs" *ngIf="modalRouteTotalKm > 0">
+          <div class="flex gap-1">
+            <span class="text-text-secondary">Distância total:</span>
+            <span class="font-bold text-text">{{ modalRouteTotalKm | number:'1.0-0' }} km</span>
+          </div>
+          <div class="flex gap-1">
+            <span class="text-text-secondary">Tempo estimado:</span>
+            <span class="font-bold text-text">{{ modalRouteEtaHoras | number:'1.1-1' }} h</span>
+          </div>
+        </div>
+        <div class="relative border border-border rounded-lg overflow-hidden bg-surface">
+          <app-map-viewer
+            [markers]="modalMarkers"
+            [polylines]="modalPolylines"
+            [center]="modalCenter"
+            [zoom]="modalZoom"
+            [fitBoundsOnChanges]="true"
+            class="w-full h-[520px]"
+          ></app-map-viewer>
+          <div class="absolute bottom-3 left-3 p-2.5 rounded-lg bg-slate-900/90 text-slate-100 text-xs flex flex-col gap-1 z-10 pointer-events-none" *ngIf="modalRouteTotalKm > 0">
+            <div class="flex gap-1">
+              <span class="text-slate-400">Distância total:</span>
+              <span class="font-semibold text-white">{{ modalRouteTotalKm | number:'1.0-0' }} km</span>
+            </div>
+            <div class="flex gap-1">
+              <span class="text-slate-400">Tempo estimado:</span>
+              <span class="font-semibold text-white">{{ modalRouteEtaHoras | number:'1.1-1' }} h</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="flex justify-end gap-2 px-4 py-3 border-t border-border">
+    <app-btn variant="primary" (click)="confirmarTodosVinculosVeiculo()">Confirmar vínculos</app-btn>
+    <app-btn variant="secondary" (click)="fecharModalVinculosVeiculo()">Fechar</app-btn>
+  </div>
+</div>
+
+<!-- Toast de desfazer pré-vínculo -->
+<div class="fixed right-4 bottom-4 z-[6200] flex items-center gap-2.5 bg-surface border border-border shadow-lg p-2.5 rounded-lg text-text" *ngIf="undoVisible">
+  <span class="text-sm">Pré‑vínculo adicionado.</span>
+  <app-btn variant="secondary" size="sm" (click)="undoLinking()">Desfazer</app-btn>
+  <app-btn variant="icon" icon="x" (click)="clearUndo()" aria-label="Fechar"></app-btn>
+</div>
+
+<!-- Toast simples de sucesso -->
+<div class="fixed right-4 bottom-[62px] z-[6200] flex items-center gap-2.5 bg-surface border border-border shadow-lg p-2.5 rounded-lg text-text" *ngIf="successVisible">
+  <span class="text-sm font-semibold">{{ successMessage }}</span>
+  <app-btn variant="icon" icon="x" (click)="successVisible=false" aria-label="Fechar"></app-btn>
+</div>
+
+<!-- Modal: confirmar vínculo com motorista (opcional) -->
+<div class="fixed inset-0 bg-black/35 backdrop-blur-[2px] z-[6000]" *ngIf="motoristaModalOpen" (click)="closeMotoristaModal()"></div>
+<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-100 bg-surface border border-border shadow-2xl z-[6100] rounded-lg transition-transform duration-150 w-[420px] max-w-[96vw]" *ngIf="motoristaModalOpen">
+  <div class="flex justify-between items-center px-4 py-3 border-b border-border">
+    <div class="text-base font-bold text-text">Confirmar vínculo</div>
+    <app-btn variant="icon" icon="x" (click)="closeMotoristaModal()"></app-btn>
+  </div>
+  <div class="p-4 flex flex-col gap-3">
+    <label class="flex flex-col gap-1.5 text-xs text-text-secondary font-semibold">
+      <span>Motorista</span>
+      <input class="bg-surface border border-border text-text rounded-md px-2 py-1 focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/25 h-9" [(ngModel)]="motoristaTemp" placeholder="Nome do motorista" />
+    </label>
+  </div>
+  <div class="flex justify-end gap-2 px-4 py-3 border-t border-border">
+    <app-btn variant="primary" (click)="confirmarComMotorista()">Confirmar</app-btn>
+    <app-btn variant="secondary" (click)="closeMotoristaModal()">Cancelar</app-btn>
+  </div>
+</div>
+</app-page-layout>

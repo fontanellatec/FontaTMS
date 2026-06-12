@@ -1,0 +1,42 @@
+<div class="mb-3" [class.collapsed]="collapsed">
+  <div class="flex items-center justify-between py-2.5 px-4 bg-[rgba(var(--text-rgb),0.02)] border-b border-border rounded-t-xl" *ngIf="showHeader">
+    <h4 class="m-0 text-sm font-semibold text-text">{{ title }}</h4>
+    <button class="bg-transparent border border-border rounded p-1 cursor-pointer flex items-center justify-center transition-all duration-200 text-text-secondary hover:bg-bg hover:border-brand-primary hover:text-brand-primary" (click)="onToggle()">
+      <svg class="w-3.5 h-3.5 transition-transform duration-300" [class.rotate-180]="!collapsed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6,9 12,15 18,9"></polyline>
+      </svg>
+    </button>
+  </div>
+  
+  <div class="transition-all duration-300" 
+       [ngClass]="{
+         'flex justify-start': alignment === 'left',
+         'flex justify-center': alignment === 'center',
+         'flex justify-end': alignment === 'right'
+       }">
+    <div class="flex flex-wrap gap-3 items-center">
+      <button 
+        *ngFor="let button of buttons"
+        [class]="getButtonClass(button)"
+        [disabled]="button.disabled || button.loading"
+        (click)="onButtonClick(button.action)">
+        
+        <!-- Loading Spinner -->
+        <div class="w-4 h-4 shrink-0" *ngIf="button.loading">
+          <svg class="animate-spin h-full w-full" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-dasharray="31.416" stroke-dashoffset="31.416">
+              <animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite"/>
+              <animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        </div>
+        
+        <!-- Icon -->
+        <div class="inline-flex items-center justify-center shrink-0 w-4 h-4 [&>svg]:w-4 [&>svg]:h-4" *ngIf="button.icon && !button.loading" [innerHTML]="getIconSvg(button.icon)"></div>
+        
+        <!-- Label -->
+        <span class="whitespace-nowrap">{{ button.label }}</span>
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,32 @@
+/* Styles for Leaflet Map Markers in Controle de Intenção de Viagem */
+::ng-deep .leaflet-div-icon.truck-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+::ng-deep .truck-marker {
+  font-size: 20px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35));
+}
+
+::ng-deep .leaflet-div-icon.poi-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+::ng-deep .poi-bubble {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.35);
+}
+
+::ng-deep .origin-icon .poi-bubble {
+  background: #3b82f6;
+}
+
+::ng-deep .dest-icon .poi-bubble {
+  background: #f59e0b;
+}
