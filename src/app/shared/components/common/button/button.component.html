@@ -1,0 +1,16 @@
+<button
+  [type]="type"
+  [disabled]="disabled"
+  [class]="getButtonClass()"
+  (click)="onClick($event)">
+  
+  <!-- Ícone antes do texto -->
+  <span
+    *ngIf="getIconSvg() as iconSvg"
+    class="w-4 h-4 flex items-center justify-center shrink-0 fill-none stroke-current"
+    [innerHTML]="iconSvg">
+  </span>
+
+  <!-- Conteúdo de texto (não renderizado se for apenas ícone) -->
+  <ng-content *ngIf="variant !== 'icon'"></ng-content>
+</button>

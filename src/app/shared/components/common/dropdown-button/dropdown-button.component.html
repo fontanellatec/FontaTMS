@@ -1,0 +1,58 @@
+<div class="relative inline-block text-left">
+  <!-- Botão Principal/Dropdown Toggle -->
+  <button
+    type="button"
+    [class]="getButtonClass()"
+    (click)="toggleDropdown($event)"
+    [disabled]="disabled()">
+    
+    <!-- Ícone antes do texto -->
+    <span
+      *ngIf="getIconSvg() as iconSvg"
+      class="w-4 h-4 flex items-center justify-center shrink-0 fill-none stroke-current"
+      [innerHTML]="iconSvg">
+    </span>
+
+    <span>{{ label() }}</span>
+
+    <!-- Seta do Dropdown -->
+    <svg 
+      class="w-4 h-4 ml-1.5 transition-transform duration-200" 
+      [class.rotate-180]="isOpen()"
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      stroke-width="2" 
+      stroke-linecap="round" 
+      stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+  </button>
+
+  <!-- Menu Dropdown -->
+  <div
+    *ngIf="isOpen()"
+    class="absolute right-0 mt-1.5 w-56 rounded-lg bg-surface border border-border shadow-lg z-50 py-1 focus:outline-none origin-top-right transition-all animate-fade-in">
+    <ng-container *ngFor="let item of items()">
+      <!-- Item com Link de Rota -->
+      <a
+        *ngIf="item.routerLink"
+        [routerLink]="item.routerLink"
+        (click)="onItemClick(item, $event)"
+        class="flex items-center gap-2 px-3.5 py-2 text-sm text-text hover:bg-surface-secondary/70 transition-colors cursor-pointer no-underline">
+        <span *ngIf="getItemIcon(item) as itemIcon" class="w-4 h-4 flex items-center justify-center text-text-secondary fill-none stroke-current" [innerHTML]="itemIcon"></span>
+        <span class="truncate">{{ item.label }}</span>
+      </a>
+
+      <!-- Item com Ação/Callback -->
+      <button
+        *ngIf="!item.routerLink"
+        type="button"
+        (click)="onItemClick(item, $event)"
+        class="flex items-center gap-2 w-full text-left px-3.5 py-2 text-sm text-text hover:bg-surface-secondary/70 transition-colors cursor-pointer border-0 bg-transparent">
+        <span *ngIf="getItemIcon(item) as itemIcon" class="w-4 h-4 flex items-center justify-center text-text-secondary fill-none stroke-current" [innerHTML]="itemIcon"></span>
+        <span class="truncate">{{ item.label }}</span>
+      </button>
+    </ng-container>
+  </div>
+</div>

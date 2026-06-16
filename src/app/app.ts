@@ -1,14 +1,19 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
-import { ThemeService } from './core/theme.service';
+import { Component, OnInit, signal, inject, DestroyRef } from '@angular/core';
+import { Router, NavigationEnd, RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ThemeService } from './core/services/theme.service';
 import { filter, map } from 'rxjs/operators';
-import { MenuConfigService, MenuKey } from './core/menu-config.service';
+import { MenuConfigService, MenuKey } from './core/services/menu-config.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AuthService } from './core/services/auth.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.html',
-  standalone: false,
-  styleUrl: './app.scss'
+  styleUrl: './app.scss',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule]
 })
 export class App implements OnInit {
   protected readonly title = signal('ERP');
@@ -19,11 +24,14 @@ export class App implements OnInit {
   protected readonly sidebarCollapsed = signal<boolean>(false);
   protected readonly brandLogo = signal<string>('/brand/FontaTmsLogo.png');
 
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor(
     private theme: ThemeService,
     private router: Router,
-    private menu: MenuConfigService
-  ) {}
+    private menu: MenuConfigService,
+    private authService: AuthService
+  ) { }
 
   ngOnInit(): void {
     this.theme.applySaved();
@@ -31,41 +39,24 @@ export class App implements OnInit {
     this.isDark.set(theme === 'dark');
     this.brandColor.set(this.theme.getPrimaryColor());
 
-    // Update page title based on route
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd),
-      map(() => this.getPageTitleFromRoute())
+      map(() => this.getPageTitleFromRoute()),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(title => {
       this.pageTitle.set(title);
     });
 
-    // Set initial page title
     this.pageTitle.set(this.getPageTitleFromRoute());
   }
 
   private getPageTitleFromRoute(): string {
     const url = this.router.url;
-    if (url === '/dashboard') return 'Dashboard';
     if (url.startsWith('/login')) return 'Login';
-    if (url.includes('/jornada')) return 'Jornada';
-    if (url.includes('/financeiro')) return 'Financeiro';
-    if (url.includes('/manutencao')) return 'Manutenção';
-    if (url.includes('/producao-oficina')) return 'Produção Oficina';
-    if (url.includes('/shipments')) return 'Intenção de Viagem';
-    if (url.includes('/vehicles')) return 'Veículos';
-    if (url.includes('/drivers')) return 'Motoristas';
-    if (url.includes('/gestao-motoristas')) return 'Gestão de Motoristas';
     if (url.includes('/rastreamento')) return 'Rastreamento';
     if (url.includes('/torre-controle')) return 'Torre de Controle';
     if (url.includes('/programacao')) return 'Programação';
-    if (url.includes('/intencao-viagem')) return 'Intenção de Viagem';
     if (url.includes('/controle-intencao-viagem')) return 'Controle de Pré-Carga';
-    if (url.includes('/controle-colaboradores')) return 'Controle de Colaboradores';
-    if (url.includes('/contratos')) return 'Contratos';
-    if (url.includes('/controle-frota')) return 'Controle de Frota';
-    if (url.includes('/precificacao-abastecimento')) return 'Abastecimento';
-    if (url.includes('/acerto-viagem')) return 'Acerto de Viagem';
-    if (url.includes('/frete-terceiro')) return 'Frete Terceiro';
     if (url.includes('/timeline-logistica')) return 'Timeline Logística';
     return 'Torre de Controle';
   }
@@ -98,9 +89,7 @@ export class App implements OnInit {
   }
 
   logout(): void {
-    localStorage.removeItem('isAuthenticated');
-    sessionStorage.removeItem('isAuthenticated');
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 
   isMenuEnabled(key: MenuKey): boolean { return this.menu.isEnabled(key); }

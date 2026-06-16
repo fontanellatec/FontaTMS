@@ -1,0 +1,35 @@
+:host ::ng-deep .filters-section {
+  margin-top: 2px !important;
+}
+
+:host ::ng-deep app-kpi-section.executivo-vazio .kpi-section .stats-cards {
+  gap: 16px;
+}
+
+:host ::ng-deep app-kpi-section.executivo-vazio .kpi-section .statistic-card {
+  padding: 16px;
+}
+
+:host ::ng-deep app-kpi-section.executivo-vazio .kpi-section .stat-icon {
+  width: 30px;
+  height: 30px;
+}
+
+:host ::ng-deep app-kpi-section.executivo-vazio .kpi-section .stat-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+:host ::ng-deep app-kpi-section.executivo-vazio .kpi-section .stat-content .stat-value {
+  font-size: 32px !important;
+  line-height: 1.1;
+}
+
+:host ::ng-deep app-kpi-section.executivo-vazio .kpi-section .stat-content .stat-label {
+  font-size: 13px;
+}
+
+:host ::ng-deep app-kpi-section.principais-carregado .kpi-section .stat-content .stat-value {
+  font-size: 32px !important;
+  line-height: 1.1;
+}

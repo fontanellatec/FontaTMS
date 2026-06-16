@@ -1,0 +1,26 @@
+<app-page-layout title="Rastreamento" subtitle="Acompanhe a localização e o status dos veículos da frota em tempo real.">
+  <app-filter-section
+    [title]="'Filtros de Rastreamento'"
+    [filters]="filterConfigs"
+    [collapsed]="true"
+    (filtersChange)="onFiltersChange($event)"
+    (applyFilters)="onApplyFilters($event)"
+    (clearFilters)="onClearFilters()"
+  ></app-filter-section>
+
+  <app-kpi-section
+    [title]="'Métricas'"
+    [kpis]="kpiConfigs"
+    [collapsed]="false"
+  ></app-kpi-section>
+
+  <div class="grid grid-cols-1 gap-4">
+    <div class="bg-transparent border-none shadow-none m-0 col-span-1">
+      <div class="w-full h-[85vh] min-h-[560px] border border-border rounded-lg overflow-hidden relative bg-transparent">
+        <iframe id="map-iframe" title="Mapa de Rastreamento"
+                src="/assets/mockups/rastreamento.html?embed=1"
+                class="w-full h-full" style="border:0;"></iframe>
+      </div>
+    </div>
+  </div>
+</app-page-layout>

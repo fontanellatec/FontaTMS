@@ -1,0 +1,227 @@
+<div class="bg-surface border border-border rounded-lg shadow-sm mb-4 transition-all duration-200"
+  [class.fixed]="isFullscreen" [class.inset-0]="isFullscreen" [class.z-[900]]="isFullscreen" [class.m-0]="isFullscreen"
+  [class.rounded-none]="isFullscreen" [class.shadow-none]="isFullscreen" [class.flex]="isFullscreen"
+  [class.flex-col]="isFullscreen" [class.collapsed]="collapsed">
+  <div class="flex items-center justify-between py-3 px-4 border-b border-border shrink-0">
+    <h2 class="m-0 text-base font-semibold text-text">{{ title }}</h2>
+    <div class="flex items-center gap-1.5">
+      <button
+        class="inline-flex items-center justify-center w-7 h-7 border border-border bg-surface-secondary text-text p-1.5 rounded-lg hover:bg-surface-secondary/50 cursor-pointer icon-btn"
+        *ngIf="fullscreenToggle" (click)="toggleFullscreen()">
+        <span *ngIf="!isFullscreen">⤢</span>
+        <span *ngIf="isFullscreen">⤡</span>
+      </button>
+      <button *ngIf="collapsible" (click)="onToggle()" type="button" class="btn btn-sm btn-secondary cursor-pointer">
+        {{ collapsed ? 'Expandir' : 'Colapsar' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="py-2 px-3 pb-3 min-w-0" [class.flex-1]="isFullscreen" [class.min-h-0]="isFullscreen"
+    [class.hidden]="collapsed">
+    <div
+      class="table-scroll overflow-x-auto overscroll-contain scrollbar-thin scrollbar-thumb-[rgba(var(--text-rgb),0.30)] scrollbar-track-transparent pr-6"
+      [class.h-full]="isFullscreen" [class.max-h-none]="isFullscreen" [class.overflow-y-auto]="isFullscreen"
+      [style.max-height.px]="isFullscreen ? null : bodyMaxHeight"
+      [style.overflow-x]="horizontalScroll ? 'auto' : 'hidden'" [style.overflow-y]="verticalScroll ? 'auto' : 'hidden'">
+      <table
+        class="w-full border-collapse relative min-w-full table-fixed [&_.btn]:py-0.5 [&_.btn]:px-2 [&_.btn]:text-[12px] [&_.btn]:leading-normal [&_.btn]:h-auto"
+        [style.width]="horizontalScroll ? 'max-content' : '100%'">
+        <thead>
+          <tr>
+            <th *ngFor="let col of columns; let first = first; let last = last" [style.width]="col.width || null"
+              class="py-3 px-5 border-b border-border/10 text-text-secondary bg-surface/95 backdrop-blur-[2px] sticky top-0 z-[2] whitespace-nowrap text-left leading-tight text-[11px] font-bold uppercase tracking-wider transition-all duration-200"
+              [class.sticky]="col.sticky" [class.z-[4]]="col.sticky" [class.shadow-[1px_0_0_var(--border)]]="col.sticky"
+              [class.left]="(col.align || 'left') === 'left'" [class.center]="col.align === 'center'"
+              [class.right]="col.align === 'right'" [class.cursor-pointer]="col.sortable"
+              [class.select-none]="col.sortable" [class.hover:bg-[rgba(var(--text-rgb),0.04)]]="col.sortable"
+              [class.hover:text-brand-primary]="col.sortable" [class.text-brand-primary]="sortKey === col.key"
+              [class.bg-[rgba(var(--brand-primary-rgb),0.02)]]="sortKey === col.key"
+              [class.font-bold]="sortKey === col.key" [style.left.px]="col.sticky ? col.stickyLeft : null"
+              (click)="onSort(col)">
+              <div class="inline-flex items-center gap-1.5 w-full"
+                [class.justify-start]="(col.align || 'left') === 'left'" [class.justify-center]="col.align === 'center'"
+                [class.justify-end]="col.align === 'right'">
+                <span class="font-semibold">{{ col.label }}</span>
+                <span class="inline-flex items-center" *ngIf="col.sortable">
+                  <svg *ngIf="sortKey !== col.key" class="w-3.5 h-3.5 opacity-[0.35] transition-all duration-200"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <polyline points="7 15 12 20 17 15"></polyline>
+                    <polyline points="7 9 12 4 17 9"></polyline>
+                  </svg>
+                  <svg *ngIf="sortKey === col.key && sortDir === 'asc'"
+                    class="w-3.5 h-3.5 opacity-100 text-brand-primary" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                  </svg>
+                  <svg *ngIf="sortKey === col.key && sortDir === 'desc'"
+                    class="w-3.5 h-3.5 opacity-100 text-brand-primary" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </span>
+              </div>
+            </th>
+            <th *ngIf="showActions"
+              class="w-[140px] min-w-[140px] text-left py-3 px-5 border-b border-border/10 text-text-secondary bg-surface/95 backdrop-blur-[2px] sticky top-0 z-[2] whitespace-nowrap leading-tight text-[11px] font-bold uppercase tracking-wider">
+              Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Loading State Skeletons -->
+          <ng-container *ngIf="loading">
+            <tr *ngFor="let dummy of [1, 2, 3, 4, 5]" class="animate-pulse">
+              <td *ngFor="let col of columns; let first = first; let last = last" [style.width]="col.width || null"
+                class="py-[18px] px-5 border-b border-border/10 bg-surface" [class.sticky]="col.sticky"
+                [class.z-[3]]="col.sticky" [class.shadow-[1px_0_0_var(--border)]]="col.sticky"
+                [class.rounded-l-lg]="first" [class.rounded-r-lg]="last && !showActions">
+                <div class="h-3.5 w-4/5 rounded bg-text/10 shrink-0 relative overflow-hidden"></div>
+              </td>
+              <td *ngIf="showActions"
+                class="w-[140px] min-w-[140px] text-left py-[18px] px-5 border-b border-border/10 bg-surface rounded-r-lg">
+                <div class="h-6 w-3/5 rounded bg-text/10 shrink-0 relative overflow-hidden"></div>
+              </td>
+            </tr>
+          </ng-container>
+
+          <!-- Empty State -->
+          <ng-container *ngIf="!loading && pagedRows.length === 0">
+            <tr class="hover:bg-transparent">
+              <td [attr.colspan]="columns.length + (showActions ? 1 : 0)">
+                <div
+                  class="flex flex-col items-center justify-center py-12 px-6 text-center bg-surface text-text-secondary">
+                  <svg class="w-12 h-12 mb-4 text-text/25" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <h3 class="text-base font-semibold m-0 mb-1.5 text-text">Nenhum resultado encontrado</h3>
+                  <p class="text-[13px] m-0 text-text-secondary max-w-[320px]">Tente ajustar os filtros ou pesquisar por
+                    outro termo.</p>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+
+          <!-- Real Data Rows -->
+          <ng-container *ngIf="!loading && pagedRows.length > 0">
+            <tr *ngFor="let row of pagedRows; trackBy: trackByRow"
+              class="group border-b border-border/10 transition-colors duration-150 cursor-pointer"
+              (click)="onRowClick(row)">
+              <td *ngFor="let col of columns; let first = first; let last = last"
+                class="py-[18px] px-5 text-text leading-normal text-[13px] whitespace-normal break-words max-w-full transition-colors duration-150 group-hover:bg-slate-800/30"
+                [class.rounded-l-lg]="first" [class.rounded-r-lg]="last && !showActions" [class.sticky]="col.sticky"
+                [class.z-[3]]="col.sticky" [class.bg-surface]="col.sticky" [class.bg-transparent]="!col.sticky"
+                [class.shadow-[1px_0_0_var(--border)]]="col.sticky" [class.text-left]="(col.align || 'left') === 'left'"
+                [class.text-center]="col.align === 'center'" [class.text-right]="col.align === 'right'"
+                [style.width]="col.width || null" [style.left.px]="col.sticky ? col.stickyLeft : null">
+                <ng-container *ngIf="col.template; else defaultCell">
+                  <ng-container *ngTemplateOutlet="col.template; context: {$implicit: row}"></ng-container>
+                </ng-container>
+                <ng-template #defaultCell>
+                  <ng-container [ngSwitch]="col.type">
+                    <button *ngSwitchCase="'button'" type="button" class="btn btn-sm cursor-pointer"
+                      [ngClass]="'btn-' + (col.buttonType || 'secondary')"
+                      (click)="onAction(col.buttonAction || col.key, row); $event.stopPropagation()">
+                      {{ col.buttonLabel || 'Ação' }}
+                    </button>
+                    <span *ngSwitchCase="'date'">{{ cellValue(row, col) ? (cellValue(row, col) | date:(col.format ||
+                      'dd/MM/yyyy')) : '' }}</span>
+                    <span *ngSwitchDefault>{{ cellValue(row, col) }}</span>
+                  </ng-container>
+                </ng-template>
+              </td>
+              <td *ngIf="showActions"
+                class="py-[18px] px-5 text-left bg-transparent transition-colors duration-150 group-hover:bg-slate-800/30 rounded-r-lg">
+                <div class="flex items-center justify-start gap-1.5">
+                  <ng-container *ngFor="let a of actions">
+                    <!-- Icon-only action when icon is provided -->
+                    <button *ngIf="a.icon; else textAction" type="button"
+                      class="inline-flex items-center justify-center w-8 h-8 rounded-lg border-0 bg-slate-800/40 text-text-secondary transition-all duration-150 hover:bg-brand-primary/15 hover:text-brand-primary hover:scale-105 focus:bg-brand-primary/15 focus:text-brand-primary focus:outline-none cursor-pointer [&>span>svg]:w-4 [&>span>svg]:h-4 [&>span>svg]:stroke-[1.75]"
+                      (click)="onAction(a.action, row); $event.stopPropagation()" [attr.title]="a.label">
+                      <span class="inline-flex items-center justify-center" [innerHTML]="getIconSvg(a.icon)"></span>
+                    </button>
+                    <!-- Fallback to text button -->
+                    <ng-template #textAction>
+                      <button type="button" class="btn btn-sm border-0 bg-slate-800/40 cursor-pointer"
+                        [ngClass]="'btn-' + (a.type || 'secondary')"
+                        (click)="onAction(a.action, row); $event.stopPropagation()">{{ a.label }}</button>
+                    </ng-template>
+                  </ng-container>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination Footer -->
+  <div class="flex items-center justify-between p-4 border-t border-border/10 bg-slate-900/10 shrink-0"
+    *ngIf="!loading && !collapsed">
+    <div class="flex items-center gap-3 text-[13px] text-text-secondary flex-nowrap shrink-0">
+      <span class="text-[12px] text-text-secondary">Exibindo <strong class="font-semibold text-text">{{ startRecord
+          }}</strong> a <strong class="font-semibold text-text">{{ endRecord }}</strong> de <strong
+          class="font-semibold text-text">{{ totalRecords }}</strong> resultados</span>
+      <span class="text-text/10">•</span>
+      <span class="text-[12px] text-text-secondary">Itens por página</span>
+      <select
+        class="h-7 w-16 py-0 px-2 border border-border/10 rounded-md bg-slate-800/40 text-text text-[12px] outline-none cursor-pointer transition-colors duration-200 hover:border-brand-primary/30 hover:bg-slate-800/60"
+        [ngModel]="pageSize" (ngModelChange)="setPageSize($event)">
+        <option *ngFor="let opt of pageSizeOptions" [value]="opt">{{ opt }}</option>
+      </select>
+    </div>
+    <div class="flex items-center gap-1">
+      <button
+        class="inline-flex items-center justify-center h-8 w-8 border border-border/10 bg-slate-800/40 text-text rounded-lg cursor-pointer text-[13px] font-medium transition-all duration-200 outline-none hover:bg-slate-800/80 hover:border-border/30 disabled:opacity-30 disabled:cursor-not-allowed disabled:bg-slate-800/10"
+        (click)="firstPage()" [disabled]="page === 1" title="Primeira">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="11 17 6 12 11 7"></polyline>
+          <polyline points="18 17 13 12 18 7"></polyline>
+        </svg>
+      </button>
+      <button
+        class="inline-flex items-center justify-center h-8 w-8 border border-border/10 bg-slate-800/40 text-text rounded-lg cursor-pointer text-[13px] font-medium transition-all duration-200 outline-none hover:bg-slate-800/80 hover:border-border/30 disabled:opacity-30 disabled:cursor-not-allowed disabled:bg-slate-800/10"
+        (click)="prevPage()" [disabled]="page === 1" title="Anterior">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+
+      <!-- Numbered Buttons -->
+      <ng-container *ngFor="let p of visiblePages">
+        <button *ngIf="p !== '...'; else dots" type="button"
+          class="inline-flex items-center justify-center h-8 w-8 border border-border/10 bg-slate-800/40 text-text rounded-lg cursor-pointer text-[13px] font-medium transition-all duration-200 outline-none hover:bg-slate-800/80 hover:border-border/30"
+          [class.bg-brand-primary]="p === page" [class.border-brand-primary]="p === page"
+          [class.text-white]="p === page" [class.font-semibold]="p === page" (click)="goToPage(p)">
+          {{ p }}
+        </button>
+        <ng-template #dots>
+          <span class="inline-flex items-center justify-center w-8 h-8 text-[13px] text-text-secondary">...</span>
+        </ng-template>
+      </ng-container>
+
+      <button
+        class="inline-flex items-center justify-center h-8 w-8 border border-border/10 bg-slate-800/40 text-text rounded-lg cursor-pointer text-[13px] font-medium transition-all duration-200 outline-none hover:bg-slate-800/80 hover:border-border/30 disabled:opacity-30 disabled:cursor-not-allowed disabled:bg-slate-800/10"
+        (click)="nextPage()" [disabled]="page === pageCount" title="Próxima">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+      <button
+        class="inline-flex items-center justify-center h-8 w-8 border border-border/10 bg-slate-800/40 text-text rounded-lg cursor-pointer text-[13px] font-medium transition-all duration-200 outline-none hover:bg-slate-800/80 hover:border-border/30 disabled:opacity-30 disabled:cursor-not-allowed disabled:bg-slate-800/10"
+        (click)="lastPage()" [disabled]="page === pageCount" title="Última">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="13 17 18 12 13 7"></polyline>
+          <polyline points="6 17 11 12 6 7"></polyline>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>

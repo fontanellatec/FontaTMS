@@ -1,0 +1,43 @@
+<div class="mb-6 md:mb-5">
+  <label class="block w-full">
+    <span class="block text-sm font-semibold text-text mb-1">
+      {{ config.label || 'Justificativa' }}
+      <span class="text-error font-bold" *ngIf="config.required !== false">*</span>
+    </span>
+    <p class="m-0 mb-2 text-xs text-text-secondary leading-relaxed" *ngIf="config.helpText">{{ config.helpText }}</p>
+    <div class="relative bg-surface border-2 rounded-xl transition-all duration-200 shadow-sm focus-within:border-brand-primary focus-within:shadow-[0_0_0_3px_rgba(var(--brand-primary-rgb,59,130,246),0.1),0_4px_12px_rgba(0,0,0,0.15)]"
+         [ngClass]="{
+           'border-border': !hasError,
+           'border-error focus-within:border-error focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1),0_4px_12px_rgba(239,68,68,0.15)]': hasError
+         }">
+      <textarea 
+        [(ngModel)]="value"
+        [placeholder]="config.placeholder || 'Digite a justificativa...'"
+        class="w-full min-h-[120px] p-4 border-none bg-transparent resize-y text-sm leading-relaxed text-text font-sans outline-none rounded-xl placeholder:text-muted-color placeholder:italic disabled:bg-bg disabled:text-text-secondary disabled:cursor-not-allowed"
+        [maxlength]="config.maxLength || 500"
+        [rows]="config.rows || 4"
+        [style.min-height]="config.minHeight || '120px'"
+        (input)="onInput($event)"
+        (blur)="onBlur()"
+        (focus)="onFocus()">
+      </textarea>
+      <div class="absolute bottom-2 right-3 bg-surface py-0.5 px-2 rounded-md border border-border md:static md:mt-2 md:text-right md:bg-transparent md:border-none md:p-0" *ngIf="config.showCounter !== false">
+        <span class="text-xs text-text-secondary font-medium transition-colors duration-200" 
+              [ngClass]="{
+                'text-warning': isNearLimit,
+                'text-error font-semibold': isOverLimit
+              }">
+          {{ value.length }}/{{ config.maxLength || 500 }}
+        </span>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 mt-1.5 py-2 px-3 bg-error/10 border border-error/20 rounded-lg text-error text-xs font-medium" *ngIf="errorMessage">
+      <svg class="shrink-0 w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      {{ errorMessage }}
+    </div>
+  </label>
+</div>
