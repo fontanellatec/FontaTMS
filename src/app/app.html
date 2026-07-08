@@ -39,7 +39,7 @@
     <div class="relative flex items-center gap-2 py-1 px-1.5 pr-2.5 rounded-full border border-white/20 bg-white/5 text-white select-none hover:bg-white/10 hover:border-white/30 transition-all duration-200 cursor-pointer focus:outline-none" (click)="toggleUserMenu()" tabindex="0">
       <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face" 
            alt="User" class="w-7 h-7 rounded-full object-cover">
-      <span class="text-sm font-medium text-white">André</span>
+      <span class="text-sm font-medium text-white">{{ userName() || 'Usuário' }}</span>
       <svg class="w-4 h-4 text-white opacity-80 transition-transform duration-200" [class.rotate-180]="userMenuOpen()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
       @if (userMenuOpen()) {
         <div class="absolute right-0 top-[calc(100%+8px)] min-w-[220px] bg-surface border border-border shadow-lg rounded-xl p-2 z-50 transition-all duration-150 animate-in fade-in slide-in-from-top-2" (click)="$event.stopPropagation()">
