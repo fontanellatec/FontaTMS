@@ -67,9 +67,11 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'
-      || sessionStorage.getItem('isAuthenticated') === 'true';
-    if (isAuthenticated) {
+    const token = this.authService.getToken();
+    const isAuthenticated = (localStorage.getItem('isAuthenticated') === 'true'
+      || sessionStorage.getItem('isAuthenticated') === 'true') && !!token;
+
+    if (isAuthenticated || (this.authService.isAuthenticated() && token)) {
       this.router.navigate(['/torre-controle']);
     }
   }
