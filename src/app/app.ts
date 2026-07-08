@@ -23,6 +23,7 @@ export class App implements OnInit {
   protected readonly userMenuOpen = signal<boolean>(false);
   protected readonly sidebarCollapsed = signal<boolean>(false);
   protected readonly brandLogo = signal<string>('/brand/FontaTmsLogo.png');
+  protected get userName() { return this.authService.userName; }
 
   private readonly destroyRef = inject(DestroyRef);
 

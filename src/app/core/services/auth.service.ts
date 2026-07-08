@@ -22,6 +22,9 @@ export class AuthService {
   private isAuthSignal = signal<boolean>(false);
   isAuthenticated = this.isAuthSignal.asReadonly();
 
+  private userNameSignal = signal<string>('');
+  userName = this.userNameSignal.asReadonly();
+
   constructor(private http: HttpClient, private router: Router) {
     this.restoreSession();
   }
@@ -39,6 +42,10 @@ export class AuthService {
         if (response && response.token) {
           localStorage.setItem(this.TOKEN_KEY, response.token);
           localStorage.setItem(this.AUTH_KEY, 'true');
+          const userObj = response.user || (response as any).data?.user;
+          const userNome = userObj?.nome || userObj?.username || username;
+          localStorage.setItem('erp_user_name', userNome);
+          this.userNameSignal.set(userNome);
           this.isAuthSignal.set(true);
         }
       })
@@ -48,8 +55,10 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.AUTH_KEY);
+    localStorage.removeItem('erp_user_name');
     sessionStorage.removeItem(this.AUTH_KEY);
     this.isAuthSignal.set(false);
+    this.userNameSignal.set('');
     this.router.navigate(['/login']);
   }
 
@@ -62,8 +71,11 @@ export class AuthService {
     const isAuth = localStorage.getItem(this.AUTH_KEY) === 'true' || sessionStorage.getItem(this.AUTH_KEY) === 'true';
     if (token && isAuth) {
       this.isAuthSignal.set(true);
+      const savedName = localStorage.getItem('erp_user_name') || 'Usuário';
+      this.userNameSignal.set(savedName);
     } else {
       this.isAuthSignal.set(false);
+      this.userNameSignal.set('');
     }
   }
 }
