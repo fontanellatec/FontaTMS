@@ -1,20 +1,24 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Observable } from 'rxjs';
+import { AutocompleteComponent } from '../forms/autocomplete/autocomplete.component';
 
 export interface FilterConfig {
-  type: 'select' | 'date' | 'text' | 'number';
+  type: 'select' | 'date' | 'text' | 'number' | 'autocomplete';
   label: string;
   key: string;
-  options?: { value: any; label: string }[];
+  options?: { value: any; label: string; subtitle?: string }[];
   placeholder?: string;
   value?: any;
+  searchFn?: (term: string) => Observable<{ value: any; label: string; subtitle?: string }[]>;
+  searchType?: 'veiculo' | 'coordenador' | 'motorista' | 'cidade';
 }
 
 @Component({
   selector: 'app-filter-section',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AutocompleteComponent],
   templateUrl: './filter-section.component.html',
   styleUrls: ['./filter-section.component.scss']
 })

@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 export interface GridColumn {
   key: string;
   label: string;
-  type?: 'text' | 'number' | 'date' | 'status' | 'badge' | 'button';
+  type?: 'text' | 'number' | 'date' | 'status' | 'badge' | 'button' | 'currency';
   width?: string;
   align?: 'left' | 'center' | 'right';
   sortable?: boolean;
@@ -231,7 +231,30 @@ export class GridSectionComponent implements OnChanges {
   firstPage(): void { if (this.page !== 1) { this.page = 1; this.pageChange.emit(this.page); } }
   lastPage(): void { if (this.page !== this.pageCount) { this.page = this.pageCount; this.pageChange.emit(this.page); } }
 
-  cellValue(row: any, col: GridColumn): any { return row?.[col.key]; }
+  cellValue(row: any, col: GridColumn): any {
+    const val = row?.[col.key];
+    if (val && typeof val === 'object') {
+      return val.nome || val.label || val.descricao || JSON.stringify(val);
+    }
+    return val;
+  }
+
+  formatCell(row: any, col: GridColumn): string {
+    const val = this.cellValue(row, col);
+    if (val === undefined || val === null || val === '') return '';
+
+    if (col.type === 'currency') {
+      const num = Number(val);
+      return !isNaN(num) ? 'R$ ' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+    }
+
+    if (col.type === 'number') {
+      const num = Number(val);
+      return !isNaN(num) ? num.toLocaleString('pt-BR') : String(val);
+    }
+
+    return String(val);
+  }
 
   // TrackBy para otimizar renderização e evitar erros quando usar trackBy no template
   trackByRow(index: number, row: any): any {

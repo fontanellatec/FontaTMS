@@ -1,0 +1,24 @@
+<div class="w-full flex flex-col overflow-hidden">
+  <!-- Cabeçalho do Grid -->
+  <div 
+    class="grid bg-text/5 text-text-secondary rounded px-2 py-2 font-semibold items-center gap-2 text-xs border-b border-border select-none"
+    [style.grid-template-columns]="gridTemplate">
+    <div 
+      *ngFor="let col of columns" 
+      [class.flex]="col.align === 'center'" 
+      [class.justify-center]="col.align === 'center'">
+      {{ col.title }}
+    </div>
+  </div>
+
+  <!-- Corpo do Grid -->
+  <div class="w-full">
+    <div 
+      *ngFor="let item of data; index as index"
+      class="grid items-center gap-2 p-2 text-xs border-b border-border hover:bg-text/5 last:border-b-0"
+      [style.grid-template-columns]="gridTemplate">
+      <ng-container *ngTemplateOutlet="rowTemplate; context: { $implicit: item, index: index }">
+      </ng-container>
+    </div>
+  </div>
+</div>

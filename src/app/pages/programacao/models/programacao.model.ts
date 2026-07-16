@@ -23,6 +23,8 @@ export interface ProgramacaoRow {
   jornada: string;
   entregas: number;
   qtdReceita?: number;
+  veiculoPlaca: string;
+  coordenador: string;
 }
 
 export interface ConhecimentoItem {

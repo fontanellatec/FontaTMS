@@ -7,6 +7,8 @@ import { filter, map } from 'rxjs/operators';
 import { MenuConfigService, MenuKey } from './core/services/menu-config.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from './core/services/auth.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { ICONS } from './shared/icons';
 
 @Component({
   selector: 'app-root',
@@ -26,6 +28,7 @@ export class App implements OnInit {
   protected get userName() { return this.authService.userName; }
 
   private readonly destroyRef = inject(DestroyRef);
+  private readonly sanitizer = inject(DomSanitizer);
 
   constructor(
     private theme: ThemeService,
@@ -98,4 +101,13 @@ export class App implements OnInit {
   closeUserMenu(): void { this.userMenuOpen.set(false); }
   toggleSidebar(): void { this.sidebarCollapsed.set(!this.sidebarCollapsed()); }
   useFallbackLogo(): void { this.brandLogo.set('/brand/FontaTmsLogo.png'); }
+
+  get menuItems() {
+    return this.menu.getAllMenuItems();
+  }
+
+  getIconSvg(iconKey: string): SafeHtml {
+    const rawSvg = ICONS[iconKey] || '';
+    return this.sanitizer.bypassSecurityTrustHtml(rawSvg);
+  }
 }

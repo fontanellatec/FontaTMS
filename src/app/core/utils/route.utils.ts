@@ -1,4 +1,4 @@
-import { Vinculo } from '../services/viagem.service';
+import { Vinculo } from '@pages/controle-intencao-viagem/models/controle-intencao-viagem.model';
 import { getCityCoords } from '../constants/geo.constants';
 
 export function distanceKm(a: [number, number], b: [number, number]): number {

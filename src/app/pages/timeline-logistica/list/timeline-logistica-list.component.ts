@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { PageLayoutComponent, MapViewerComponent, MapMarker, MapPolyline } from '@shared/components';
+import { PageLayoutComponent, MapMarker, MapPolyline } from '@shared/components';
 import { Component, HostListener, OnDestroy } from '@angular/core';
 import {
   TimelineModalMetric,
@@ -9,11 +9,18 @@ import {
   TimelineEventModalData
 } from '../models/timeline-logistica.model';
 import { TimelineLogisticaService } from '../services/timeline-logistica.service';
+import { TimelineFleetModalComponent } from '../components/fleet-modal/fleet-modal.component';
+import { TimelineEventModalComponent } from '../components/event-modal/event-modal.component';
 
 @Component({
   selector: 'app-timeline-logistica',
   standalone: true,
-  imports: [CommonModule, MapViewerComponent, PageLayoutComponent],
+  imports: [
+    CommonModule, 
+    PageLayoutComponent,
+    TimelineFleetModalComponent,
+    TimelineEventModalComponent
+  ],
   templateUrl: './timeline-logistica-list.component.html',
   styleUrls: ['./timeline-logistica-list.component.scss']
 })
