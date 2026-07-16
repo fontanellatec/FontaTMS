@@ -1,0 +1,38 @@
+<div class="grid gap-4">
+  <div class="border border-border rounded-lg bg-surface shadow-sm" *ngFor="let g of manifestosGroups; index as i">
+    <div class="flex justify-between items-center px-3 py-2 bg-text/5 border-b border-text/15">
+      <div class="inline-flex items-center gap-1.5 font-semibold text-text">
+        <span class="w-2 h-2 rounded-full bg-text/25"></span>
+        <span class="text-text-secondary text-xs">Plano de Viagem</span>
+        <span class="text-text font-semibold">{{ g.pvNumero }}</span>
+      </div>
+      <div class="text-text-secondary text-xs">Emissão: {{ g.emissao | date:'dd/MM/yyyy' }}</div>
+    </div>
+
+    <app-form-grid [columns]="columns" [data]="g.manifestos">
+      <ng-template let-m let-j="index">
+        <div>{{ m.numero }} / {{ j + 1 }}</div>
+        <div>{{ m.emissao | date:'dd/MM/yyyy' }}</div>
+        <div>{{ m.origem }}</div>
+        <div>{{ m.destino }}</div>
+        <div>{{ m.status }}</div>
+        <div class="flex justify-center">
+          <app-btn class="w-[26px] h-[26px] !p-0 text-emerald-600 font-bold" variant="icon" icon="check" type="button"
+            title="Encerrar" (click)="encerrar.emit({ i, j })"></app-btn>
+        </div>
+        <div class="flex justify-center">
+          <app-btn class="w-[26px] h-[26px] !p-0 text-red-600 font-bold" variant="icon" icon="x" type="button"
+            title="Cancelar" (click)="cancelar.emit({ i, j })"></app-btn>
+        </div>
+        <div class="flex justify-center">
+          <app-btn class="w-[26px] h-[26px] !p-0" variant="icon" icon="printer" type="button" title="Imprimir"
+            (click)="imprimir.emit({ i, j })"></app-btn>
+        </div>
+      </ng-template>
+    </app-form-grid>
+
+    <div class="flex justify-end gap-2 px-3 py-2 border-t border-text/10">
+      <app-btn variant="secondary" size="sm" type="button" (click)="fechar.emit()">Fechar</app-btn>
+    </div>
+  </div>
+</div>

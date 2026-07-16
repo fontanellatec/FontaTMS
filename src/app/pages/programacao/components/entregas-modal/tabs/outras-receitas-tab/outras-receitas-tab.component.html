@@ -1,0 +1,40 @@
+<div class="grid gap-4">
+  <div class="border border-border rounded-lg bg-surface shadow-sm" *ngFor="let or of outrasReceitasRows; index as i">
+    <div class="flex justify-between items-center px-3 py-2 bg-text/5 border-b border-text/15">
+      <div class="inline-flex items-center gap-1.5 font-semibold text-text">
+        <span class="w-2 h-2 rounded-full bg-text/25"></span>
+        <span class="text-text-secondary text-xs">Outra Receita</span>
+        <span class="text-text font-semibold">{{ or.recNumero }}</span>
+      </div>
+      <div class="text-text-secondary text-xs">Emissão: {{ or.emissao | date:'dd/MM/yyyy' }}</div>
+    </div>
+
+    <app-form-grid [columns]="columns" [data]="[or]">
+      <ng-template let-item>
+        <div>
+          <app-input-text [dense]="true" [ngModel]="item.emissao | date:'dd/MM/yyyy'" [disabled]="true"></app-input-text>
+        </div>
+        <div>
+          <app-input-text [dense]="true" [(ngModel)]="item.origem" placeholder="Cidade - UF"></app-input-text>
+        </div>
+        <div>
+          <app-input-text [dense]="true" [(ngModel)]="item.destino" placeholder="Cidade - UF"></app-input-text>
+        </div>
+        <div>
+          <app-input-text [dense]="true" [(ngModel)]="item.valor" placeholder="R$0,00"></app-input-text>
+        </div>
+        <div>
+          <app-input-date [dense]="true" [(ngModel)]="item.dataEntrega"></app-input-date>
+        </div>
+        <div>
+          <app-input-time [dense]="true" [(ngModel)]="item.horaEntrega"></app-input-time>
+        </div>
+      </ng-template>
+    </app-form-grid>
+
+    <div class="flex justify-end gap-2 px-3 py-2 border-t border-text/10">
+      <app-btn variant="primary" size="sm" type="button" (click)="salvarOR(i)">Salvar</app-btn>
+      <app-btn variant="secondary" size="sm" type="button" (click)="fechar.emit()">Fechar</app-btn>
+    </div>
+  </div>
+</div>

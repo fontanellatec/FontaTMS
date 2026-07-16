@@ -16,7 +16,7 @@
         <!-- Select Filter -->
         <select 
           *ngIf="filter.type === 'select'" 
-          [value]="filter.value" 
+          [value]="filter.value || ''" 
           (change)="onInputChange($event, filter.key)">
           <option value="">{{ filter.placeholder || 'Selecione...' }}</option>
           <option *ngFor="let option of filter.options" [value]="option.value">
@@ -28,7 +28,7 @@
         <input 
           *ngIf="filter.type === 'date'" 
           type="date" 
-          [value]="filter.value" 
+          [value]="filter.value || ''" 
           [placeholder]="filter.placeholder"
           (change)="onInputChange($event, filter.key)">
         
@@ -36,7 +36,7 @@
         <input 
           *ngIf="filter.type === 'text'" 
           type="text" 
-          [value]="filter.value" 
+          [value]="filter.value || ''" 
           [placeholder]="filter.placeholder"
           (input)="onInputChange($event, filter.key)">
 
@@ -44,9 +44,19 @@
         <input 
           *ngIf="filter.type === 'number'" 
           type="number" 
-          [value]="filter.value" 
+          [value]="filter.value || ''" 
           [placeholder]="filter.placeholder"
           (input)="onInputChange($event, filter.key)">
+
+        <!-- Autocomplete Filter -->
+        <app-autocomplete
+          *ngIf="filter.type === 'autocomplete'"
+          [placeholder]="filter.placeholder || 'Pesquise...'"
+          [options]="filter.options || []"
+          [searchFn]="filter.searchFn"
+          [searchType]="filter.searchType"
+          [(ngModel)]="filter.value"
+        ></app-autocomplete>
       </div>
     </div>
     

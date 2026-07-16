@@ -1,0 +1,44 @@
+<div class="grid gap-4">
+  <div class="border border-border rounded-lg bg-surface shadow-sm" *ngFor="let pv of pvGroups; index as i">
+    <div class="flex justify-between items-center px-3 py-2 bg-text/5 border-b border-text/15">
+      <div class="inline-flex items-center gap-1.5 font-semibold text-text">
+        <span class="w-2 h-2 rounded-full bg-text/25"></span>
+        <span class="text-text-secondary text-xs">Plano de Viagem</span>
+        <span class="text-text font-semibold">{{ pv.pvNumero }}</span>
+      </div>
+      <div class="text-text-secondary text-xs">Emissão: {{ pv.emissao | date:'dd/MM/yyyy' }}</div>
+    </div>
+
+    <app-form-grid [columns]="columns" [data]="pv.conhecimentos">
+      <ng-template let-c let-j="index">
+        <div>
+          {{ c.numero }} / {{ j + 1 }}
+        </div>
+        <div>
+          <app-input-text [dense]="true" [(ngModel)]="c.armazemPrev" placeholder="Ex: A1"></app-input-text>
+        </div>
+        <div class="flex flex-col items-start justify-center gap-1 min-w-0">
+          <app-checkbox label="Final" [(ngModel)]="c.formaFinal"></app-checkbox>
+          <app-checkbox label="Armazenagem" [(ngModel)]="c.armazenagem"></app-checkbox>
+        </div>
+        <div>
+          <app-input-text [dense]="true" [(ngModel)]="c.dataEntrega" placeholder="dd/mm/aaaa"></app-input-text>
+        </div>
+        <div>
+          <app-input-text [dense]="true" [(ngModel)]="c.armazem"></app-input-text>
+        </div>
+        <div>
+          <app-input-text [dense]="true" [(ngModel)]="c.observacao" placeholder="Observações"></app-input-text>
+        </div>
+        <div class="flex justify-center">
+          <app-btn class="w-[26px] h-[26px] !p-0" variant="icon" icon="x" type="button" title="Remover"
+            (click)="removerConhecimento(i, j)"></app-btn>
+        </div>
+      </ng-template>
+    </app-form-grid>
+
+    <div class="flex justify-end gap-2 px-3 py-2 border-t border-text/10">
+      <app-btn variant="primary" size="sm" type="button" (click)="salvarGrupo(i)">Salvar</app-btn>
+    </div>
+  </div>
+</div>

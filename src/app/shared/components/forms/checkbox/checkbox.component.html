@@ -1,0 +1,10 @@
+<label class="inline-flex items-center gap-2 cursor-pointer select-none text-xs text-text" [class.opacity-50]="disabled">
+  <input
+    type="checkbox"
+    class="w-4 h-4 rounded border-border text-brand-primary focus:ring-brand-primary/25 cursor-pointer disabled:cursor-not-allowed"
+    [disabled]="disabled"
+    [checked]="value"
+    (change)="onChangeValue($event)"
+  />
+  <span *ngIf="label" class="whitespace-nowrap">{{ label }}</span>
+</label>

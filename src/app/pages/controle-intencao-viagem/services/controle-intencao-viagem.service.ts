@@ -1,51 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { CITY_TO_UF } from '../constants/geo.constants';
-
-
-export interface EnderecoCompleto {
-  uf: string;
-  cidade: string;
-  rua?: string;
-  numero?: string;
-  bairro?: string;
-  complemento?: string;
-}
-
-export interface IntencaoViagem {
-  codigo?: string;
-  origem: EnderecoCompleto;
-  destino: EnderecoCompleto;
-  pesoKg: number;
-  tipoCarga?: string;
-  dataColeta?: string;
-  dataEntrega?: string;
-  observacoes?: string;
-  valorPreCarga?: number;
-  usuarioLancador?: string;
-}
-
-export interface Veiculo {
-  placa: string;
-  localizacao: string;
-  tipo?: string;
-  situacao?: string;
-  frotaNumero?: string;
-  tipoConjunto?: string;
-  ultimaDescarga?: string;
-  destinoCidade?: string;
-  destinoUf?: string;
-  coordenador?: string;
-}
-
-export interface Vinculo {
-  intencao: IntencaoViagem;
-  veiculo: Veiculo;
-  status: 'pendente' | 'vinculado' | 'em_rota' | 'concluido';
-  confirmado?: boolean;
-  viagemId?: string;
-  motorista?: string;
-}
+import { CITY_TO_UF } from '@core/constants/geo.constants';
+import { EnderecoCompleto, IntencaoViagem, Veiculo, Vinculo } from '../models/controle-intencao-viagem.model';
 
 @Injectable({ providedIn: 'root' })
 export class ViagemService {
@@ -126,7 +82,6 @@ export class ViagemService {
   }
 
   getVeiculos(): Observable<Veiculo[]> {
-    // Mapeamento simples de veículos simulando API
     return of(this.defaultVeiculos());
   }
 
@@ -686,4 +641,3 @@ export class ViagemService {
     return capacityMap[tipo] || 10000;
   }
 }
-
