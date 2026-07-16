@@ -1,0 +1,88 @@
+<app-tab-modal [title]="'Entregas de Documentos'" [(open)]="open" [size]="'lg'" [tabs]="entregasTabs"
+  [(activeTabId)]="entregasActiveTabId" (openChange)="onOpenChange($event)">
+  <div modal-actions class="flex gap-2 justify-end">
+    <app-btn variant="secondary" (click)="fecharEntregas()">Cancelar</app-btn>
+    <app-btn variant="primary" (click)="confirmarEntregas()">Confirmar Entrega</app-btn>
+  </div>
+</app-tab-modal>
+
+<app-tab-modal [title]="'Encerrar Manifesto'" [(open)]="encerrarModalOpen" [size]="'sm'" [tabs]="encerrarTabs"
+  [(activeTabId)]="encerrarActiveTabId">
+  <div modal-actions class="flex gap-2 justify-end">
+    <app-btn variant="secondary" (click)="fecharEncerrarManifesto()">Cancelar</app-btn>
+    <app-btn variant="primary" (click)="confirmarEncerrarManifesto()">Encerrar</app-btn>
+  </div>
+</app-tab-modal>
+
+<app-tab-modal [title]="'Cancelar Manifesto'" [(open)]="cancelarModalOpen" [size]="'sm'" [tabs]="cancelarTabs"
+  [(activeTabId)]="cancelarActiveTabId">
+  <div modal-actions class="flex gap-2 justify-end">
+    <app-btn variant="secondary" (click)="fecharCancelarManifesto()">Voltar</app-btn>
+    <app-btn variant="primary" (click)="confirmarCancelarManifesto()">Confirmar</app-btn>
+  </div>
+</app-tab-modal>
+
+<ng-template #conhecimentosTpl>
+  <app-conhecimentos-tab [pvGroups]="entregasPVGroups"></app-conhecimentos-tab>
+</ng-template>
+
+<ng-template #planoViagemTpl>
+  <app-plano-viagem-tab [planoViagemRows]="planoViagemRows" (fechar)="fecharEntregas()"></app-plano-viagem-tab>
+</ng-template>
+
+<ng-template #outrasReceitasTpl>
+  <app-outras-receitas-tab [outrasReceitasRows]="outrasReceitasRows"
+    (fechar)="fecharEntregas()"></app-outras-receitas-tab>
+</ng-template>
+
+<ng-template #encerrarManifestoTpl>
+  <div class="flex flex-col gap-3" *ngIf="encerrarCtx as ctx">
+    <div class="bg-surface-secondary border border-border rounded-lg p-2.5">
+      <div class="grid grid-cols-[110px_1fr] items-center gap-2 py-1">
+        <span class="text-xs text-text-secondary">UN</span>
+        <span class="text-sm font-semibold text-text">{{ encerrarGroup?.pvNumero }}</span>
+      </div>
+      <div class="grid grid-cols-[110px_1fr] items-center gap-2 py-1">
+        <span class="text-xs text-text-secondary">Manifesto</span>
+        <span class="text-sm font-semibold text-text">{{ encerrarManifestoSel?.numero }}</span>
+      </div>
+      <div class="grid grid-cols-[110px_1fr] items-center gap-2 py-1">
+        <span class="text-xs text-text-secondary">Chave de Acesso</span>
+        <span class="text-sm font-semibold text-text">{{ encerrarManifestoSel?.chaveAcesso }}</span>
+      </div>
+    </div>
+
+    <div class="border-t border-border my-1.5"></div>
+
+    <div class="grid grid-cols-[110px_1fr] items-center gap-2">
+      <label class="text-xs text-text-secondary">Data</label>
+      <input class="pv-input-sm !w-[140px]" type="date" [(ngModel)]="ctx.data" />
+    </div>
+    <div class="grid grid-cols-[110px_1fr] items-center gap-2">
+      <label class="text-xs text-text-secondary">Estado</label>
+      <select class="pv-input-sm !w-[160px]" [(ngModel)]="ctx.estado" (change)="onChangeEstadoEncerrar()">
+        <option *ngFor="let uf of estadosUF" [value]="uf">{{ uf }}</option>
+      </select>
+    </div>
+    <div class="grid grid-cols-[110px_1fr] items-center gap-2">
+      <label class="text-xs text-text-secondary">Cidade</label>
+      <select class="pv-input-sm !w-[160px]" [(ngModel)]="ctx.cidade">
+        <option *ngFor="let c of encerrarCidades" [value]="c">{{ c }}</option>
+      </select>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #cancelarManifestoTpl>
+  <div class="grid gap-2.5" *ngIf="cancelarCtx as ctx">
+    <div class="text-xs text-text-secondary mb-1">Explique o motivo do cancelamento.</div>
+    <app-justification-field [(ngModel)]="ctx.justificativa" [config]="cancelarJustificationConfig">
+    </app-justification-field>
+  </div>
+</ng-template>
+
+<ng-template #manifestosTpl>
+  <app-manifestos-tab [manifestosGroups]="manifestosGroups" (fechar)="fecharEntregas()"
+    (encerrar)="abrirEncerrarManifesto($event.i, $event.j)" (cancelar)="abrirCancelarManifesto($event.i, $event.j)"
+    (imprimir)="imprimirManifesto($event.i, $event.j)"></app-manifestos-tab>
+</ng-template>

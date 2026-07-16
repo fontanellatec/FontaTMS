@@ -1,25 +1,20 @@
 <app-page-layout title="Configuração de Menu" subtitle="Escolha e organize quais telas do sistema aparecem no menu lateral em tempo real.">
   <div actions class="flex flex-wrap items-center gap-3">
-    <!-- Indicador Geral de Status -->
     <div class="px-4 py-2 bg-brand-primary/10 border border-brand-primary/20 rounded-lg flex items-center gap-2">
       <div class="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></div>
       <span class="text-sm font-semibold text-brand-primary">
         {{ getEnabledCount(items) }} de {{ items.length }} telas ativas
       </span>
     </div>
-    
-    <!-- Ações -->
     <div class="flex gap-2">
       <app-btn variant="primary" (click)="showAll()">Mostrar tudo</app-btn>
       <app-btn variant="secondary" (click)="hideAll()">Ocultar tudo</app-btn>
     </div>
   </div>
 
-  <!-- Grid de Módulos (Categorias) -->
   <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 overflow-y-auto pr-1">
     @for (cat of groupedItems; track cat.title) {
       <div class="flex flex-col border border-border rounded-xl bg-surface p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-        <!-- Header da Categoria -->
         <div class="flex items-center justify-between border-b border-border/60 pb-3 mb-4">
           <h2 class="text-sm font-bold uppercase tracking-wider text-brand-primary">{{ cat.title }}</h2>
           <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-brand-primary/15 text-brand-primary">
@@ -27,11 +22,9 @@
           </span>
         </div>
 
-        <!-- Lista de Telas -->
         <div class="flex flex-col gap-3.5 flex-1">
           @for (it of cat.items; track it.key) {
             <div class="flex items-center justify-between p-3.5 rounded-lg border border-border/50 bg-surface-secondary shadow-sm">
-              <!-- Info da Tela -->
               <div class="flex items-center gap-3">
                 <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-surface border border-border/60 text-brand-primary flex-shrink-0">
                   @switch (it.key) {
@@ -70,7 +63,6 @@
                 </div>
               </div>
 
-              <!-- Botão Switch Customizado (Toggle) -->
               <label class="relative inline-flex items-center cursor-pointer select-none flex-shrink-0 ml-2">
                 <input 
                   type="checkbox" 
@@ -87,7 +79,6 @@
     }
   </div>
 
-  <!-- Rodapé Informativo -->
   <div class="flex items-center gap-2 text-xs text-text-secondary border-t border-border pt-4 mt-auto">
     <svg class="w-4 h-4 text-brand-primary flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>

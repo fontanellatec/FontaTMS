@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { of } from 'rxjs';
+import { of, forkJoin } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
@@ -14,12 +15,14 @@ import {
   ButtonComponent 
 } from '@shared/components';
 import { UF_COORDS, CITY_COORDS, CITY_TO_UF, getCityCoords } from '@core/constants/geo.constants';
-import { EnderecoCompleto, IntencaoViagem, Veiculo, Vinculo, ViagemService } from '@core/services/viagem.service';
+import { EnderecoCompleto, IntencaoViagem, Veiculo, Vinculo } from '../models/controle-intencao-viagem.model';
+import { ViagemService } from '../services/controle-intencao-viagem.service';
 import { distanceKm, buildGreedyRoutePlan } from '@core/utils/route.utils';
+import { FILTER_CONFIGS, getKpiConfigs } from './controle-intencao-viagem-list.config';
 
 
 @Component({
-  selector: 'erp-controle-intencao-viagem',
+  selector: 'app-controle-intencao-viagem',
   standalone: true,
   imports: [CommonModule, FormsModule, FilterSectionComponent, KpiSectionComponent, MapViewerComponent, PageLayoutComponent, ButtonComponent],
   templateUrl: './controle-intencao-viagem-list.component.html',
@@ -34,20 +37,16 @@ export class ControleIntencaoViagemComponent implements OnInit, OnDestroy {
   filtroTipoVeiculo = 'Todos';
 
   filtersCollapsed = true;
-  filterConfigs: FilterConfig[] = [
-    { type: 'text', label: 'Origem', key: 'origem', placeholder: 'UF/Cidade', value: '' },
-    { type: 'text', label: 'Destino', key: 'destino', placeholder: 'UF/Cidade', value: '' },
-    { type: 'select', label: 'Status', key: 'status', placeholder: 'Todos', value: '', options: [{ value: 'pendente', label: 'Pendente' }, { value: 'vinculado', label: 'Vinculado' }, { value: 'em_rota', label: 'Em rota' }, { value: 'concluido', label: 'Concluído' }] },
-    { type: 'select', label: 'Tipo Veículo', key: 'tipoVeiculo', placeholder: 'Todos', value: '', options: [{ value: 'Leve', label: 'Leve' }, { value: 'VUC', label: 'VUC' }, { value: 'Toco', label: 'Toco' }, { value: 'Carreta', label: 'Carreta' }] }
-  ];
+  kpisCollapsed = false;
+  filterConfigs: FilterConfig[] = FILTER_CONFIGS;
 
   get kpiConfigs(): KpiConfig[] {
-    return [
-      { label: 'Pré-Cargas', value: this.countIntencoes, icon: 'plus', format: 'number' },
-      { label: 'Vinculados', value: this.countVinculados, icon: 'truck', format: 'number' },
-      { label: 'Em rota', value: this.countEmRota, icon: 'route', format: 'number' },
-      { label: 'Concluídos', value: this.countConcluidos, icon: 'check-circle', format: 'number' }
-    ];
+    return getKpiConfigs(
+      this.countIntencoes,
+      this.countVinculados,
+      this.countEmRota,
+      this.countConcluidos
+    );
   }
 
   intencoes: IntencaoViagem[] = [];
@@ -56,9 +55,38 @@ export class ControleIntencaoViagemComponent implements OnInit, OnDestroy {
 
   get veiculosDisponiveis(): Veiculo[] {
     const bloqueados = new Set(this.vinculos.filter(v => v.confirmado).map(v => v.veiculo));
-    const base = this.veiculos.filter(v => !bloqueados.has(v));
+    let data = this.veiculos.filter(v => !bloqueados.has(v));
+
+    // Filtro por tipo de veículo
+    if (this.filtroTipoVeiculo && this.filtroTipoVeiculo !== 'Todos') {
+      const tipoLower = this.filtroTipoVeiculo.toLowerCase();
+      data = data.filter(v => 
+        (v.tipo && v.tipo.toLowerCase().includes(tipoLower)) || 
+        (v.tipoConjunto && v.tipoConjunto.toLowerCase().includes(tipoLower))
+      );
+    }
+
+    // Filtro por destino (cidade ou UF do destino do veículo)
+    if (this.filtroDestino) {
+      const dest = this.filtroDestino.includes('||') ? this.filtroDestino.split('||')[1] : this.filtroDestino;
+      const destLower = dest.trim().toLowerCase();
+      data = data.filter(v => 
+        (v.destinoCidade && v.destinoCidade.toLowerCase().includes(destLower)) || 
+        (v.destinoUf && v.destinoUf.toLowerCase().includes(destLower))
+      );
+    }
+
+    // Filtro por origem (localização atual do veículo)
+    if (this.filtroOrigem) {
+      const orig = this.filtroOrigem.includes('||') ? this.filtroOrigem.split('||')[1] : this.filtroOrigem;
+      const origLower = orig.trim().toLowerCase();
+      data = data.filter(v => 
+        v.localizacao && v.localizacao.toLowerCase().includes(origLower)
+      );
+    }
+
     const i = this.lockedIntencaoIndex !== null ? this.intencoes[this.lockedIntencaoIndex] : null;
-    return i ? base.filter(v => this.viagemService.isVeiculoProximoDaOrigem(v, i)) : base;
+    return i ? data.filter(v => this.viagemService.isVeiculoProximoDaOrigem(v, i)) : data;
   }
 
   selecionadaIntencaoIndex: number | null = null;
@@ -109,22 +137,35 @@ export class ControleIntencaoViagemComponent implements OnInit, OnDestroy {
   }
 
   private loadData(): void {
-    this.viagemService.getVinculos().subscribe(vinculos => {
-      this.vinculos = vinculos;
-      this.viagemService.getVeiculos().subscribe(veiculos => {
-        this.veiculos = veiculos;
-        this.viagemService.getIntencoes().subscribe(intencoes => {
-          this.intencoes = intencoes;
-          this.removeLinkedIntencoes();
-        });
-      });
+    forkJoin({
+      vinculos: this.viagemService.getVinculos(),
+      veiculos: this.viagemService.getVeiculos(),
+      intencoes: this.viagemService.getIntencoes()
+    }).subscribe({
+      next: ({ vinculos, veiculos, intencoes }) => {
+        this.vinculos = vinculos || [];
+        this.veiculos = veiculos || [];
+        this.intencoes = intencoes || [];
+        this.removeLinkedIntencoes();
+      },
+      error: (err) => {
+        console.error('Erro ao carregar dados de viagem:', err);
+      }
     });
   }
 
-  get countIntencoes(): number { return this.intencoes.length; }
-  get countVinculados(): number { return this.vinculos.filter(v => v.confirmado === true).length; }
-  get countEmRota(): number { return this.vinculos.filter(v => v.status === 'em_rota').length; }
-  get countConcluidos(): number { return this.vinculos.filter(v => v.status === 'concluido').length; }
+  get countIntencoes(): number { 
+    return this.preCargasDisponiveis.length; 
+  }
+  get countVinculados(): number { 
+    return this.vinculos.filter(v => v.confirmado === true && this.vinculoPassaFiltros(v)).length; 
+  }
+  get countEmRota(): number { 
+    return this.vinculos.filter(v => v.status === 'em_rota' && v.confirmado === true && this.vinculoPassaFiltros(v)).length; 
+  }
+  get countConcluidos(): number { 
+    return this.vinculos.filter(v => v.status === 'concluido' && v.confirmado === true && this.vinculoPassaFiltros(v)).length; 
+  }
 
   dragIntencaoIndex: number | null = null;
   dragOverVeiculoIndex: number | null = null;
@@ -166,26 +207,40 @@ export class ControleIntencaoViagemComponent implements OnInit, OnDestroy {
     this.intencoes = this.intencoes.filter(i => !this.vinculos.some(v => this.intencaoEquals(v.intencao, i)));
   }
 
-  onFiltersChange(values: any): void { this.applyFilters(values); }
+  onFiltersChange(values: any): void { 
+    this.applyFilters(values); 
+  }
   onApplyFilters(values: any): void {
     this.applyFilters(values);
-    this.loadData();
   }
   private applyFilters(values: any): void {
-    this.filtroOrigem = values?.origem || ''; this.filtroDestino = values?.destino || '';
+    this.filtroOrigem = values?.origem || ''; 
+    this.filtroDestino = values?.destino || '';
     this.filtroStatus = values?.status ? values.status : 'Todos';
     this.filtroTipoVeiculo = values?.tipoVeiculo ? values.tipoVeiculo : 'Todos';
     this.syncFilterConfigValues();
   }
 
   onClearFilters(): void {
-    this.filtroOrigem = ''; this.filtroDestino = ''; this.filtroStatus = 'Todos'; this.filtroTipoVeiculo = 'Todos';
-    this.filterConfigs.forEach(f => f.value = '');
+    this.filtroOrigem = ''; 
+    this.filtroDestino = ''; 
+    this.filtroStatus = 'Todos'; 
+    this.filtroTipoVeiculo = 'Todos';
+    this.filterConfigs.forEach(f => {
+      f.value = f.type === 'select' ? '' : null;
+    });
   }
 
   private syncFilterConfigValues(): void {
-    const map: Record<string, any> = { origem: this.filtroOrigem, destino: this.filtroDestino, status: this.filtroStatus === 'Todos' ? '' : this.filtroStatus, tipoVeiculo: this.filtroTipoVeiculo === 'Todos' ? '' : this.filtroTipoVeiculo };
-    this.filterConfigs.forEach(f => f.value = map[f.key] ?? '');
+    const map: Record<string, any> = { 
+      origem: this.filtroOrigem, 
+      destino: this.filtroDestino, 
+      status: this.filtroStatus === 'Todos' ? '' : this.filtroStatus, 
+      tipoVeiculo: this.filtroTipoVeiculo === 'Todos' ? '' : this.filtroTipoVeiculo 
+    };
+    this.filterConfigs.forEach(f => {
+      f.value = map[f.key] ?? '';
+    });
   }
 
   getStatusClass(status: Vinculo['status']) {
@@ -219,8 +274,35 @@ export class ControleIntencaoViagemComponent implements OnInit, OnDestroy {
   }
 
   get preCargasDisponiveis(): IntencaoViagem[] {
+    let data = this.intencoes;
+
+    // Filtro por origem
+    if (this.filtroOrigem) {
+      const orig = this.filtroOrigem.includes('||') ? this.filtroOrigem.split('||')[1] : this.filtroOrigem;
+      const origLower = orig.trim().toLowerCase();
+      data = data.filter(i => 
+        (i.origem.cidade && i.origem.cidade.toLowerCase().includes(origLower)) || 
+        (i.origem.uf && i.origem.uf.toLowerCase().includes(origLower))
+      );
+    }
+
+    // Filtro por destino
+    if (this.filtroDestino) {
+      const dest = this.filtroDestino.includes('||') ? this.filtroDestino.split('||')[1] : this.filtroDestino;
+      const destLower = dest.trim().toLowerCase();
+      data = data.filter(i => 
+        (i.destino.cidade && i.destino.cidade.toLowerCase().includes(destLower)) || 
+        (i.destino.uf && i.destino.uf.toLowerCase().includes(destLower))
+      );
+    }
+
+    // Filtro por status
+    if (this.filtroStatus && this.filtroStatus !== 'Todos' && this.filtroStatus !== 'pendente') {
+      data = []; // Pré-cargas não vinculadas são sempre pendentes
+    }
+
     const v = this.lockedVeiculoIndex !== null ? this.veiculos[this.lockedVeiculoIndex] : null;
-    return v ? this.intencoes.filter(i => this.viagemService.isIntencaoProximaDoDestinoVeiculo(i, v)) : this.intencoes;
+    return v ? data.filter(i => this.viagemService.isIntencaoProximaDoDestinoVeiculo(i, v)) : data;
   }
 
   onSelecionarOuLockarVeiculo(index: number): void {
@@ -249,17 +331,68 @@ export class ControleIntencaoViagemComponent implements OnInit, OnDestroy {
     this.selecionadoVeiculoIndex = null;
   }
 
-  onIntencaoDragStart(idx: number, ev: DragEvent): void { this.dragIntencaoIndex = idx; ev.dataTransfer?.setData('text/plain', String(idx)); }
+  onIntencaoDragStart(idx: number, ev: DragEvent): void {
+    this.dragIntencaoIndex = idx;
+    const intencao = this.intencoes[idx];
+    if (intencao && ev.dataTransfer) {
+      ev.dataTransfer.setData('text/plain', String(idx));
+
+      // Criação de badge temporário na tela para o drag image
+      const dragEl = document.createElement('div');
+      dragEl.style.position = 'absolute';
+      dragEl.style.top = '-1000px';
+      dragEl.style.left = '-1000px';
+      dragEl.style.padding = '8px 12px';
+      dragEl.style.background = '#3b82f6';
+      dragEl.style.color = '#ffffff';
+      dragEl.style.fontSize = '12px';
+      dragEl.style.fontWeight = 'bold';
+      dragEl.style.borderRadius = '20px';
+      dragEl.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+      dragEl.style.pointerEvents = 'none';
+      dragEl.innerHTML = `📦 Pré-Carga ${intencao.codigo || 'CRG'}`;
+
+      document.body.appendChild(dragEl);
+      ev.dataTransfer.setDragImage(dragEl, 20, 20);
+
+      // Remove o elemento após o browser capturar a imagem
+      setTimeout(() => {
+        if (dragEl.parentNode) {
+          dragEl.parentNode.removeChild(dragEl);
+        }
+      }, 0);
+    }
+  }
   onIntencaoDragEnd(): void { this.dragIntencaoIndex = null; }
   onVeiculoDragOver(ev: DragEvent): void { ev.preventDefault(); }
-  onVeiculoDragEnter(idx: number): void { this.dragOverVeiculoIndex = idx; }
+  onVeiculoDragEnter(idx: number): void {
+    if (this.dragIntencaoIndex !== null) {
+      const intencao = this.intencoes[this.dragIntencaoIndex];
+      const veiculo = this.veiculos[idx];
+      if (intencao && veiculo && !this.viagemService.isVeiculoProximoDaOrigem(veiculo, intencao)) {
+        return; // Ignora se incompatível
+      }
+    }
+    this.dragOverVeiculoIndex = idx;
+  }
   onVeiculoDragLeave(idx: number): void { if (this.dragOverVeiculoIndex === idx) this.dragOverVeiculoIndex = null; }
   onVeiculoDrop(veiculoIndex: number): void {
     if (this.dragIntencaoIndex === null) return;
+    const intencao = this.intencoes[this.dragIntencaoIndex];
+    const veiculo = this.veiculos[veiculoIndex];
+    if (intencao && veiculo && !this.viagemService.isVeiculoProximoDaOrigem(veiculo, intencao)) {
+      this.dragOverVeiculoIndex = null;
+      return; // Bloqueia drop se incompatível
+    }
     this.selecionadaIntencaoIndex = this.dragIntencaoIndex;
     this.selecionadoVeiculoIndex = veiculoIndex;
     this.vincularSelecionados();
     this.dragOverVeiculoIndex = null;
+  }
+  isVeiculoCompativelComArrastado(v: Veiculo): boolean {
+    if (this.dragIntencaoIndex === null) return true;
+    const intencao = this.intencoes[this.dragIntencaoIndex];
+    return intencao ? this.viagemService.isVeiculoProximoDaOrigem(v, intencao) : true;
   }
 
   removerVinculo(i: number): void {
@@ -275,19 +408,27 @@ export class ControleIntencaoViagemComponent implements OnInit, OnDestroy {
   excluirVinculoConfirmado(i: number): void {
     const v = this.vinculos[i];
     if (!v || !v.confirmado) return;
-    const removeActions$ = v.viagemId
+    const removeAction$ = v.viagemId
       ? this.viagemService.removerViagem(v.viagemId)
       : of(undefined);
 
-    removeActions$.subscribe(() => {
-      this.vinculos.splice(i, 1);
-      this.viagemService.saveVinculos(this.vinculos).subscribe(() => {
+    removeAction$.pipe(
+      switchMap(() => {
+        this.vinculos.splice(i, 1);
+        return this.viagemService.saveVinculos(this.vinculos);
+      }),
+      switchMap(() => {
         this.intencoes.unshift(v.intencao);
-        this.viagemService.saveIntencoes(this.intencoes).subscribe(() => {
-          this.removeLinkedIntencoes();
-          this.renderModalMap();
-        });
-      });
+        return this.viagemService.saveIntencoes(this.intencoes);
+      })
+    ).subscribe({
+      next: () => {
+        this.removeLinkedIntencoes();
+        this.renderModalMap();
+      },
+      error: (err) => {
+        console.error('Erro ao excluir vínculo confirmado:', err);
+      }
     });
   }
 
@@ -502,10 +643,50 @@ export class ControleIntencaoViagemComponent implements OnInit, OnDestroy {
     return this.vinculos.map((v, i) => ({ i, v })).filter(x => x.v.confirmado === true);
   }
 
+  private vinculoPassaFiltros(v: Vinculo): boolean {
+    // Filtro por status
+    if (this.filtroStatus && this.filtroStatus !== 'Todos') {
+      if (v.status !== this.filtroStatus) return false;
+    }
+
+    // Filtro por tipo de veículo
+    if (this.filtroTipoVeiculo && this.filtroTipoVeiculo !== 'Todos') {
+      const tipoLower = this.filtroTipoVeiculo.toLowerCase();
+      const matchesType = (v.veiculo.tipo && v.veiculo.tipo.toLowerCase().includes(tipoLower)) || 
+                           (v.veiculo.tipoConjunto && v.veiculo.tipoConjunto.toLowerCase().includes(tipoLower));
+      if (!matchesType) return false;
+    }
+
+    // Filtro por origem
+    if (this.filtroOrigem) {
+      const orig = this.filtroOrigem.includes('||') ? this.filtroOrigem.split('||')[1] : this.filtroOrigem;
+      const origLower = orig.trim().toLowerCase();
+      const matchesOrig = (v.intencao.origem.cidade && v.intencao.origem.cidade.toLowerCase().includes(origLower)) || 
+                          (v.intencao.origem.uf && v.intencao.origem.uf.toLowerCase().includes(origLower)) ||
+                          (v.veiculo.localizacao && v.veiculo.localizacao.toLowerCase().includes(origLower));
+      if (!matchesOrig) return false;
+    }
+
+    // Filtro por destino
+    if (this.filtroDestino) {
+      const dest = this.filtroDestino.includes('||') ? this.filtroDestino.split('||')[1] : this.filtroDestino;
+      const destLower = dest.trim().toLowerCase();
+      const matchesDest = (v.intencao.destino.cidade && v.intencao.destino.cidade.toLowerCase().includes(destLower)) || 
+                          (v.intencao.destino.uf && v.intencao.destino.uf.toLowerCase().includes(destLower)) ||
+                          (v.veiculo.destinoCidade && v.veiculo.destinoCidade.toLowerCase().includes(destLower)) ||
+                          (v.veiculo.destinoUf && v.veiculo.destinoUf.toLowerCase().includes(destLower));
+      if (!matchesDest) return false;
+    }
+
+    return true;
+  }
+
   get confirmedGroups(): { veiculo: Veiculo; items: { i: number; v: Vinculo }[] }[] {
     const groups = new Map<Veiculo, { veiculo: Veiculo; items: { i: number; v: Vinculo }[] }>();
     this.vinculos.forEach((v, i) => {
       if (v?.confirmado) {
+        if (!this.vinculoPassaFiltros(v)) return;
+
         if (!groups.has(v.veiculo)) groups.set(v.veiculo, { veiculo: v.veiculo, items: [] });
         groups.get(v.veiculo)!.items.push({ i, v });
       }
@@ -523,14 +704,23 @@ export class ControleIntencaoViagemComponent implements OnInit, OnDestroy {
     if (!removidos.length) return;
     const manter = this.vinculos.filter(v => !(v?.confirmado && v.veiculo.placa === veiculo.placa));
     const viagemIds = removidos.map(v => v.viagemId).filter(Boolean) as string[];
-    this.viagemService.removerViagens(viagemIds).subscribe(() => {
-      this.vinculos = manter;
-      this.viagemService.saveVinculos(this.vinculos).subscribe(() => {
+
+    this.viagemService.removerViagens(viagemIds).pipe(
+      switchMap(() => {
+        this.vinculos = manter;
+        return this.viagemService.saveVinculos(this.vinculos);
+      }),
+      switchMap(() => {
         removidos.forEach(v => this.intencoes.unshift(v.intencao));
-        this.viagemService.saveIntencoes(this.intencoes).subscribe(() => {
-          this.showSuccess('Grupo removido. Pré-cargas devolvidas.');
-        });
-      });
+        return this.viagemService.saveIntencoes(this.intencoes);
+      })
+    ).subscribe({
+      next: () => {
+        this.showSuccess('Grupo removido. Pré-cargas devolvidas.');
+      },
+      error: (err) => {
+        console.error('Erro ao excluir grupo confirmado:', err);
+      }
     });
   }
 }

@@ -22,6 +22,13 @@ export * from './filter-section/filter-section.component';
 
 // Forms
 export * from './forms/justification-field/justification-field.component';
+export * from './forms/autocomplete/autocomplete.component';
+export * from './forms/input-text/input-text.component';
+export * from './forms/input-number/input-number.component';
+export * from './forms/input-date/input-date.component';
+export * from './forms/input-time/input-time.component';
+export * from './forms/checkbox/checkbox.component';
+export * from './forms/form-grid/form-grid.component';
 
 // KPI Section
 export * from './kpi-section/kpi-section.component';

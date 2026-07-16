@@ -1,0 +1,110 @@
+<!-- Modal Fleet -->
+<div class="fixed inset-0 z-[1000] flex items-center justify-center p-7 bg-slate-950/70 backdrop-blur-md" (click)="close.emit()">
+  <div
+    class="w-full max-w-[1120px] max-h-[calc(100vh-56px)] overflow-y-auto border border-slate-700/50 rounded-[28px] bg-gradient-to-b from-[#0b1323]/98 to-[#070e1a]/98 shadow-2xl text-[#e5eefc] flex flex-col"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="timelineFleetModalTitle"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="flex justify-between items-start gap-4 p-5 border-b border-slate-700/30">
+      <div>
+        <span class="inline-block mb-2 text-[#9db8df] text-[11px] uppercase tracking-wider font-semibold">Detalhamento da Timeline</span>
+        <h3 class="m-0 text-2xl font-bold tracking-tight text-white" id="timelineFleetModalTitle">{{ data.title }}</h3>
+        <p class="m-0 text-[#93a4be] text-xs mt-1">{{ data.subtitle }}</p>
+      </div>
+      <button class="w-[38px] h-[38px] border border-slate-700/40 rounded-xl bg-slate-900/80 text-white cursor-pointer text-xl line-height-none flex items-center justify-center hover:bg-slate-800 transition-colors" type="button" aria-label="Fechar modal" (click)="close.emit()">×</button>
+    </div>
+
+    <div class="p-5 flex flex-col gap-5">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="border border-slate-700/30 rounded-2xl bg-slate-900/60 p-4 flex flex-col gap-1" *ngFor="let item of data.summaryCards">
+          <span class="text-xs text-[#93a4be] font-medium">{{ item.label }}</span>
+          <strong class="text-2xl font-extrabold text-white tracking-tight">{{ item.value }}</strong>
+          <small class="text-xs text-[#b8cae7] mt-1 font-medium">{{ item.info }}</small>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr_1fr] gap-4">
+        <section class="border border-slate-700/30 rounded-2xl bg-slate-900/60 p-4 flex flex-col gap-3">
+          <h4 class="m-0 text-sm font-bold text-white uppercase tracking-wider">Financeiro</h4>
+
+          <div class="border border-slate-700/30 rounded-2xl bg-[#0a1322]/70 p-3.5 shadow-[inset_0_0_0_1px_rgba(34,197,94,0.08)] mb-2">
+            <span class="block mb-2 text-xs font-semibold text-[#93a4be] uppercase tracking-wider">Receitas</span>
+            <div class="flex flex-col gap-2">
+              <div class="py-1 border-b border-slate-700/30 flex justify-between items-center last:border-b-0 last:pb-0" *ngFor="let entry of data.revenueEntries">
+                <span class="text-[#e5eefc] text-xs font-medium truncate pr-3">{{ entry.label }}</span>
+                <strong class="text-white text-sm font-semibold whitespace-nowrap">{{ entry.value }}</strong>
+              </div>
+            </div>
+            <div class="flex justify-between items-center border-t border-slate-700/30 pt-2.5 mt-2.5">
+              <span class="text-xs text-[#93a4be] font-medium">Receita total</span>
+              <strong class="text-white text-base font-bold">{{ data.revenueTotal }}</strong>
+            </div>
+          </div>
+
+          <div class="border border-slate-700/30 rounded-2xl bg-[#0a1322]/70 p-3.5 shadow-[inset_0_0_0_1px_rgba(234,179,8,0.08)]">
+            <span class="block mb-2 text-xs font-semibold text-[#93a4be] uppercase tracking-wider">Despesas</span>
+            <div class="flex flex-col gap-2">
+              <div class="py-1 border-b border-slate-700/30 flex justify-between items-center last:border-b-0 last:pb-0" *ngFor="let entry of data.expenseEntries">
+                <span class="text-[#e5eefc] text-xs font-medium truncate pr-3">{{ entry.label }}</span>
+                <strong class="text-white text-sm font-semibold whitespace-nowrap">{{ entry.value }}</strong>
+              </div>
+            </div>
+            <div class="flex justify-between items-center border-t border-slate-700/30 pt-2.5 mt-2.5">
+              <span class="text-xs text-[#93a4be] font-medium">Despesa total</span>
+              <strong class="text-white text-base font-bold">{{ data.expenseTotal }}</strong>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center border-t border-slate-700/30 pt-3 mt-1">
+            <span class="text-xs text-[#93a4be] font-semibold uppercase tracking-wider">Lucro</span>
+            <strong class="text-2xl font-extrabold text-[#22c55e] tracking-tight">{{ data.profit }}</strong>
+          </div>
+        </section>
+
+        <section class="border border-slate-700/30 rounded-2xl bg-slate-900/60 p-4 flex flex-col gap-3">
+          <h4 class="m-0 text-sm font-bold text-white uppercase tracking-wider">Tempo Detalhado</h4>
+          <div class="flex flex-col gap-2">
+            <div class="p-3 border border-slate-700/20 rounded-2xl bg-slate-950/60 flex flex-col gap-0.5" *ngFor="let item of data.detailedTime">
+              <span class="text-[#93a4be] text-xs font-medium">{{ item.label }}</span>
+              <strong class="text-base font-bold text-white">{{ item.value }}</strong>
+              <small class="text-[#8ca0bf] text-[11px] mt-1">{{ item.info }}</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="border border-slate-700/30 rounded-2xl bg-slate-900/60 p-4 flex flex-col gap-3">
+          <h4 class="m-0 text-sm font-bold text-white uppercase tracking-wider">Indicadores</h4>
+          <div class="flex flex-col gap-2">
+            <div class="p-3 border border-slate-700/20 rounded-2xl bg-slate-950/60 flex flex-col gap-0.5" *ngFor="let item of data.indicators">
+              <span class="text-[#93a4be] text-xs font-medium">{{ item.label }}</span>
+              <strong class="text-base font-bold text-white">{{ item.value }}</strong>
+              <small class="text-[#8ca0bf] text-[11px] mt-1">{{ item.info }}</small>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="border border-slate-700/30 rounded-2xl bg-slate-900/60 p-4 flex flex-col gap-4">
+        <div class="flex justify-between items-center border-b border-slate-700/20 pb-2">
+          <h4 class="m-0 text-sm font-bold text-white uppercase tracking-wider">Eventos Que Montam a Timeline</h4>
+          <span class="px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-400/20 text-[#c8dcff] text-[11px] font-bold">{{ data.monthTag }}</span>
+        </div>
+        <div class="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1">
+          <div class="p-3 border border-slate-700/20 rounded-2xl bg-slate-950/60 flex flex-col gap-1.5" *ngFor="let item of data.timelineItems">
+            <div class="flex justify-between items-center text-xs">
+              <div class="flex items-center gap-2 text-white font-semibold">
+                <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" [style.background]="item.color"></span>
+                {{ item.status }}
+              </div>
+              <span class="text-[#93a4be] font-medium">{{ item.period }}</span>
+            </div>
+            <strong class="text-sm font-bold text-white block">{{ item.title }}</strong>
+            <small class="text-[#8ca0bf] text-[11px] block mt-0.5">{{ item.detail }}</small>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

@@ -11,6 +11,7 @@ export interface MenuItem {
   key: MenuKey;
   label: string;
   path: string;
+  icon: string;
 }
 
 const STORAGE_KEY = 'menuEnabledKeys';
@@ -29,12 +30,38 @@ export class MenuConfigService {
     'controle-intencao-viagem',
     'timeline-logistica'
   ];
+
   private readonly allItems: MenuItem[] = [
-    { key: 'rastreamento', label: 'Rastreamento', path: '/rastreamento' },
-    { key: 'torre-controle', label: 'Torre de Controle', path: '/torre-controle' },
-    { key: 'programacao', label: 'Programação', path: '/programacao' },
-    { key: 'controle-intencao-viagem', label: 'Controle de Pré-Carga', path: '/controle-intencao-viagem' },
-    { key: 'timeline-logistica', label: 'Timeline Logística', path: '/timeline-logistica' }
+    {
+      key: 'torre-controle',
+      label: 'Torre de Controle',
+      path: '/torre-controle',
+      icon: 'torre-controle'
+    },
+    {
+      key: 'rastreamento',
+      label: 'Rastreamento',
+      path: '/rastreamento',
+      icon: 'rastreamento'
+    },
+    {
+      key: 'programacao',
+      label: 'Programação',
+      path: '/programacao',
+      icon: 'programacao'
+    },
+    {
+      key: 'controle-intencao-viagem',
+      label: 'Controle de Pré-Carga',
+      path: '/controle-intencao-viagem',
+      icon: 'controle-intencao-viagem'
+    },
+    {
+      key: 'timeline-logistica',
+      label: 'Timeline Logística',
+      path: '/timeline-logistica',
+      icon: 'timeline-logistica'
+    }
   ];
 
   getAllMenuItems(): MenuItem[] {

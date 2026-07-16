@@ -44,6 +44,10 @@
 
 .nav-icon {
   @apply w-5 h-5 shrink-0 transition-all duration-[280ms] ease-[cubic-bezier(0.4,0,0.2,1)];
+
+  & > svg {
+    @apply w-full h-full;
+  }
 }
 
 /* Sidebar Footer */

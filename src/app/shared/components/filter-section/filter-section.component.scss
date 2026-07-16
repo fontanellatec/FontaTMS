@@ -6,7 +6,7 @@
   margin: 16px 0 20px 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
-  overflow: hidden;
+  overflow: visible;
 
   &:hover {
     box-shadow: none;
@@ -108,35 +108,7 @@
         color: var(--text-secondary);
       }
 
-      select,
-      input {
-        background: var(--surface);
-        border: 1.5px solid var(--border);
-        border-radius: 8px;
-        padding: 10px 12px;
-        height: 40px;
-        font-size: 14px;
-        color: var(--text);
-        transition: all 0.2s ease;
 
-        &:focus {
-          outline: none;
-          border-color: var(--brand-primary);
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        &:hover {
-          border-color: var(--brand-primary);
-        }
-
-        &::placeholder {
-          color: var(--text-muted);
-        }
-      }
-
-      select {
-        cursor: pointer;
-      }
     }
   }
 
@@ -164,6 +136,7 @@
       }
     }
   }
+
 }
 
 // Responsive adjustments

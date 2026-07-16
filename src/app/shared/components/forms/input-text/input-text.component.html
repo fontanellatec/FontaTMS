@@ -1,0 +1,26 @@
+<div class="flex flex-col gap-1.5 w-full" [class.dense-mode]="dense">
+  <label *ngIf="label && !dense" class="text-xs font-semibold text-text-secondary select-none">
+    {{ label }}
+  </label>
+
+  <div class="relative w-full">
+    <input
+      type="text"
+      [class.pv-input-sm]="dense"
+      [class.pv-input]="!dense"
+      [class.!border-red-500]="hasError"
+      [class.!ring-red-500]="hasError"
+      [disabled]="disabled"
+      [readonly]="readonly"
+      [placeholder]="placeholder"
+      [value]="value"
+      (input)="onInput($event)"
+      (focus)="focus.emit()"
+      (blur)="onBlur()"
+    />
+  </div>
+
+  <span *ngIf="errorMessage && !dense" class="text-[11px] text-red-500 font-medium">
+    {{ errorMessage }}
+  </span>
+</div>
